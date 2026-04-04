@@ -13,6 +13,10 @@
 // ============================================================
 
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
+import { AuthProvider, useAuth } from './contexts/AuthContext'
+import { ProtectedRoute } from './contexts/ProtectedRoute'
+import { LoginPage } from './modules/auth/LoginPage'
+import { TutorView } from './modules/auth/TutorView'
 import { VaccineDashboard } from './modules/vaccines/VaccineDashboard'
 import { WeekView }          from './modules/agenda/WeekView'
 import { PublicBooking }     from './modules/portal/PublicBooking'
@@ -53,11 +57,20 @@ const icons = {
       <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
     </svg>
   ),
+  logout: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2">
+      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+      <polyline points="16 17 21 12 16 7" />
+      <line x1="21" y1="12" x2="9" y2="12" />
+    </svg>
+  )
 }
 
 // ── Sidebar ───────────────────────────────────────────────────
 function Sidebar() {
   const { pathname } = useLocation()
+  const { signOut, user } = useAuth()
   
   // Extraer unicamente cuantas son inminentes sin trabar UI
   const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
@@ -75,7 +88,7 @@ function Sidebar() {
   ]
 
   return (
-    <aside className="w-52 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 h-screen sticky top-0">
+    <aside className="w-52 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 h-screen sticky top-0 font-sans">
       {/* Logo */}
       <div className="px-4 py-5 border-b border-gray-100">
         <img 
@@ -90,7 +103,7 @@ function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3">
+      <nav className="flex-1 px-2 py-3 overflow-y-auto">
         <p className="text-[9px] uppercase tracking-widest text-gray-400
                       px-2 py-1 mt-1 mb-0.5 font-bold">
           Principal
@@ -102,9 +115,9 @@ function Sidebar() {
               key={item.to}
               to={item.to}
               className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg
-                          text-sm mb-0.5 transition-colors
+                          text-sm mb-0.5 transition-all
                           ${active
-                            ? 'bg-vet-pink/20 text-black font-bold'
+                            ? 'bg-vet-pink text-black font-bold shadow-sm ring-1 ring-vet-rose/10'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-black'
                           }`}
             >
@@ -127,35 +140,31 @@ function Sidebar() {
             </Link>
           )
         })}
-
       </nav>
 
       {/* Footer usuario */}
       <div className="px-3 py-4 border-t border-gray-100 bg-gray-50/50">
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 mb-3">
           <img
             src="/logo.png"
-            alt="Dra. Sofía"
+            alt="Usuario"
             className="w-8 h-8 rounded-full object-cover ring-2 ring-vet-pink flex-shrink-0"
-            onError={(e) => {
-              const t = e.currentTarget
-              t.style.display = 'none'
-              const fallback = t.nextElementSibling as HTMLElement
-              if (fallback) fallback.style.display = 'flex'
-            }}
           />
-          <div
-            className="w-8 h-8 rounded-full bg-vet-pink items-center justify-center
-                       text-black text-xs font-bold ring-2 ring-white flex-shrink-0"
-            style={{ display: 'none' }}
-          >
-            SC
-          </div>
-          <div>
-            <p className="text-black text-xs font-bold">Dra. Sofía Cáceres</p>
-            <p className="text-gray-500 text-[10px] font-medium">Médica Veterinaria</p>
+          <div className="min-w-0 pr-1">
+            <p className="text-black text-xs font-bold truncate">
+              {user?.email === 'scaceresalzamora@gmail.com' ? 'Dra. Sofía Cáceres' : 'Admin'}
+            </p>
+            <p className="text-gray-500 text-[10px] font-medium truncate">{user?.email}</p>
           </div>
         </div>
+        <button 
+          onClick={() => signOut()}
+          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-500 
+                     hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium border border-transparent hover:border-red-100"
+        >
+          {icons.logout}
+          Cerrar Sesión
+        </button>
       </div>
     </aside>
   )
@@ -174,37 +183,68 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   )
 }
 
-// Eliminado el placeholder ya que usamos la vista de PatientList real
 // ── App principal ─────────────────────────────────────────────
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* Portal público — sin sidebar */}
-        <Route path="/reserva" element={<PublicBooking />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rutas Públicas */}
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/reserva" element={<PublicBooking />} />
 
-        {/* App interna — con sidebar */}
-        <Route
-          path="/pacientes"
-          element={<AppLayout><PatientList /></AppLayout>}
-        />
-        <Route
-          path="/pacientes/:id"
-          element={<AppLayout><PatientDetail /></AppLayout>}
-        />
-        <Route
-          path="/vacunas"
-          element={<AppLayout><VaccineDashboard /></AppLayout>}
-        />
-        <Route
-          path="/agenda"
-          element={<AppLayout><WeekView /></AppLayout>}
-        />
+          {/* Rutas Protegidas (Solo Admin) */}
+          <Route
+            path="/pacientes"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><PatientList /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/pacientes/:id"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><PatientDetail /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vacunas"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><VaccineDashboard /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/agenda"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><WeekView /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
 
-        {/* Redirección por defecto */}
-        <Route path="/" element={<Navigate to="/vacunas" replace />} />
-        <Route path="*" element={<Navigate to="/vacunas" replace />} />
-      </Routes>
-    </BrowserRouter>
+          {/* Ruta del Tutor */}
+          <Route
+            path="/tutor"
+            element={
+              <ProtectedRoute>
+                <TutorView />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Redirección por defecto */}
+          <Route 
+             path="/" 
+             element={<ProtectedRoute requireAdmin><Navigate to="/vacunas" replace /></ProtectedRoute>} 
+          />
+          <Route path="*" element={<Navigate to="/reserva" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

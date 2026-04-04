@@ -17,7 +17,9 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import { generateId } from '../../lib/utils'
 import type { AppointmentService, PublicBookingFormData } from '../../types'
 
@@ -99,14 +101,15 @@ const TIME_SLOTS = [
 type Step = 1 | 2 | 3 | 4 | 'confirmed'
 
 export function PublicBooking() {
+  const { user } = useAuth()
   const [step, setStep]             = useState<Step>(1)
   const [service, setService]       = useState<AppointmentService | null>(null)
   const [date, setDate]             = useState<string | null>(null)
   const [time, setTime]             = useState<string | null>(null)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
   const [form, setForm]             = useState<PublicBookingFormData>({
-    guardian_name:  '',
-    guardian_email: '',
+    guardian_name:  user?.user_metadata?.full_name || '',
+    guardian_email: user?.email || '',
     guardian_phone: '',
     pet_name:       '',
     service:        'Consulta General',
@@ -353,82 +356,100 @@ export function PublicBooking() {
             </span>
           </div>
 
-          <form onSubmit={handleConfirm} className="space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <Field label="Tu nombre completo">
-                <input
-                  className={inputCls}
-                  value={form.guardian_name}
-                  onChange={(e) => setField('guardian_name', e.target.value)}
-                  placeholder="Ana García López"
-                  required
-                />
-              </Field>
-              <Field label="Nombre de tu mascota">
-                <input
-                  className={inputCls}
-                  value={form.pet_name}
-                  onChange={(e) => setField('pet_name', e.target.value)}
-                  placeholder="Firulais"
-                  required
-                />
-              </Field>
-              <Field label="Correo electrónico">
-                <input
-                  type="email"
-                  className={inputCls}
-                  value={form.guardian_email}
-                  onChange={(e) => setField('guardian_email', e.target.value)}
-                  placeholder="correo@ejemplo.cl"
-                  required
-                />
-              </Field>
-              <Field label="Teléfono (opcional)">
-                <input
-                  className={inputCls}
-                  value={form.guardian_phone}
-                  onChange={(e) => setField('guardian_phone', e.target.value)}
-                  placeholder="+56 9 1234 5678"
-                />
-              </Field>
-            </div>
-
-            {service === 'Telemedicina' && (
-              <div className="flex items-start gap-2 px-3 py-2 bg-indigo-50
-                              border border-indigo-100 rounded-lg text-xs text-indigo-700">
-                <span>💻</span>
-                Recibirás un enlace de Google Meet por correo. Asegúrate de
-                ingresar un correo válido.
+          {!user ? (
+            <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-8 text-center">
+              <div className="w-16 h-16 bg-vet-rose/5 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                🔒
               </div>
-            )}
-
-            <div className="text-xs text-gray-400">
-              Tus datos se usan únicamente para gestionar tu cita. Cumplimos
-              con la Ley 19.628 de Protección de Datos Personales (Chile).
-            </div>
-
-            {fieldError && (
-              <p className="text-xs text-red-600">{fieldError}</p>
-            )}
-
-            <div className="flex gap-2 pt-1">
-              <BackButton onClick={() => setStep(3)} />
-              <button
-                type="submit"
-                disabled={saving}
-                className="flex-1 py-2.5 bg-vet-rose text-white text-sm
-                           font-medium rounded-lg hover:bg-vet-dark
-                           disabled:opacity-50 transition-colors
-                           flex items-center justify-center gap-2"
+              <h3 className="text-sm font-bold text-gray-900 mb-2">Inicia sesi&oacute;n para continuar</h3>
+              <p className="text-xs text-gray-500 mb-6 max-w-[200px] mx-auto">
+                Para confirmar tu reserva y enviarte el recordatorio, necesitamos que tengas una cuenta.
+              </p>
+              <Link
+                to="/login"
+                state={{ from: { pathname: '/reserva' } }}
+                className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all"
               >
-                {saving && (
-                  <div className="w-4 h-4 border-2 border-white
-                                  border-t-transparent rounded-full animate-spin" />
-                )}
-                Confirmar reserva
-              </button>
+                Cerrar sesión e Identificarme
+              </Link>
             </div>
-          </form>
+          ) : (
+            <form onSubmit={handleConfirm} className="space-y-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <Field label="Tu nombre completo">
+                  <input
+                    className={inputCls}
+                    value={form.guardian_name}
+                    onChange={(e) => setField('guardian_name', e.target.value)}
+                    placeholder="Ana García López"
+                    required
+                  />
+                </Field>
+                <Field label="Nombre de tu mascota">
+                  <input
+                    className={inputCls}
+                    value={form.pet_name}
+                    onChange={(e) => setField('pet_name', e.target.value)}
+                    placeholder="Firulais"
+                    required
+                  />
+                </Field>
+                <Field label="Correo electrónico">
+                  <input
+                    type="email"
+                    readOnly
+                    className={`${inputCls} bg-gray-50 text-gray-500 cursor-not-allowed`}
+                    value={form.guardian_email}
+                    required
+                  />
+                </Field>
+                <Field label="Teléfono (opcional)">
+                  <input
+                    className={inputCls}
+                    value={form.guardian_phone}
+                    onChange={(e) => setField('guardian_phone', e.target.value)}
+                    placeholder="+56 9 1234 5678"
+                  />
+                </Field>
+              </div>
+
+              {service === 'Telemedicina' && (
+                <div className="flex items-start gap-2 px-3 py-2 bg-indigo-50
+                                border border-indigo-100 rounded-lg text-xs text-indigo-700">
+                  <span>💻</span>
+                  Recibirás un enlace de Google Meet por correo. Asegúrate de
+                  ingresar un correo válido.
+                </div>
+              )}
+
+              <div className="text-xs text-gray-400">
+                Tus datos se usan únicamente para gestionar tu cita. Cumplimos
+                con la Ley 19.628 de Protección de Datos Personales (Chile).
+              </div>
+
+              {fieldError && (
+                <p className="text-xs text-red-600">{fieldError}</p>
+              )}
+
+              <div className="flex gap-2 pt-1">
+                <BackButton onClick={() => setStep(3)} />
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 py-2.5 bg-vet-rose text-white text-sm
+                             font-medium rounded-lg hover:bg-vet-dark
+                             disabled:opacity-50 transition-colors
+                             flex items-center justify-center gap-2"
+                >
+                  {saving && (
+                    <div className="w-4 h-4 border-2 border-white
+                                    border-t-transparent rounded-full animate-spin" />
+                  )}
+                  Confirmar reserva
+                </button>
+              </div>
+            </form>
+          )}
         </section>
       )}
     </PortalShell>
