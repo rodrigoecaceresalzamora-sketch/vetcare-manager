@@ -45,8 +45,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRole(null)
       return
     }
-    // Lógica de Rol: Admin si el email coincide, Tutor para todo lo demás
-    const userRole: Role = user.email === 'scaceresalzamora@gmail.com' ? 'admin' : 'tutor'
+    const userEmail = user.email?.toLowerCase()
+    const userRole: Role = userEmail === 'scaceresalzamora@gmail.com' ? 'admin' : 'tutor'
     setRole(userRole)
   }
 

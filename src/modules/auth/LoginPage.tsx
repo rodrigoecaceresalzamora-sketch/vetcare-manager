@@ -29,7 +29,8 @@ export function LoginPage() {
         if (err) throw err
         
         // Redireccionar según el rol (el AuthContext se encargará)
-        navigate(email === 'scaceresalzamora@gmail.com' ? from : '/tutor')
+        const isAppAdmin = email.toLowerCase() === 'scaceresalzamora@gmail.com'
+        navigate(isAppAdmin ? from : '/tutor')
       } else {
         // --- REGISTRARSE ---
         const { error: err } = await supabase.auth.signUp({
@@ -104,7 +105,7 @@ export function LoginPage() {
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full pl-4 pr-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-4 focus:ring-vet-rose/10 focus:border-vet-rose transition-all outline-none"
-                    placeholder="Dra. Sof&iacute;a C&aacute;ceres"
+                    placeholder="Juan P&eacute;rez"
                   />
                 </div>
               </div>
