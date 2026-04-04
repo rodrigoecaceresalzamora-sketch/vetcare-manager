@@ -1,0 +1,173 @@
+// ============================================================
+// VetCare Manager — PatientForm.tsx
+// Modal para crear Tutor y su Mascota
+// ============================================================
+
+import { useState, useMemo } from 'react'
+import type { Species, Sex } from '../../types'
+
+interface Props {
+  onClose: () => void
+  onSaved: (name: string) => void
+  onSavePatient: (data: any) => Promise<{ error: string | null }>
+}
+
+function calculateAgeAndMonths(dateString: string) {
+  if (!dateString) return ''
+  const dob = new Date(dateString)
+  if (isNaN(dob.getTime())) return ''
+  
+  const today = new Date()
+  let years = today.getFullYear() - dob.getFullYear()
+  let months = today.getMonth() - dob.getMonth()
+  
+  if (months < 0 || (months === 0 && today.getDate() < dob.getDate())) {
+    years--
+    months += 12
+  }
+  
+  if (years === 0 && months === 0) return 'Menos de un mes'
+  return `${years > 0 ? years + ' años ' : ''}${months > 0 ? months + ' meses' : ''}`.trim()
+}
+
+export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
+  // Tutor
+  const [gName, setGName] = useState('')
+  const [gRut, setGRut] = useState('')
+  const [gPhone, setGPhone] = useState('')
+  const [gEmail, setGEmail] = useState('')
+
+  // Paciente
+  const [pName, setPName] = useState('')
+  const [pSpecies, setPSpecies] = useState<Species>('Perro')
+  const [pBreed, setPBreed] = useState('')
+  const [pDob, setPDob] = useState(new Date().toISOString().split('T')[0])
+  const [pSex, setPSex] = useState<Sex>('No determinado')
+  const [pAdopted, setPAdopted] = useState('')
+
+  const [saving, setSaving] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+
+  const ageText = useMemo(() => calculateAgeAndMonths(pDob), [pDob])
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setErrorMsg('')
+    setSaving(true)
+
+    const res = await onSavePatient({
+      guardian_name: gName,
+      guardian_rut: gRut,
+      guardian_phone: gPhone,
+      guardian_email: gEmail,
+      name: pName || 'Sin Nombre',
+      species: pSpecies,
+      breed: pBreed || 'Desconocido',
+      date_of_birth: pDob || null,
+      sex: pSex,
+      adopted_since: pAdopted || undefined
+    })
+
+    setSaving(false)
+    if (res.error) {
+      setErrorMsg(res.error)
+    } else {
+      onSaved(pName)
+    }
+  }
+
+  const inputCls = "w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-vet-rose/20 focus:border-vet-rose"
+
+  return (
+    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-y-auto max-h-[90vh]">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-pink-100">
+          <h2 className="text-base font-medium text-gray-900">Registrar Nuevo Paciente</h2>
+          <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 text-sm">✕</button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-5 space-y-6">
+          {/* Seccion Tutor */}
+          <div>
+            <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <span className="text-vet-rose">1.</span> Datos del Tutor
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Nombre completo
+                <input className={inputCls} placeholder="Ej: Pedro Pérez" value={gName} onChange={e => setGName(e.target.value)} />
+              </label>
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">RUT
+                <input className={inputCls} placeholder="12.345.678-9" value={gRut} onChange={e => setGRut(e.target.value)} />
+              </label>
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Teléfono
+                <input className={inputCls} placeholder="+56 9 1234 5678" value={gPhone} onChange={e => setGPhone(e.target.value)} />
+              </label>
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Email (Opcional)
+                <input type="email" className={inputCls} placeholder="correo@ejemplo.com" value={gEmail} onChange={e => setGEmail(e.target.value)} />
+              </label>
+            </div>
+          </div>
+
+          <hr className="border-pink-50" />
+
+          {/* Seccion Paciente */}
+          <div>
+            <h3 className="text-sm font-bold text-gray-700 mb-3 flex items-center gap-2">
+              <span className="text-vet-rose">2.</span> Datos del Paciente (Mascota)
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Nombre
+                <input className={inputCls} placeholder="Ej: Firulais" value={pName} onChange={e => setPName(e.target.value)} />
+              </label>
+              
+              <div className="grid grid-cols-2 gap-2">
+                <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Especie
+                  <select className={inputCls} value={pSpecies} onChange={e => setPSpecies(e.target.value as Species)}>
+                    <option value="Perro">Perro</option>
+                    <option value="Gato">Gato</option>
+                    <option value="Conejo">Conejo</option>
+                    <option value="Ave">Ave</option>
+                    <option value="Reptil">Reptil</option>
+                    <option value="Otro">Otro</option>
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Sexo
+                  <select className={inputCls} value={pSex} onChange={e => setPSex(e.target.value as Sex)}>
+                    <option value="Macho">Macho</option>
+                    <option value="Hembra">Hembra</option>
+                    <option value="No determinado">N/D</option>
+                  </select>
+                </label>
+              </div>
+
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Raza
+                <input className={inputCls} placeholder="Ej: Poodle, Mestizo..." value={pBreed} onChange={e => setPBreed(e.target.value)} />
+              </label>
+              
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Adoptado desde (Opcional)
+                <input type="date" className={inputCls} value={pAdopted} onChange={e => setPAdopted(e.target.value)} max={new Date().toISOString().split('T')[0]} />
+              </label>
+
+              <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium md:col-span-2">
+                <div className="flex justify-between items-center">
+                  <span>Fecha de Nacimiento</span>
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md font-bold">Edad: {ageText || '?'}</span>
+                </div>
+                <input type="date" className={inputCls} value={pDob} onChange={e => setPDob(e.target.value)} max={new Date().toISOString().split('T')[0]} />
+              </label>
+            </div>
+          </div>
+
+          {errorMsg && <p className="text-xs text-red-600">{errorMsg}</p>}
+
+          <div className="flex justify-end gap-2 pt-1 border-t border-pink-100 mt-4">
+            <button type="button" onClick={onClose} className="px-4 py-2 text-sm border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-700">Cancelar</button>
+            <button type="submit" disabled={saving} className="px-4 py-2 text-sm font-medium bg-vet-rose text-white rounded-lg hover:bg-vet-dark disabled:opacity-50 flex items-center gap-2">
+              {saving ? 'Guardando...' : 'Guardar Paciente'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
