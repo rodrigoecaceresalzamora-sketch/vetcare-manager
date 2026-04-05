@@ -56,6 +56,17 @@ export function PatientDetail() {
         <span>←</span> Volver a Pacientes
       </button>
 
+      {/* ALERTA REACTIVO */}
+      {patient.is_reactive && (
+        <div className="bg-red-600 text-white px-6 py-3 rounded-2xl flex items-center gap-3 shadow-lg animate-pulse border-2 border-red-400">
+          <span className="text-2xl">⚠️</span>
+          <div>
+            <h2 className="text-lg font-black uppercase tracking-tighter italic">¡PACIENTE REACTIVO!</h2>
+            <p className="text-xs font-bold opacity-90 leading-tight">Manejar con precaución extrema. Se recomienda el uso de bozal o protocolos de seguridad.</p>
+          </div>
+        </div>
+      )}
+
       {/* HEADER DE LA FICHA (Read-Only) */}
       <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6 flex flex-col md:flex-row gap-6">
         <div className="w-20 h-20 bg-pink-50 border border-pink-100 rounded-full flex items-center justify-center text-4xl flex-shrink-0 mx-auto md:mx-0">
@@ -66,6 +77,11 @@ export function PatientDetail() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
               {patient.name}
+              {patient.is_reactive && (
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white shadow-sm">
+                  🚩 REACTIVO
+                </span>
+              )}
               <span className={`text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full ${patient.status === 'activo' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
                 {patient.status}
               </span>

@@ -31,6 +31,7 @@ export interface Patient {
   microchip?: string
   status: PatientStatus
   photo_url?: string
+  is_reactive?: boolean
   adopted_since?: string
   created_at?: string
   updated_at?: string

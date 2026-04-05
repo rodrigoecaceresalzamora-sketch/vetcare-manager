@@ -44,6 +44,7 @@ export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
   const [pDob, setPDob] = useState(new Date().toISOString().split('T')[0])
   const [pSex, setPSex] = useState<Sex>('No determinado')
   const [pAdopted, setPAdopted] = useState('')
+  const [pIsReactive, setPIsReactive] = useState(false)
 
   const [saving, setSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -60,12 +61,10 @@ export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
       guardian_rut: gRut,
       guardian_phone: gPhone,
       guardian_email: gEmail,
-      name: pName || 'Sin Nombre',
-      species: pSpecies,
-      breed: pBreed || 'Desconocido',
       date_of_birth: pDob || null,
       sex: pSex,
-      adopted_since: pAdopted || undefined
+      adopted_since: pAdopted || undefined,
+      is_reactive: pIsReactive
     })
 
     setSaving(false)
@@ -155,6 +154,29 @@ export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
                 </div>
                 <input type="date" className={inputCls} value={pDob} onChange={e => setPDob(e.target.value)} max={new Date().toISOString().split('T')[0]} />
               </label>
+
+              {/* Botón Reactivo */}
+              <div className="md:col-span-2">
+                <button
+                  type="button"
+                  onClick={() => setPIsReactive(!pIsReactive)}
+                  className={`w-full flex items-center justify-between p-3 rounded-xl border transition-all 
+                              ${pIsReactive 
+                                ? 'bg-red-50 border-red-200 text-red-700' 
+                                : 'bg-gray-50 border-gray-100 text-gray-500 hover:bg-gray-100'}`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">{pIsReactive ? '🚩' : '🐾'}</span>
+                    <div className="text-left">
+                      <p className="text-sm font-bold leading-none">¿Paciente Reactivo / Agresivo?</p>
+                      <p className="text-[10px] mt-0.5 opacity-80">Activa esto para alertar al personal médico</p>
+                    </div>
+                  </div>
+                  <div className={`w-10 h-5 rounded-full relative transition-colors ${pIsReactive ? 'bg-red-500' : 'bg-gray-300'}`}>
+                    <div className={`absolute top-0.5 left-0.5 w-4 h-4 bg-white rounded-full transition-transform ${pIsReactive ? 'translate-x-5' : ''}`} />
+                  </div>
+                </button>
+              </div>
             </div>
           </div>
 

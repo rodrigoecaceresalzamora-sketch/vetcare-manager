@@ -21,6 +21,7 @@ export interface NewPatientInput {
   date_of_birth: string
   sex: Sex
   weight_kg?: number
+  is_reactive?: boolean
 }
 
 export function usePatients() {
@@ -77,6 +78,7 @@ export function usePatients() {
         date_of_birth: input.date_of_birth,
         sex: input.sex,
         weight_kg: input.weight_kg || 0,
+        is_reactive: input.is_reactive || false,
         status: 'activo'
       })
 

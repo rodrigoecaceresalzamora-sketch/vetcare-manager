@@ -77,6 +77,11 @@ export function PatientList() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-base font-bold text-gray-900">
                     {p.name}
+                    {p.is_reactive && (
+                      <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-red-600 text-white animate-pulse shadow-sm">
+                        🚩 REACTIVO
+                      </span>
+                    )}
                     <span className={`ml-2 text-xs font-normal px-2 py-0.5 rounded-full border ${p.sex === 'Macho' ? 'bg-blue-50 text-blue-700 border-blue-200' : p.sex === 'Hembra' ? 'bg-pink-50 text-pink-700 border-pink-200' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
                       {p.sex === 'No determinado' ? 'N/D' : p.sex}
                     </span>
