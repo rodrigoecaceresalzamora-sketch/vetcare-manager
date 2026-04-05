@@ -181,7 +181,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
         {!isCollapsed ? (
           <div className="flex items-center gap-2.5 mb-4 px-1">
             <img
-              src="/logo.png"
+              src={user?.user_metadata?.avatar_url || "/logo.png"}
               alt="Usuario"
               className="w-8 h-8 rounded-full object-cover ring-2 ring-vet-pink flex-shrink-0"
             />
@@ -195,7 +195,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
         ) : (
           <div className="flex justify-center mb-4">
                <img
-                src="/logo.png"
+                src={user?.user_metadata?.avatar_url || "/logo.png"}
                 alt="Usuario"
                 className="w-8 h-8 rounded-full object-cover ring-2 ring-vet-pink"
               />

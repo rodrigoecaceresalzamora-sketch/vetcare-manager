@@ -100,6 +100,12 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     if (!form.pet_name)       return setFieldError('Nombre de la mascota requerido')
     if (!form.scheduled_at)   return setFieldError('Fecha y hora requerida')
 
+    const date = new Date(form.scheduled_at)
+    const hours = date.getHours()
+    if (hours < 9 || hours > 18) {
+      return setFieldError('El horario de atención es de 09:00 a 18:00. Por favor, selecciona una hora válida.')
+    }
+    
     setSaving(true)
 
     const payload = {
