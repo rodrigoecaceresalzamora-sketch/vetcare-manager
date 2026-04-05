@@ -56,6 +56,11 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   const [showPatientForm, setShowPatientForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [fieldError, setFieldError] = useState('')
+  const [toast, setToast]       = useState<string | null>(null)
+  const showToast = (msg: string) => {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
   const [searchTerm, setSearchTerm] = useState(editingAppointment?.pet_name ?? '')
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [dbServices, setDbServices] = useState<Service[]>([])
@@ -171,7 +176,12 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
 
   return (
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden">
+      <div className="bg-white rounded-2xl w-full max-w-lg shadow-xl overflow-hidden relative">
+        {toast && (
+          <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[60] bg-gray-900 text-white text-xs px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+            {toast}
+          </div>
+        )}
 
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4
@@ -414,10 +424,73 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                 className="px-4 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700"
                 onClick={async () => {
                   setSaving(true)
-                  const { error } = await supabase.from('appointments').update({ status: 'confirmada' }).eq('id', editingAppointment.id)
-                  if (!error) onSaved(form.pet_name)
-                  setSaving(false)
-                  onClose()
+                  try {
+                    // 1. Verificar/Crear Tutor
+                    let gId = ''
+                    const { data: existingG } = await supabase
+                      .from('guardians')
+                      .select('id')
+                      .or(`email.eq."${form.guardian_email}",rut.eq."${(form as any).guardian_rut}"`)
+                      .maybeSingle()
+
+                    if (existingG) {
+                      gId = existingG.id
+                    } else {
+                      const { data: newG, error: gErr } = await supabase
+                        .from('guardians')
+                        .insert({
+                          name:  form.guardian_name,
+                          email: form.guardian_email,
+                          phone: form.guardian_phone,
+                          rut:   (form as any).guardian_rut
+                        })
+                        .select()
+                        .single()
+                      if (gErr) throw gErr
+                      gId = newG.id
+                    }
+
+                    // 2. Verificar/Crear Paciente
+                    const { data: existingP } = await supabase
+                      .from('patients')
+                      .select('id')
+                      .match({ guardian_id: gId, name: form.pet_name })
+                      .maybeSingle()
+
+                    if (!existingP) {
+                      const { error: pErr } = await supabase
+                        .from('patients')
+                        .insert({
+                          guardian_id: gId,
+                          name: form.pet_name,
+                          species: 'Otro',
+                          sex: 'No determinado',
+                          breed: 'Desconocida',
+                          weight_kg: 0,
+                          status: 'activo'
+                        })
+                      if (pErr) throw pErr
+                    }
+
+                    // 3. Confirmar Cita
+                    const { error } = await supabase
+                      .from('appointments')
+                      .update({ 
+                        status: 'confirmada',
+                        guardian_rut: (form as any).guardian_rut
+                      })
+                      .eq('id', editingAppointment.id)
+                    
+                    if (!error) {
+                      showToast('✅ Cita confirmada y paciente sincronizado automáticamente')
+                      onSaved(form.pet_name)
+                    }
+                  } catch (err: any) {
+                    setFieldError(err.message)
+                  } finally {
+                    setSaving(false)
+                    onClose()
+                  }
                 }}
               >
                 Confirmar

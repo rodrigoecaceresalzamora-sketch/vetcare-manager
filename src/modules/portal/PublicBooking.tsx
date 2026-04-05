@@ -82,6 +82,7 @@ export function PublicBooking() {
     scheduled_at:   '',
     is_home_visit:  false,
     address:        '',
+    guardian_rut:   '',
   })
   const [saving, setSaving]       = useState(false)
   const [fieldError, setFieldError] = useState('')
@@ -133,6 +134,7 @@ export function PublicBooking() {
       guardian_name:    form.guardian_name,
       guardian_email:   form.guardian_email,
       guardian_phone:   form.guardian_phone,
+      guardian_rut:     form.guardian_rut,
       pet_name:         form.pet_name,
       service:          service.name,
       scheduled_at:     scheduledAt,
@@ -295,6 +297,9 @@ export function PublicBooking() {
                 </Field>
                 <Field label="Teléfono">
                   <input className={inputCls} value={form.guardian_phone} onChange={(e) => setField('guardian_phone', e.target.value)} placeholder="+56 9..." />
+                </Field>
+                <Field label="RUT (Opcional)">
+                  <input className={inputCls} value={form.guardian_rut} onChange={(e) => setField('guardian_rut', e.target.value)} placeholder="12.345.678-9" />
                 </Field>
               </div>
 

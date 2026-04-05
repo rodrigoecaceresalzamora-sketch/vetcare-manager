@@ -140,6 +140,7 @@ export interface PublicBookingFormData {
   scheduled_at: string
   is_home_visit: boolean
   address?: string
+  guardian_rut?: string
 }
 
 // ── ALERTA DE VACUNA (derivado) ───────────────────────────────
