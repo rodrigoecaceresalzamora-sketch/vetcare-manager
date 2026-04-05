@@ -290,6 +290,9 @@ export function PublicBooking() {
                 <Field label="Nombre mascota">
                   <input className={inputCls} value={form.pet_name} onChange={(e) => setField('pet_name', e.target.value)} required />
                 </Field>
+                <Field label="Correo electrónico">
+                  <input type="email" className={inputCls} value={form.guardian_email} onChange={(e) => setField('guardian_email', e.target.value)} placeholder="tu@email.com" required />
+                </Field>
                 <Field label="Teléfono">
                   <input className={inputCls} value={form.guardian_phone} onChange={(e) => setField('guardian_phone', e.target.value)} placeholder="+56 9..." />
                 </Field>
@@ -298,7 +301,12 @@ export function PublicBooking() {
               <div className="py-2 border-t border-pink-50 text-left">
                 <label className="flex items-center gap-3 cursor-pointer">
                   <input type="checkbox" checked={form.is_home_visit} onChange={(e) => setField('is_home_visit', e.target.checked)} />
-                  <span className="text-sm font-medium text-gray-700">🏠 ¿Es atención a domicilio?</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium text-gray-700">🏠 ¿Es atención a domicilio?</span>
+                    <span className="text-[10px] text-vet-rose font-bold uppercase tracking-tight">
+                      * Se agregarán cargos de transporte / domicilio a convenir
+                    </span>
+                  </div>
                 </label>
               </div>
 

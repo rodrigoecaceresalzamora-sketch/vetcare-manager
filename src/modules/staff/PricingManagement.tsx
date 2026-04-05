@@ -36,7 +36,8 @@ export function PricingManagement() {
       .update({
         price: service.price,
         duration_minutes: service.duration_minutes,
-        description: service.description
+        description: service.description,
+        icon: service.icon
       })
       .eq('id', service.id)
 
@@ -86,8 +87,20 @@ export function PricingManagement() {
               <div className="p-5">
                 <div className="flex justify-between items-start mb-4">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${service.bg} border ${service.border} flex items-center justify-center text-lg`}>
-                      {service.icon}
+                    <div className={`w-10 h-10 rounded-xl ${service.bg} border ${service.border} flex items-center justify-center`}>
+                      {editingId === service.id ? (
+                        <input 
+                          className="w-full h-full bg-transparent text-center focus:outline-none placeholder-gray-300"
+                          value={service.icon || ''}
+                          placeholder="🩺"
+                          onChange={(e) => {
+                            const val = e.target.value
+                            setServices(services.map(s => s.id === service.id ? {...s, icon: val} : s))
+                          }}
+                        />
+                      ) : (
+                        <span className="text-lg">{service.icon || '🩺'}</span>
+                      )}
                     </div>
                     <div>
                       <h3 className="font-bold text-gray-900">{service.name}</h3>
