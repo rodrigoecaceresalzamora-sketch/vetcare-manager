@@ -24,7 +24,7 @@ import { PublicBooking }     from './modules/portal/PublicBooking'
 import { PatientList }       from './modules/patients/PatientList'
 import { PatientDetail }     from './modules/patients/PatientDetail'
 import { StaffManagement }   from './modules/staff/StaffManagement'
-import { PricingManagement } from './modules/staff/PricingManagement.tsx'
+import { PricingManagement } from './modules/staff/PricingManagement'
 import { useVaccineAlerts }  from './modules/vaccines/useVaccineAlerts'
 import { getGravatarUrl }    from './lib/utils'
 
