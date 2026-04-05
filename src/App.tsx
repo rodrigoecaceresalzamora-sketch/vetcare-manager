@@ -106,7 +106,6 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
   const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
 
   const allNavItems = [
-    { to: '/precios',   icon: icons.globe,    label: 'Servicios' },
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
     { 
       to: '/vacunas',   
@@ -116,7 +115,8 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
       urgentBadge: urgentAlerts.length > 0 ? String(urgentAlerts.length) : undefined
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
-    { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
+    { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
+    { to: '/precios',   icon: icons.staff,    label: 'Servicios', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
