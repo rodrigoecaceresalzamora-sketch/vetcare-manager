@@ -120,7 +120,11 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
   ]
 
   const navItems = allNavItems.filter(item => {
-    if (item.adminOnly && role !== 'admin') return false
+    if (item.adminOnly) {
+      // Bypaseamos el rol si es el correo principal de la Dra. Sofia
+      if (user?.email === 'scaceresalzamora@gmail.com') return true
+      return role === 'admin'
+    }
     return true
   })
 
@@ -244,9 +248,10 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
 // ── Mobile Navigation ───────────────────────────────────────────
 function MobileNav() {
   const { pathname } = useLocation()
+  const { user, role } = useAuth()
   const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
 
-  const navItems = [
+  const allNavItems = [
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
     { 
       to: '/vacunas',   
@@ -255,7 +260,17 @@ function MobileNav() {
       hasAlert: urgentAlerts.length > 0 || upcomingAlerts.length > 0
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
+    { to: '/precios',   icon: icons.pricing,  label: 'Precios', adminOnly: true },
+    { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
   ]
+
+  const navItems = allNavItems.filter(item => {
+    if (item.adminOnly) {
+      if (user?.email === 'scaceresalzamora@gmail.com') return true
+      return role === 'admin'
+    }
+    return true
+  })
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 flex items-center justify-around md:hidden z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-2">
