@@ -12,6 +12,7 @@
 //   /reserva    → Módulo 4: Portal de agendamiento público
 // ============================================================
 
+import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './contexts/ProtectedRoute'
@@ -64,19 +65,30 @@ const icons = {
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
+  ),
+  chevronLeft: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2.5">
+      <polyline points="15 18 9 12 15 6" />
+    </svg>
+  ),
+  chevronRight: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2.5">
+      <polyline points="9 18 15 12 9 6" />
+    </svg>
   )
 }
 
 // ── Sidebar ───────────────────────────────────────────────────
-function Sidebar() {
+function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) {
   const { pathname } = useLocation()
   const { signOut, user } = useAuth()
   
-  // Extraer unicamente cuantas son inminentes sin trabar UI
   const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
 
   const navItems = [
-    { to: '/pacientes', icon: icons.patients, label: 'Pacientes', section: 'Principal' },
+    { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
     { 
       to: '/vacunas',   
       icon: icons.vaccines, 
@@ -88,51 +100,73 @@ function Sidebar() {
   ]
 
   return (
-    <aside className="w-52 bg-white border-r border-gray-100 flex flex-col flex-shrink-0 h-screen sticky top-0 font-sans">
+    <aside className={`
+      ${isCollapsed ? 'w-16' : 'w-52'} 
+      bg-white border-r border-gray-100 flex flex-col flex-shrink-0 h-screen sticky top-0 font-sans transition-all duration-300 
+      hidden md:flex z-40
+    `}>
+      {/* Botón de Colapso */}
+      <button 
+        onClick={onToggle}
+        className="absolute -right-3 top-20 w-6 h-6 bg-white border border-gray-100 rounded-full flex items-center justify-center shadow-sm text-gray-400 hover:text-vet-rose transition-colors z-50 border-pink-100"
+      >
+        {isCollapsed ? icons.chevronRight : icons.chevronLeft}
+      </button>
+
       {/* Logo */}
-      <div className="px-4 py-5 border-b border-gray-100">
+      <div className={`px-4 py-6 border-b border-gray-100 flex flex-col ${isCollapsed ? 'items-center' : ''}`}>
         <img 
           src="/logo.png" 
           alt="VetCare Logo" 
-          className="w-16 h-16 object-cover rounded-xl mb-2 shadow-sm border border-pink-100" 
+          className={`${isCollapsed ? 'w-8 h-8' : 'w-12 h-12'} transition-all object-cover rounded-xl mb-3 shadow-sm border border-pink-100`} 
         />
-        <h1 className="text-black text-sm font-bold leading-tight uppercase tracking-tight">
-          VetCare<br/>Manager
-        </h1>
-        <p className="text-gray-500 text-xs mt-0.5">Clínica Veterinaria</p>
+        {!isCollapsed && (
+          <>
+            <h1 className="text-black text-sm font-bold leading-tight uppercase tracking-tight">
+              VetCare<br/>Manager
+            </h1>
+            <p className="text-gray-500 text-[10px] mt-0.5">Clínica Veterinaria</p>
+          </>
+        )}
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 px-2 py-3 overflow-y-auto">
-        <p className="text-[9px] uppercase tracking-widest text-gray-400
-                      px-2 py-1 mt-1 mb-0.5 font-bold">
-          Principal
-        </p>
+      <nav className="flex-1 px-2 py-6 overflow-y-auto overflow-x-hidden">
+        {!isCollapsed && (
+          <p className="text-[9px] uppercase tracking-widest text-gray-400
+                        px-2 py-1 mt-1 mb-2 font-bold">
+            Principal
+          </p>
+        )}
         {navItems.map((item) => {
           const active = pathname === item.to || pathname.startsWith(item.to + '/')
           return (
             <Link
               key={item.to}
               to={item.to}
-              className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg
-                          text-sm mb-0.5 transition-all
+              title={isCollapsed ? item.label : ''}
+              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl
+                          text-sm mb-1 transition-all
                           ${active
                             ? 'bg-vet-pink text-black font-bold shadow-sm ring-1 ring-vet-rose/10'
                             : 'text-gray-600 hover:bg-gray-50 hover:text-black'
-                          }`}
+                          }
+                          ${isCollapsed ? 'justify-center px-0' : ''}`}
             >
-              {item.icon}
-              <span className="flex-1">{item.label}</span>
-              <div className="flex items-center gap-1">
+              <div className={`${active ? 'text-black' : 'text-gray-400'}`}>
+                {item.icon}
+              </div>
+              {!isCollapsed && <span className="flex-1 whitespace-nowrap">{item.label}</span>}
+              <div className={`flex items-center gap-1 ${isCollapsed ? 'absolute top-1 -right-1 scale-75' : ''}`}>
                 {item.urgentBadge && (
                   <span className="bg-red-500 text-white text-[10px]
-                                   px-1.5 py-0.5 rounded-full font-bold" title="Urgentes o vencidas">
+                                   px-1.5 py-0.5 rounded-full font-bold" title="Urgentes">
                     {item.urgentBadge}
                   </span>
                 )}
-                {item.badge && (
-                  <span className="bg-amber-100 text-amber-800 text-[10px]
-                                   px-1.5 py-0.5 rounded-full font-bold border border-amber-200" title="Próximas a vencer">
+                {item.badge && !item.urgentBadge && (
+                  <span className="bg-amber-400 text-white text-[10px]
+                                   px-1.5 py-0.5 rounded-full font-bold" title="Próximas">
                     {item.badge}
                   </span>
                 )}
@@ -143,40 +177,107 @@ function Sidebar() {
       </nav>
 
       {/* Footer usuario */}
-      <div className="px-3 py-4 border-t border-gray-100 bg-gray-50/50">
-        <div className="flex items-center gap-2.5 mb-3">
-          <img
-            src="/logo.png"
-            alt="Usuario"
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-vet-pink flex-shrink-0"
-          />
-          <div className="min-w-0 pr-1">
-            <p className="text-black text-xs font-bold truncate">
-              {user?.email === 'scaceresalzamora@gmail.com' ? 'Dra. Sofía Cáceres' : 'Admin'}
-            </p>
-            <p className="text-gray-500 text-[10px] font-medium truncate">{user?.email}</p>
+      <div className={`px-2 py-4 border-t border-gray-100 bg-gray-50/50 ${isCollapsed ? 'items-center' : ''}`}>
+        {!isCollapsed ? (
+          <div className="flex items-center gap-2.5 mb-4 px-1">
+            <img
+              src="/logo.png"
+              alt="Usuario"
+              className="w-8 h-8 rounded-full object-cover ring-2 ring-vet-pink flex-shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <p className="text-black text-[11px] font-bold truncate">
+                {user?.email === 'scaceresalzamora@gmail.com' ? 'Dra. Sofía Cáceres' : 'Admin'}
+              </p>
+              <p className="text-gray-500 text-[10px] truncate">{user?.email}</p>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex justify-center mb-4">
+               <img
+                src="/logo.png"
+                alt="Usuario"
+                className="w-8 h-8 rounded-full object-cover ring-2 ring-vet-pink"
+              />
+          </div>
+        )}
         <button 
           onClick={() => signOut()}
-          className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-gray-500 
-                     hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors font-medium border border-transparent hover:border-red-100"
+          className={`flex items-center gap-2 py-2 text-xs text-gray-500 
+                     hover:text-red-500 hover:bg-red-50 rounded-xl transition-all font-medium
+                     ${isCollapsed ? 'w-10 h-10 justify-center mx-auto' : 'w-full px-2 mt-1'}`}
+          title={isCollapsed ? 'Cerrar Sesión' : ''}
         >
           {icons.logout}
-          Cerrar Sesión
+          {!isCollapsed && <span>Cerrar Sesión</span>}
         </button>
       </div>
     </aside>
   )
 }
 
+// ── Mobile Navigation ───────────────────────────────────────────
+function MobileNav() {
+  const { pathname } = useLocation()
+  const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
+
+  const navItems = [
+    { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
+    { 
+      to: '/vacunas',   
+      icon: icons.vaccines, 
+      label: 'Vacunas',
+      hasAlert: urgentAlerts.length > 0 || upcomingAlerts.length > 0
+    },
+    { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
+  ]
+
+  return (
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 flex items-center justify-around md:hidden z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-2">
+      {navItems.map((item) => {
+        const active = pathname === item.to || pathname.startsWith(item.to + '/')
+        return (
+          <Link
+            key={item.to}
+            to={item.to}
+            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all relative
+                        ${active ? 'text-vet-rose scale-110' : 'text-gray-400'}`}
+          >
+            <div className="mb-0.5">
+              {item.icon}
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">
+              {item.label}
+            </span>
+            {item.hasAlert && (
+              <div className="absolute top-1.5 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
+            )}
+            {active && (
+              <div className="absolute -top-1 w-8 h-1 bg-vet-rose rounded-full" />
+            )}
+          </Link>
+        )
+      })}
+    </nav>
+  )
+}
+
 
 // ── Layout interno (con sidebar) ──────────────────────────────
 function AppLayout({ children }: { children: React.ReactNode }) {
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    return localStorage.getItem('sidebar_collapsed') === 'true'
+  })
+
+  useEffect(() => {
+    localStorage.setItem('sidebar_collapsed', String(isCollapsed))
+  }, [isCollapsed])
+
   return (
     <div className="flex min-h-screen bg-vet-bone">
-      <Sidebar />
-      <main className="flex-1 overflow-auto">
+      <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
+      <MobileNav />
+      <main className={`flex-1 overflow-auto pb-16 md:pb-0 transition-all duration-300`}>
         {children}
       </main>
     </div>
