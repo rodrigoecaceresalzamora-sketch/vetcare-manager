@@ -44,7 +44,8 @@ export function PatientDetail() {
     saveConsultation, 
     uploadFile, 
     deleteFile, 
-    deleteConsultation 
+    deleteConsultation,
+    uploadAvatar
   } = usePatientDetail(id!)
   
   const [activeTab, setActiveTab] = useState<'historial' | 'archivos'>('historial')
@@ -60,9 +61,6 @@ export function PatientDetail() {
     setTimeout(() => setToast(null), 3000)
   }
 
-  if (loading) return <div className="p-10 text-center"><div className="w-6 h-6 border-2 border-vet-rose border-t-transparent rounded-full animate-spin mx-auto"/></div>
-  if (error || !patient) return <div className="p-10 text-center text-red-500">Error cargando ficha: {error || 'Paciente no encontrado'}</div>
-
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
     setUploading(true)
@@ -70,8 +68,6 @@ export function PatientDetail() {
     setUploading(false)
     e.target.value = '' // reset
   }
-
-  const { uploadAvatar } = usePatientDetail(id!) // Aunque ya lo tenemos de destructuring arriba, lo ideal es asegurarnos que está disponible
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
@@ -82,6 +78,9 @@ export function PatientDetail() {
     else showToast('✅ Foto actualizada')
     e.target.value = ''
   }
+
+  if (loading) return <div className="p-10 text-center"><div className="w-6 h-6 border-2 border-vet-rose border-t-transparent rounded-full animate-spin mx-auto"/></div>
+  if (error || !patient) return <div className="p-10 text-center text-red-500">Error cargando ficha: {error || 'Paciente no encontrado'}</div>
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
