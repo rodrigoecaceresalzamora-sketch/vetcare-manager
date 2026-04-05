@@ -147,11 +147,6 @@ export function LoginPage() {
               )}
             </button>
 
-            {isLogin && (
-              <p className="text-center text-xs text-gray-400 mt-4 leading-relaxed">
-                Administrador: <span className="text-gray-500 font-medium">scaceresalzamora@gmail.com</span>
-              </p>
-            )}
           </form>
         </div>
       </div>

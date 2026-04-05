@@ -23,6 +23,7 @@ import { WeekView }          from './modules/agenda/WeekView'
 import { PublicBooking }     from './modules/portal/PublicBooking'
 import { PatientList }       from './modules/patients/PatientList'
 import { PatientDetail }     from './modules/patients/PatientDetail'
+import { StaffManagement }   from './modules/staff/StaffManagement'
 import { useVaccineAlerts }  from './modules/vaccines/useVaccineAlerts'
 import { getGravatarUrl }    from './lib/utils'
 
@@ -78,17 +79,26 @@ const icons = {
          stroke="currentColor" strokeWidth="2.5">
       <polyline points="9 18 15 12 9 6" />
     </svg>
+  ),
+  staff: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+      <circle cx="9" cy="7" r="4"/>
+      <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+    </svg>
   )
 }
 
 // ── Sidebar ───────────────────────────────────────────────────
 function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) {
   const { pathname } = useLocation()
-  const { signOut, user } = useAuth()
+  const { signOut, user, role } = useAuth()
   
   const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
 
-  const navItems = [
+  const allNavItems = [
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
     { 
       to: '/vacunas',   
@@ -98,7 +108,13 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
       urgentBadge: urgentAlerts.length > 0 ? String(urgentAlerts.length) : undefined
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
+    { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
   ]
+
+  const navItems = allNavItems.filter(item => {
+    if (item.adminOnly && role !== 'admin') return false
+    return true
+  })
 
   return (
     <aside className={`
@@ -299,7 +315,7 @@ export default function App() {
           <Route
             path="/pacientes"
             element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute requireStaff>
                 <AppLayout><PatientList /></AppLayout>
               </ProtectedRoute>
             }
@@ -307,7 +323,7 @@ export default function App() {
           <Route
             path="/pacientes/:id"
             element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute requireStaff>
                 <AppLayout><PatientDetail /></AppLayout>
               </ProtectedRoute>
             }
@@ -315,7 +331,7 @@ export default function App() {
           <Route
             path="/vacunas"
             element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute requireStaff>
                 <AppLayout><VaccineDashboard /></AppLayout>
               </ProtectedRoute>
             }
@@ -323,8 +339,16 @@ export default function App() {
           <Route
             path="/agenda"
             element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute requireStaff>
                 <AppLayout><WeekView /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/personal"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><StaffManagement /></AppLayout>
               </ProtectedRoute>
             }
           />
@@ -342,7 +366,7 @@ export default function App() {
           {/* Redirección por defecto */}
           <Route 
              path="/" 
-             element={<ProtectedRoute requireAdmin><Navigate to="/vacunas" replace /></ProtectedRoute>} 
+             element={<ProtectedRoute requireStaff><Navigate to="/vacunas" replace /></ProtectedRoute>} 
           />
           <Route path="*" element={<Navigate to="/reserva" replace />} />
         </Routes>

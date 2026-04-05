@@ -9,6 +9,7 @@ import { usePatientDetail } from './usePatientDetail'
 import { ConsultationForm } from './ConsultationForm'
 import { PatientForm } from './PatientForm'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import { speciesEmoji, calcVaccineStatus } from '../../lib/utils'
 import type { Consultation } from '../../types'
 
@@ -48,6 +49,7 @@ export function PatientDetail() {
     uploadAvatar
   } = usePatientDetail(id!)
   
+  const { role } = useAuth()
   const [activeTab, setActiveTab] = useState<'historial' | 'archivos'>('historial')
   const [formConsultation, setFormConsultation] = useState<Consultation | 'new' | null>(null)
   const [isConsultationReadOnly, setIsConsultationReadOnly] = useState(false)
@@ -182,12 +184,14 @@ export function PatientDetail() {
                 )}
               </p>
             </div>
-            <button
-              onClick={() => setShowEditPatientForm(true)}
-              className="mt-4 text-xs font-bold text-vet-rose bg-white border border-pink-100 py-2 rounded-lg hover:bg-vet-bone transition shadow-sm"
-            >
-              ✎ Editar Info Paciente
-            </button>
+            {role === 'admin' && (
+              <button
+                onClick={() => setShowEditPatientForm(true)}
+                className="mt-4 text-xs font-bold text-vet-rose bg-white border border-pink-100 py-2 rounded-lg hover:bg-vet-bone transition shadow-sm"
+              >
+                ✎ Editar Info Paciente
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -319,19 +323,23 @@ export function PatientDetail() {
                         >
                           🔍
                         </button>
-                        <button 
-                          onClick={() => {
-                            setFormConsultation(c)
-                            setIsConsultationReadOnly(false)
-                          }} 
-                          className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
-                          title="Editar Ficha"
-                        >
-                          ✏️
-                        </button>
-                        <button onClick={() => { if (window.confirm(`¿Estás seguro de ELIMINAR permanentemente la ficha de consulta del día ${new Date(c.created_at || '').toLocaleDateString()}? Esta acción no se puede deshacer.`)) deleteConsultation(c.id) }} className="w-8 h-8 flex justify-center items-center rounded-lg border border-red-50 bg-red-50 hover:bg-red-100 text-red-500 transition shadow-sm text-sm" title="Eliminar Registro">
-                          🗑️
-                        </button>
+                        {role === 'admin' && (
+                          <>
+                            <button 
+                              onClick={() => {
+                                setFormConsultation(c)
+                                setIsConsultationReadOnly(false)
+                              }} 
+                              className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
+                              title="Editar Ficha"
+                            >
+                              ✏️
+                            </button>
+                            <button onClick={() => { if (window.confirm(`¿Estás seguro de ELIMINAR permanentemente la ficha de consulta del día ${new Date(c.created_at || '').toLocaleDateString()}? Esta acción no se puede deshacer.`)) deleteConsultation(c.id) }} className="w-8 h-8 flex justify-center items-center rounded-lg border border-red-50 bg-red-50 hover:bg-red-100 text-red-500 transition shadow-sm text-sm" title="Eliminar Registro">
+                              🗑️
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -382,13 +390,15 @@ export function PatientDetail() {
                 {files.map(file => (
                   <div key={file.id} className="relative group bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col hover:border-vet-rose transition-colors">
                     
-                    <button 
-                      onClick={() => deleteFile(file.name)}
-                      className="absolute top-2 right-2 w-6 h-6 bg-red-100 text-red-600 rounded-full text-xs font-bold items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      title="Eliminar archivo"
-                    >
-                      ✕
-                    </button>
+                    {role === 'admin' && (
+                      <button 
+                        onClick={() => deleteFile(file.name)}
+                        className="absolute top-2 right-2 w-6 h-6 bg-red-100 text-red-600 rounded-full text-xs font-bold items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Eliminar archivo"
+                      >
+                        ✕
+                      </button>
+                    )}
 
                     <div className="w-10 h-10 bg-pink-100 text-vet-rose rounded-lg flex items-center justify-center flex-shrink-0 mb-3 text-lg">
                       {file.name.endsWith('.pdf') ? '📄' : '🖼️'}

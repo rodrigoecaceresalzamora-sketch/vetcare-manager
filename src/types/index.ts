@@ -3,6 +3,16 @@
 // Todos los módulos importan sus tipos desde aquí
 // ============================================================
 
+// ── ROLES Y PERMISOS ────────────────────────────────────────
+export type Role = 'admin' | 'ayudante' | 'tutor' | null
+
+export interface StaffMember {
+  id: string
+  email: string
+  role: 'admin' | 'ayudante'
+  created_at?: string
+}
+
 // ── TUTOR / GUARDIAN ─────────────────────────────────────────
 export interface Guardian {
   id: string

@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import type { Session, User } from '@supabase/supabase-js'
 import { supabase } from '../lib/supabase'
-
-type Role = 'admin' | 'tutor' | null
+import type { Role } from '../types'
 
 interface AuthContextType {
   session: Session | null
@@ -40,14 +39,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe()
   }, [])
 
-  const updateRole = (user: User | null) => {
+  const updateRole = async (user: User | null) => {
     if (!user) {
       setRole(null)
       return
     }
-    const userEmail = user.email?.toLowerCase()
-    const userRole: Role = userEmail === 'scaceresalzamora@gmail.com' ? 'admin' : 'tutor'
-    setRole(userRole)
+
+    try {
+      const { data, error } = await supabase
+        .from('staff')
+        .select('role')
+        .eq('email', user.email?.toLowerCase())
+        .single()
+
+      if (error || !data) {
+        setRole('tutor')
+      } else {
+        setRole(data.role as Role)
+      }
+    } catch (err) {
+      console.error('Error fetching role:', err)
+      setRole('tutor')
+    }
   }
 
   const signOut = async () => {

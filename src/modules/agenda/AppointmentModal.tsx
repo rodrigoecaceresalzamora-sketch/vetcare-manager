@@ -8,10 +8,11 @@
 
 import { useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
-import { generateId, isValidPhone, isValidRUT, formatRUT } from '../../lib/utils'
-import type { Appointment, AppointmentFormData, AppointmentService } from '../../types'
 import { usePatients } from '../patients/usePatients'
 import { PatientForm } from '../patients/PatientForm'
+import { useAuth } from '../../contexts/AuthContext'
+import type { Appointment, AppointmentFormData, AppointmentService } from '../../types'
+import { generateId, isValidPhone, isValidRUT, formatRUT } from '../../lib/utils'
 
 const SERVICES: AppointmentService[] = [
   'Consulta General',
@@ -51,11 +52,14 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   })
   
   const { patients, savePatient } = usePatients()
+  const { role } = useAuth()
   const [showPatientForm, setShowPatientForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [fieldError, setFieldError] = useState('')
   const [searchTerm, setSearchTerm] = useState(editingAppointment?.pet_name ?? '')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  
+  const isReadOnly = editingAppointment && role === 'ayudante'
 
   const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
   const rutValid = useMemo(() => !form.guardian_rut || isValidRUT(form.guardian_rut), [form.guardian_rut])
@@ -188,6 +192,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   value={form.guardian_name}
                   onChange={(e) => set('guardian_name', e.target.value)}
                   placeholder="Ana García"
+                  disabled={isReadOnly}
                   required
                 />
               </Field>
@@ -197,6 +202,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   value={form.guardian_phone}
                   onChange={(e) => set('guardian_phone', e.target.value)}
                   placeholder="+56 9 1234 5678"
+                  disabled={isReadOnly}
                 />
               </Field>
               <Field label="RUT">
@@ -205,6 +211,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   value={(form as any).guardian_rut}
                   onChange={(e) => set('guardian_rut' as any, formatRUT(e.target.value))}
                   placeholder="12.345.678-9"
+                  disabled={isReadOnly}
                 />
               </Field>
               <Field label="Correo electrónico" className="col-span-2">
@@ -214,6 +221,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   value={form.guardian_email}
                   onChange={(e) => set('guardian_email', e.target.value)}
                   placeholder="correo@ejemplo.cl"
+                  disabled={isReadOnly}
                   required
                 />
               </Field>
@@ -236,6 +244,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                       }}
                       onFocus={() => setShowSuggestions(true)}
                       placeholder="Buscar o ingresar nombre..."
+                      disabled={isReadOnly}
                       required
                     />
                     {showSuggestions && filteredPatients.length > 0 && (
@@ -257,8 +266,9 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   <button
                     type="button"
                     onClick={() => setShowPatientForm(true)}
-                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-vet-rose text-white rounded-lg hover:bg-vet-dark transition-colors"
+                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-vet-rose text-white rounded-lg hover:bg-vet-dark transition-colors disabled:opacity-50"
                     title="Registrar nueva mascota"
+                    disabled={isReadOnly}
                   >
                     +
                   </button>
@@ -269,6 +279,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   className={inputCls}
                   value={form.service}
                   onChange={(e) => set('service', e.target.value as AppointmentService)}
+                  disabled={isReadOnly}
                 >
                   {SERVICES.map((s) => (
                     <option key={s} value={s}>{s}</option>
@@ -281,6 +292,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   className={inputCls}
                   value={form.scheduled_at}
                   onChange={(e) => set('scheduled_at', e.target.value)}
+                  disabled={isReadOnly}
                   required
                 />
               </Field>
@@ -289,6 +301,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   className={inputCls}
                   value={form.duration_minutes}
                   onChange={(e) => set('duration_minutes', Number(e.target.value))}
+                  disabled={isReadOnly}
                 >
                   {DURATIONS.map((d) => (
                     <option key={d.value} value={d.value}>{d.label}</option>
@@ -300,6 +313,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   className={inputCls}
                   value={form.notes}
                   onChange={(e) => set('notes', e.target.value)}
+                  disabled={isReadOnly}
                   placeholder="Motivo de la consulta…"
                 />
               </Field>
@@ -323,7 +337,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
 
           {/* Acciones */}
           <div className="flex justify-end gap-2 pt-1">
-            {editingAppointment && (
+            {editingAppointment && role === 'admin' && (
               <button
                 type="button"
                 disabled={saving}
@@ -352,21 +366,23 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
               className="px-4 py-2 text-sm border border-gray-200 rounded-lg
                          hover:bg-gray-50 transition-colors text-gray-700"
             >
-              Cancelar
+              {isReadOnly ? 'Cerrar' : 'Cancelar'}
             </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-4 py-2 text-sm font-medium bg-vet-rose text-white
-                         rounded-lg hover:bg-vet-dark disabled:opacity-50
-                         transition-colors flex items-center gap-2"
-            >
-              {saving && (
-                <div className="w-3.5 h-3.5 border border-white border-t-transparent
-                                rounded-full animate-spin" />
-              )}
-              {editingAppointment ? 'Actualizar cita' : 'Guardar cita'}
-            </button>
+            {!isReadOnly && (
+              <button
+                type="submit"
+                disabled={saving}
+                className="px-4 py-2 text-sm font-medium bg-vet-rose text-white
+                           rounded-lg hover:bg-vet-dark disabled:opacity-50
+                           transition-colors flex items-center gap-2"
+              >
+                {saving && (
+                  <div className="w-3.5 h-3.5 border border-white border-t-transparent
+                                  rounded-full animate-spin" />
+                )}
+                {editingAppointment ? 'Actualizar cita' : 'Guardar cita'}
+              </button>
+            )}
           </div>
         </form>
       </div>

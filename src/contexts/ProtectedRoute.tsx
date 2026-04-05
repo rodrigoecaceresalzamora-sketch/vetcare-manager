@@ -4,10 +4,15 @@ import { useAuth } from './AuthContext'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
+  requireStaff?: boolean
   requireAdmin?: boolean
 }
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
+export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ 
+  children, 
+  requireStaff = false,
+  requireAdmin = false 
+}) => {
   const { user, role, loading } = useAuth()
   const location = useLocation()
 
@@ -24,13 +29,17 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requir
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // 2. Si requiere admin y es tutor, mandar a la página de tutor
+  // 2. Si requiere EXACTAMENTE Admin y no lo es (ej: es ayudante o tutor)
   if (requireAdmin && role !== 'admin') {
     return <Navigate to="/tutor" replace />
   }
 
-  // 3. Si es tutor y está en una ruta protegida (no /tutor ni /reserva), mandar a /tutor
-  // El control más robusto ocurre aquí:
+  // 3. Si requiere ser Staff (Admin o Ayudante) y es Tutor
+  if (requireStaff && role === 'tutor') {
+    return <Navigate to="/tutor" replace />
+  }
+
+  // 4. Si es tutor y está en una ruta protegida (no /tutor ni /reserva)
   if (role === 'tutor' && !location.pathname.startsWith('/tutor') && !location.pathname.startsWith('/reserva')) {
     return <Navigate to="/tutor" replace />
   }

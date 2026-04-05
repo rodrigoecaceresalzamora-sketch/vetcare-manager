@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePatients } from './usePatients'
 import { PatientForm } from './PatientForm'
+import { useAuth } from '../../contexts/AuthContext'
 import { speciesEmoji } from '../../lib/utils'
 
 export function PatientList() {
@@ -9,6 +10,7 @@ export function PatientList() {
   const { patients, loading, error, savePatient, updatePatient, deletePatient } = usePatients()
   const [searchQuery, setSearchQuery] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const { role } = useAuth()
   const [toast, setToast] = useState<string | null>(null)
 
   const filteredPatients = useMemo(() => {
@@ -138,21 +140,23 @@ export function PatientList() {
                   >
                     Ver Ficha
                   </button>
-                  <button
-                    onClick={async () => {
-                      if (window.confirm(`¿Estás segura de ELIMINAR permanentemente a ${p.name} y todos sus datos? Esta acción no se puede deshacer.`)) {
-                        const res = await deletePatient(p.id, p.guardian_id)
-                        if (res.error) showToast('❌ Error: ' + res.error)
-                        else showToast(`🗑️ ${p.name} eliminado/a correctamente`)
-                      }
-                    }}
-                    className="w-7 h-7 flex items-center justify-center border border-red-100 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
-                    title="Eliminar paciente"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                      <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                    </svg>
-                  </button>
+                  {role === 'admin' && (
+                    <button
+                      onClick={async () => {
+                        if (window.confirm(`¿Estás segura de ELIMINAR permanentemente a ${p.name} y todos sus datos? Esta acción no se puede deshacer.`)) {
+                          const res = await deletePatient(p.id, p.guardian_id)
+                          if (res.error) showToast('❌ Error: ' + res.error)
+                          else showToast(`🗑️ ${p.name} eliminado/a correctamente`)
+                        }
+                      }}
+                      className="w-7 h-7 flex items-center justify-center border border-red-100 bg-red-50 hover:bg-red-100 text-red-500 rounded-lg transition-colors"
+                      title="Eliminar paciente"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
