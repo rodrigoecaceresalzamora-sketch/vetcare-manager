@@ -124,7 +124,7 @@ export function PublicBooking() {
     if (!form.pet_name)       return setFieldError('Ingresa el nombre de tu mascota')
     if (form.is_home_visit && !form.address) return setFieldError('Ingresa tu dirección')
 
-    const scheduledAt = `${date}T${time}:00`
+    const scheduledAt = new Date(`${date}T${time}:00`).toISOString()
     const id = generateId()
 
     setSaving(true)
