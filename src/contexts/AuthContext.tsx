@@ -21,19 +21,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // 1. Obtener sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const handleAuthChange = async (session: Session | null) => {
+      setLoading(true) // Aseguramos que cargamos mientras validamos rol
       setSession(session)
-      setUser(session?.user ?? null)
-      updateRole(session?.user ?? null)
+      const user = session?.user ?? null
+      setUser(user)
+      await updateRole(user)
       setLoading(false)
+    }
+
+    // 1. Cargar sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleAuthChange(session)
     })
 
     // 2. Escuchar cambios de autenticación
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-      setUser(session?.user ?? null)
-      updateRole(session?.user ?? null)
-      setLoading(false)
+      handleAuthChange(session)
     })
 
     return () => subscription.unsubscribe()
