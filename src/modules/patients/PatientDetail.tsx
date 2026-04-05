@@ -9,7 +9,7 @@ import { usePatientDetail } from './usePatientDetail'
 import { ConsultationForm } from './ConsultationForm'
 import { PatientForm } from './PatientForm'
 import { supabase } from '../../lib/supabase'
-import { speciesEmoji } from '../../lib/utils'
+import { speciesEmoji, calcVaccineStatus } from '../../lib/utils'
 import type { Consultation } from '../../types'
 
 function calculateAgeAndMonths(dateString: string) {
@@ -33,7 +33,19 @@ function calculateAgeAndMonths(dateString: string) {
 export function PatientDetail() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const { patient, consultations, files, loading, error, saveConsultation, uploadFile, deleteFile, deleteConsultation } = usePatientDetail(id!)
+  const { 
+    patient, 
+    consultations, 
+    files, 
+    upcomingAppointments, 
+    vaccinations,
+    loading, 
+    error, 
+    saveConsultation, 
+    uploadFile, 
+    deleteFile, 
+    deleteConsultation 
+  } = usePatientDetail(id!)
   
   const [activeTab, setActiveTab] = useState<'historial' | 'archivos'>('historial')
   const [formConsultation, setFormConsultation] = useState<Consultation | 'new' | null>(null)
@@ -135,6 +147,34 @@ export function PatientDetail() {
           </div>
         </div>
       </div>
+
+      {/* ALERTAS DE PRÓXIMOS EVENTOS */}
+      {(upcomingAppointments.length > 0 || vaccinations.some(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date)))) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {upcomingAppointments.length > 0 && (
+            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center gap-3">
+              <span className="text-xl">📅</span>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Próxima Cita</p>
+                <p className="text-sm font-bold text-indigo-900">
+                  {upcomingAppointments[0].service} - {new Date(upcomingAppointments[0].scheduled_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                </p>
+              </div>
+            </div>
+          )}
+          {vaccinations.some(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date))) && (
+            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center gap-3">
+              <span className="text-xl">💉</span>
+              <div>
+                <p className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Alerta de Vacuna</p>
+                <p className="text-sm font-bold text-amber-900">
+                  {vaccinations.find(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date)))?.vaccine_name} - {vaccinations.find(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date)))?.next_due_date}
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* ZONA DE TABS */}
       <div className="border-b border-gray-200">

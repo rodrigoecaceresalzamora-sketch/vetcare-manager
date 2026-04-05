@@ -16,11 +16,11 @@
 //   • Muestra pantalla de confirmación
 // ============================================================
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { generateId } from '../../lib/utils'
+import { generateId, isValidPhone } from '../../lib/utils'
 import type { AppointmentService, PublicBookingFormData } from '../../types'
 
 // ── Datos de servicios ────────────────────────────────────────
@@ -144,6 +144,8 @@ export function PublicBooking() {
   ) {
     setForm((f) => ({ ...f, [key]: value }))
   }
+
+  const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
 
   // ── Confirmar reserva ─────────────────────────────────────────
   async function handleConfirm(e: React.FormEvent): Promise<void> {
@@ -405,7 +407,7 @@ export function PublicBooking() {
                 </Field>
                 <Field label="Teléfono (opcional)">
                   <input
-                    className={inputCls}
+                    className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50' : ''}`}
                     value={form.guardian_phone}
                     onChange={(e) => setField('guardian_phone', e.target.value)}
                     placeholder="+56 9 1234 5678"

@@ -6,10 +6,12 @@
 // via la Edge Function 'sync-gcal'.
 // ============================================================
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
-import { generateId } from '../../lib/utils'
+import { generateId, isValidPhone } from '../../lib/utils'
 import type { Appointment, AppointmentFormData, AppointmentService } from '../../types'
+import { usePatients } from '../patients/usePatients'
+import { PatientForm } from '../patients/PatientForm'
 
 const SERVICES: AppointmentService[] = [
   'Consulta General',
@@ -46,8 +48,13 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     duration_minutes: editingAppointment?.duration_minutes ?? 30,
     notes:            (editingAppointment as any)?.notes ?? '',
   })
+  
+  const { patients, savePatient } = usePatients()
+  const [showPatientForm, setShowPatientForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [fieldError, setFieldError] = useState('')
+
+  const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
 
   function set<K extends keyof AppointmentFormData>(
     key: K,
@@ -55,6 +62,24 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   ) {
     setForm((f) => ({ ...f, [key]: value }))
   }
+
+  // Auto-fill logic
+  function handlePatientSelect(petName: string) {
+    const p = patients.find(p => p.name === petName)
+    if (p && p.guardian) {
+      setForm(f => ({
+        ...f,
+        pet_name: p.name,
+        guardian_name: p.guardian?.name || '',
+        guardian_phone: p.guardian?.phone || '',
+        guardian_email: p.guardian?.email || '',
+      }))
+    } else {
+      set('pet_name', petName)
+    }
+  }
+
+
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -151,7 +176,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
               </Field>
               <Field label="Teléfono">
                 <input
-                  className={inputCls}
+                  className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50' : ''}`}
                   value={form.guardian_phone}
                   onChange={(e) => set('guardian_phone', e.target.value)}
                   placeholder="+56 9 1234 5678"
@@ -173,14 +198,28 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
           {/* Sección cita */}
           <Section title="Detalles de la cita">
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Nombre mascota">
-                <input
-                  className={inputCls}
-                  value={form.pet_name}
-                  onChange={(e) => set('pet_name', e.target.value)}
-                  placeholder="Nombre de la mascota"
-                  required
-                />
+              <Field label="Mascota">
+                <div className="flex gap-1">
+                  <select
+                    className={inputCls}
+                    value={form.pet_name}
+                    onChange={(e) => handlePatientSelect(e.target.value)}
+                    required
+                  >
+                    <option value="">Seleccionar mascota...</option>
+                    {patients.map(p => (
+                      <option key={p.id} value={p.name}>{p.name} ({p.guardian?.name})</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setShowPatientForm(true)}
+                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-vet-rose text-white rounded-lg hover:bg-vet-dark transition-colors"
+                    title="Registrar nueva mascota"
+                  >
+                    +
+                  </button>
+                </div>
               </Field>
               <Field label="Servicio">
                 <select
@@ -288,6 +327,17 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
           </div>
         </form>
       </div>
+
+      {showPatientForm && (
+        <PatientForm
+          onClose={() => setShowPatientForm(false)}
+          onSavePatient={savePatient}
+          onSaved={(name) => {
+            setShowPatientForm(false)
+            handlePatientSelect(name)
+          }}
+        />
+      )}
     </div>
   )
 }

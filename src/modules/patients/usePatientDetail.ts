@@ -5,13 +5,15 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Patient, Consultation, PatientFile, BoostInterval } from '../../types'
+import type { Patient, Consultation, PatientFile, BoostInterval, Appointment, Vaccination } from '../../types'
 import { generateId, calcNextDueDate } from '../../lib/utils'
 
 export function usePatientDetail(patientId: string) {
   const [patient, setPatient] = useState<Patient | null>(null)
   const [consultations, setConsultations] = useState<Consultation[]>([])
   const [files, setFiles] = useState<PatientFile[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
+  const [vaccinations, setVaccinations] = useState<Vaccination[]>([])
   
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -41,7 +43,28 @@ export function usePatientDetail(patientId: string) {
       if (cErr) throw new Error(cErr.message)
       setConsultations(cData as Consultation[])
 
-      // 3. Obtener Archivos del paciente
+      // 3. Obtener Vacunas
+      const { data: vData } = await supabase
+        .from('vaccinations')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('next_due_date', { ascending: true })
+      setVaccinations((vData || []) as Vaccination[])
+
+      // 4. Obtener Citas futuras (basado en nombre mascota/tutor por ahora)
+      if (pData) {
+        const { data: aData } = await supabase
+          .from('appointments')
+          .select('*')
+          .eq('pet_name', pData.name)
+          .eq('guardian_name', pData.guardian?.name)
+          .gte('scheduled_at', new Date().toISOString())
+          .neq('status', 'cancelada')
+          .order('scheduled_at', { ascending: true })
+        setUpcomingAppointments((aData || []) as Appointment[])
+      }
+
+      // 5. Obtener Archivos del paciente
       await fetchFiles()
       
     } catch (err: any) {
@@ -156,5 +179,17 @@ export function usePatientDetail(patientId: string) {
     return { error: null }
   }
 
-  return { patient, consultations, files, loading, error, saveConsultation, deleteConsultation, uploadFile, deleteFile }
+  return { 
+    patient, 
+    consultations, 
+    files, 
+    upcomingAppointments, 
+    vaccinations,
+    loading, 
+    error, 
+    saveConsultation, 
+    deleteConsultation, 
+    uploadFile, 
+    deleteFile 
+  }
 }

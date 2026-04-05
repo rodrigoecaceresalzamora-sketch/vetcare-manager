@@ -10,8 +10,8 @@ import type { BoostInterval, VaccineStatus } from '../types'
  * Calcula la edad de una mascota a partir de su fecha de nacimiento.
  * Devuelve una cadena legible: "3 años", "8 meses", etc.
  */
-export function calcAge(dateOfBirth: string): string {
-  if (!dateOfBirth) return '—'
+export function calcAge(dateOfBirth: string | null | undefined): string {
+  if (!dateOfBirth) return 'Desconocida'
   const birth = new Date(dateOfBirth + 'T00:00:00')
   const now = new Date()
   const totalMonths =
@@ -128,6 +128,14 @@ export function formatRUT(value: string): string {
   const dv = clean.slice(-1)
   const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `${formatted}-${dv}`
+}
+
+/** 
+ * Valida si un número telefónico tiene al menos 9 dígitos 
+ */
+export function isValidPhone(phone: string): boolean {
+  const clean = phone.replace(/\D/g, '')
+  return clean.length >= 9
 }
 
 // ── ESPECIES ──────────────────────────────────────────────────

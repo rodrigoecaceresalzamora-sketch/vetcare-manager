@@ -5,6 +5,7 @@
 
 import { useState, useMemo } from 'react'
 import type { Species, Sex, Patient } from '../../types'
+import { isValidRUT, isValidPhone } from '../../lib/utils'
 
 interface Props {
   initialData?: Patient
@@ -13,10 +14,10 @@ interface Props {
   onSavePatient: (data: any, patientId?: string, guardianId?: string) => Promise<{ error: string | null }>
 }
 
-function calculateAgeAndMonths(dateString: string) {
-  if (!dateString) return ''
+function calculateAgeAndMonths(dateString: string | null | undefined) {
+  if (!dateString) return 'Desconocida'
   const dob = new Date(dateString)
-  if (isNaN(dob.getTime())) return ''
+  if (isNaN(dob.getTime())) return 'Desconocida'
   
   const today = new Date()
   let years = today.getFullYear() - dob.getFullYear()
@@ -43,6 +44,7 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
   const [pSpecies, setPSpecies] = useState<Species>(initialData?.species || 'Perro')
   const [pBreed, setPBreed] = useState(initialData?.breed || '')
   const [pDob, setPDob] = useState(initialData?.date_of_birth || new Date().toISOString().split('T')[0])
+  const [pDobUnknown, setPDobUnknown] = useState(!initialData?.date_of_birth && !!initialData)
   const [pSex, setPSex] = useState<Sex>(initialData?.sex || 'No determinado')
   const [pAdopted, setPAdopted] = useState(initialData?.adopted_since || '')
   const [pIsReactive, setPIsReactive] = useState(initialData?.is_reactive || false)
@@ -50,7 +52,10 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
   const [saving, setSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
 
-  const ageText = useMemo(() => calculateAgeAndMonths(pDob), [pDob])
+  const ageText = useMemo(() => pDobUnknown ? 'Desconocida' : calculateAgeAndMonths(pDob), [pDob, pDobUnknown])
+
+  const rutValid = useMemo(() => !gRut || isValidRUT(gRut), [gRut])
+  const phoneValid = useMemo(() => !gPhone || isValidPhone(gPhone), [gPhone])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -65,7 +70,7 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
       name: pName,
       species: pSpecies,
       breed: pBreed,
-      date_of_birth: pDob || null,
+      date_of_birth: pDobUnknown ? null : (pDob || null),
       sex: pSex,
       adopted_since: pAdopted || undefined,
       is_reactive: pIsReactive
@@ -97,13 +102,13 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
             </h3>
             <div className="grid grid-cols-2 gap-4">
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Nombre completo
-                <input className={inputCls} placeholder="Ej: Pedro Pérez" value={gName} onChange={e => setGName(e.target.value)} />
+                <input required className={inputCls} placeholder="Ej: Pedro Pérez" value={gName} onChange={e => setGName(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">RUT
-                <input className={inputCls} placeholder="12.345.678-9" value={gRut} onChange={e => setGRut(e.target.value)} />
+                <input className={`${inputCls} ${!rutValid ? 'border-red-500 bg-red-50' : ''}`} placeholder="12.345.678-9" value={gRut} onChange={e => setGRut(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Teléfono
-                <input className={inputCls} placeholder="+56 9 1234 5678" value={gPhone} onChange={e => setGPhone(e.target.value)} />
+                <input required className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50' : ''}`} placeholder="+56 9 1234 5678" value={gPhone} onChange={e => setGPhone(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Email (Opcional)
                 <input type="email" className={inputCls} placeholder="correo@ejemplo.com" value={gEmail} onChange={e => setGEmail(e.target.value)} />
@@ -153,10 +158,16 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
 
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium md:col-span-2">
                 <div className="flex justify-between items-center">
-                  <span>Fecha de Nacimiento</span>
-                  <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md font-bold">Edad: {ageText || '?'}</span>
+                  <div className="flex items-center gap-2">
+                    <span>Fecha de Nacimiento</span>
+                    <label className="inline-flex items-center gap-1 cursor-pointer ml-4">
+                      <input type="checkbox" className="w-3 h-3 rounded text-vet-rose" checked={pDobUnknown} onChange={e => setPDobUnknown(e.target.checked)} />
+                      <span className="text-[10px] text-gray-400 font-normal">Desconocida</span>
+                    </label>
+                  </div>
+                  <span className="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded-md font-bold">Edad: {ageText}</span>
                 </div>
-                <input type="date" className={inputCls} value={pDob} onChange={e => setPDob(e.target.value)} max={new Date().toISOString().split('T')[0]} />
+                <input disabled={pDobUnknown} type="date" className={`${inputCls} ${pDobUnknown ? 'opacity-50' : ''}`} value={pDob} onChange={e => setPDob(e.target.value)} max={new Date().toISOString().split('T')[0]} />
               </label>
 
               {/* Botón Reactivo */}
