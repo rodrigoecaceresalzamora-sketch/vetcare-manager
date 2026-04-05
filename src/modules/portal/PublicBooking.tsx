@@ -77,12 +77,18 @@ export function PublicBooking() {
     guardian_name:  user?.user_metadata?.full_name || '',
     guardian_email: user?.email || '',
     guardian_phone: '',
-    pet_name:       '',
-    service:        '',
-    scheduled_at:   '',
     is_home_visit:  false,
     address:        '',
     guardian_rut:   '',
+    service:        '',
+    scheduled_at:   '',
+    pet_name:       '',
+    pet_species:    'Perro',
+    pet_breed:      '',
+    pet_sex:        'Macho',
+    pet_date_of_birth: '',
+    pet_adopted_since: '',
+    pet_is_reactive:   false,
   })
   const [saving, setSaving]       = useState(false)
   const [fieldError, setFieldError] = useState('')
@@ -119,6 +125,10 @@ export function PublicBooking() {
 
   async function handleConfirm(e: React.FormEvent) {
     e.preventDefault()
+    if (!user) {
+      setFieldError('Debes iniciar sesión para confirmar tu reserva.')
+      return
+    }
     setFieldError('')
     if (!form.guardian_name)  return setFieldError('Ingresa tu nombre')
     if (!form.guardian_email) return setFieldError('Ingresa tu correo')
@@ -131,11 +141,16 @@ export function PublicBooking() {
     setSaving(true)
     const { error: dbErr } = await supabase.from('appointments').insert({
       id,
-      guardian_name:    form.guardian_name,
       guardian_email:   form.guardian_email,
       guardian_phone:   form.guardian_phone,
       guardian_rut:     form.guardian_rut,
       pet_name:         form.pet_name,
+      pet_species:      form.pet_species,
+      pet_breed:        form.pet_breed,
+      pet_sex:          form.pet_sex,
+      pet_date_of_birth: form.pet_date_of_birth || null,
+      pet_adopted_since: form.pet_adopted_since || null,
+      pet_is_reactive:   form.pet_is_reactive,
       service:          service.name,
       scheduled_at:     scheduledAt,
       duration_minutes: service.duration_minutes || 30,
@@ -301,6 +316,49 @@ export function PublicBooking() {
                 <Field label="RUT (Opcional)">
                   <input className={inputCls} value={form.guardian_rut} onChange={(e) => setField('guardian_rut', e.target.value)} placeholder="12.345.678-9" />
                 </Field>
+              </div>
+
+              <div className="bg-vet-light/30 p-4 rounded-xl space-y-4 border border-vet-rose/10">
+                <h4 className="text-xs font-bold text-vet-rose uppercase tracking-widest">Ficha de la Mascota</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                  <Field label="Especie">
+                    <select className={inputCls} value={form.pet_species} onChange={(e) => setField('pet_species', e.target.value as any)}>
+                      <option value="Perro">Perro</option>
+                      <option value="Gato">Gato</option>
+                      <option value="Conejo">Conejo</option>
+                      <option value="Ave">Ave</option>
+                      <option value="Reptil">Reptil</option>
+                      <option value="Otro">Otro</option>
+                    </select>
+                  </Field>
+                  <Field label="Sexo">
+                    <select className={inputCls} value={form.pet_sex} onChange={(e) => setField('pet_sex', e.target.value as any)}>
+                      <option value="Macho">Macho</option>
+                      <option value="Hembra">Hembra</option>
+                      <option value="No determinado">No determinado</option>
+                    </select>
+                  </Field>
+                  <Field label="Raza">
+                    <input className={inputCls} value={form.pet_breed} onChange={(e) => setField('pet_breed', e.target.value)} placeholder="Ej: Poodle, Mestizo..." />
+                  </Field>
+                  <Field label="Fecha Nacimiento (Opcional)">
+                    <input type="date" className={inputCls} value={form.pet_date_of_birth} onChange={(e) => setField('pet_date_of_birth', e.target.value)} />
+                  </Field>
+                  <Field label="Adoptado desde (Opcional)">
+                    <input type="date" className={inputCls} value={form.pet_adopted_since} onChange={(e) => setField('pet_adopted_since', e.target.value)} />
+                  </Field>
+                  <div className="flex items-center gap-3 h-full pt-6">
+                    <input 
+                      type="checkbox" 
+                      id="is_reactive"
+                      checked={form.pet_is_reactive} 
+                      onChange={(e) => setField('pet_is_reactive', e.target.checked)} 
+                    />
+                    <label htmlFor="is_reactive" className="text-sm font-medium text-red-600 cursor-pointer">
+                      ⚠️ Es agresivo o reactivo
+                    </label>
+                  </div>
+                </div>
               </div>
 
               <div className="py-2 border-t border-pink-50 text-left">

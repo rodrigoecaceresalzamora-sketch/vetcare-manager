@@ -463,9 +463,12 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                         .insert({
                           guardian_id: gId,
                           name: form.pet_name,
-                          species: 'Otro',
-                          sex: 'No determinado',
-                          breed: 'Desconocida',
+                          species: editingAppointment.pet_species || 'Otro',
+                          sex: editingAppointment.pet_sex || 'No determinado',
+                          breed: editingAppointment.pet_breed || 'Desconocida',
+                          date_of_birth: editingAppointment.pet_date_of_birth || null,
+                          adopted_since: editingAppointment.pet_adopted_since || null,
+                          is_reactive: editingAppointment.pet_is_reactive || false,
                           weight_kg: 0,
                           status: 'activo'
                         })

@@ -112,6 +112,13 @@ export interface Appointment {
   meet_link?: string
   source: AppointmentSource
   created_at?: string
+  // Campos del portal público
+  pet_species?: Species
+  pet_breed?: string
+  pet_sex?: Sex
+  pet_date_of_birth?: string
+  pet_adopted_since?: string
+  pet_is_reactive?: boolean
 }
 
 // ── FORMULARIO NUEVA CITA (uso interno) ──────────────────────
@@ -135,12 +142,18 @@ export interface PublicBookingFormData {
   guardian_name: string
   guardian_email: string
   guardian_phone: string
+  guardian_rut?: string
   pet_name: string
+  pet_species: Species                     // Nueva
+  pet_breed: string                        // Nueva
+  pet_sex: Sex                            // Nueva
+  pet_date_of_birth?: string               // Nueva (opcional/desconocida)
+  pet_adopted_since?: string               // Nueva
+  pet_is_reactive: boolean                 // Nueva
   service: string
   scheduled_at: string
   is_home_visit: boolean
   address?: string
-  guardian_rut?: string
 }
 
 // ── ALERTA DE VACUNA (derivado) ───────────────────────────────
