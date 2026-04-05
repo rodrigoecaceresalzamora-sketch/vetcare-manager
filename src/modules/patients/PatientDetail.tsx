@@ -52,6 +52,7 @@ export function PatientDetail() {
   const [isConsultationReadOnly, setIsConsultationReadOnly] = useState(false)
   const [showEditPatientForm, setShowEditPatientForm] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
 
   function showToast(msg: string) {
@@ -68,6 +69,18 @@ export function PatientDetail() {
     await uploadFile(e.target.files[0])
     setUploading(false)
     e.target.value = '' // reset
+  }
+
+  const { uploadAvatar } = usePatientDetail(id!) // Aunque ya lo tenemos de destructuring arriba, lo ideal es asegurarnos que está disponible
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    setUploadingAvatar(true)
+    const { error: err } = await uploadAvatar(e.target.files[0])
+    setUploadingAvatar(false)
+    if (err) showToast(`❌ Error: ${err}`)
+    else showToast('✅ Foto actualizada')
+    e.target.value = ''
   }
 
   return (
@@ -91,8 +104,40 @@ export function PatientDetail() {
 
       {/* HEADER DE LA FICHA (Read-Only) */}
       <div className="bg-white rounded-2xl shadow-sm border border-pink-100 p-6 flex flex-col md:flex-row gap-6">
-        <div className="w-20 h-20 bg-pink-50 border border-pink-100 rounded-full flex items-center justify-center text-4xl flex-shrink-0 mx-auto md:mx-0">
-          {speciesEmoji(patient.species)}
+        {/* Avatar del Paciente con Subida */}
+        <div className="relative group mx-auto md:mx-0">
+          <div className="w-24 h-24 bg-pink-50 border-2 border-pink-100 rounded-full flex items-center justify-center overflow-hidden shadow-inner relative">
+            {uploadingAvatar ? (
+              <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10 transition-opacity">
+                <div className="w-5 h-5 border-2 border-vet-rose border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : null}
+            
+            {patient.photo_url ? (
+              <img 
+                src={patient.photo_url} 
+                alt={patient.name} 
+                className="w-full h-full object-cover" 
+              />
+            ) : (
+              <span className="text-5xl drop-shadow-sm">{speciesEmoji(patient.species)}</span>
+            )}
+
+            {/* Hover overlay para editar */}
+            <label className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-all">
+              <span className="bg-white/90 text-vet-rose p-2 rounded-full shadow-lg transform scale-90 group-hover:scale-100 transition-transform">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </span>
+              <input type="file" className="hidden" accept="image/*" onChange={handleAvatarUpload} disabled={uploadingAvatar} />
+            </label>
+          </div>
+          {/* Badge pequeño indicando que se puede editar */}
+          <div className="absolute -bottom-1 -right-1 bg-white border border-pink-100 rounded-full p-1 shadow-sm text-[8px] font-black text-vet-rose flex items-center justify-center w-5 h-5 md:hidden">
+            📷
+          </div>
         </div>
         
         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8">

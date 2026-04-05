@@ -362,3 +362,46 @@ export function getGravatarUrl(email: string | undefined): string {
   const hash = md5(email.trim().toLowerCase())
   return `https://www.gravatar.com/avatar/${hash}?d=mp&s=200`
 }
+
+/**
+ * Comprime una imagen (redimensiona a máx 400px) antes de subirla para ahorrar espacio.
+ */
+export async function compressImage(file: File): Promise<Blob> {
+  const img = new Image()
+  const reader = new FileReader()
+  
+  return new Promise((resolve, reject) => {
+    reader.onload = (e) => {
+      img.src = e.target?.result as string
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        let width = img.width
+        let height = img.height
+        const MAX = 400
+        
+        if (width > height) {
+          if (width > MAX) {
+            height *= MAX / width
+            width = MAX
+          }
+        } else {
+          if (height > MAX) {
+            width *= MAX / height
+            height = MAX
+          }
+        }
+        
+        canvas.width = width
+        canvas.height = height
+        const ctx = canvas.getContext('2d')
+        ctx?.drawImage(img, 0, 0, width, height)
+        canvas.toBlob((blob) => {
+          if (blob) resolve(blob)
+          else reject(new Error('Canvas to Blob failed'))
+        }, 'image/jpeg', 0.7)
+      }
+    }
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
+}

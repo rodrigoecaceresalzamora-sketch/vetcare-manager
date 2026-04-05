@@ -146,14 +146,9 @@ export function usePatientDetail(patientId: string) {
 
   // Mutation: Subir Archivo
   const uploadFile = async (file: File) => {
-    // Renombrar ligeramente para evitar colisiones
     const uniqueName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`
     const filePath = `${patientId}/${uniqueName}`
-    
-    const { error: uploadErr } = await supabase.storage
-      .from('patient_files')
-      .upload(filePath, file)
-      
+    const { error: uploadErr } = await supabase.storage.from('patient_files').upload(filePath, file)
     if (uploadErr) return { error: uploadErr.message }
     await fetchFiles()
     return { error: null }
@@ -162,10 +157,7 @@ export function usePatientDetail(patientId: string) {
   // Mutation: Borrar Archivo
   const deleteFile = async (fileName: string) => {
     const filePath = `${patientId}/${fileName}`
-    const { error: delErr } = await supabase.storage
-      .from('patient_files')
-      .remove([filePath])
-      
+    const { error: delErr } = await supabase.storage.from('patient_files').remove([filePath])
     if (delErr) return { error: delErr.message }
     await fetchFiles()
     return { error: null }
@@ -179,6 +171,38 @@ export function usePatientDetail(patientId: string) {
     return { error: null }
   }
 
+  // Mutation: Subir Avatar
+  const uploadAvatar = async (file: File) => {
+    try {
+      const { compressImage } = await import('../../lib/utils')
+      const compressedBlob = await compressImage(file)
+      const fileName = `avatar_${Date.now()}.jpg`
+      const filePath = `${patientId}/${fileName}`
+      
+      const { error: uploadErr } = await supabase.storage
+        .from('patient_files')
+        .upload(filePath, compressedBlob, { contentType: 'image/jpeg', upsert: true })
+        
+      if (uploadErr) throw new Error(uploadErr.message)
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('patient_files')
+        .getPublicUrl(filePath)
+        
+      const { error: updateErr } = await supabase
+        .from('patients')
+        .update({ photo_url: publicUrl })
+        .eq('id', patientId)
+        
+      if (updateErr) throw new Error(updateErr.message)
+      
+      await fetchData()
+      return { error: null }
+    } catch (err: any) {
+      return { error: err.message }
+    }
+  }
+
   return { 
     patient, 
     consultations, 
@@ -190,6 +214,7 @@ export function usePatientDetail(patientId: string) {
     saveConsultation, 
     deleteConsultation, 
     uploadFile, 
-    deleteFile 
+    deleteFile,
+    uploadAvatar
   }
 }
