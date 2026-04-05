@@ -115,7 +115,7 @@ export function PublicBooking() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
-  const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
+  const phoneValid = true // useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
 
   async function handleConfirm(e: React.FormEvent) {
     e.preventDefault()
