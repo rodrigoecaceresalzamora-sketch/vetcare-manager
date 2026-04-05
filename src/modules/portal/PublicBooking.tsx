@@ -5,11 +5,11 @@
 // Se accede desde: https://tudominio.cl/reserva
 // ============================================================
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { generateId, isValidPhone } from '../../lib/utils'
+import { generateId } from '../../lib/utils'
 import type { PublicBookingFormData } from '../../types'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
@@ -115,7 +115,6 @@ export function PublicBooking() {
     setForm((f) => ({ ...f, [key]: value }))
   }
 
-  const phoneValid = true // useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
 
   async function handleConfirm(e: React.FormEvent) {
     e.preventDefault()
