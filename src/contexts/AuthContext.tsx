@@ -21,12 +21,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // BYPASS AUTH FOR VERIFICATION
-    setSession({ user: { email: 'scaceresalzamora@gmail.com' } } as any)
-    setUser({ email: 'scaceresalzamora@gmail.com' } as any)
-    setRole('admin')
-    setLoading(false)
-    return () => {}
+    // 1. Obtener sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      updateRole(session?.user ?? null)
+      setLoading(false)
+    })
+
+    // 2. Escuchar cambios de autenticación
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      setUser(session?.user ?? null)
+      updateRole(session?.user ?? null)
+      setLoading(false)
+    })
+
+    return () => subscription.unsubscribe()
   }, [])
 
   const updateRole = (user: User | null) => {
