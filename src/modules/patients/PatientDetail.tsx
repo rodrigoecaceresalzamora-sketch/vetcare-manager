@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePatientDetail } from './usePatientDetail'
 import { ConsultationForm } from './ConsultationForm'
+import { PatientForm } from './PatientForm'
+import { supabase } from '../../lib/supabase'
 import { speciesEmoji } from '../../lib/utils'
 import type { Consultation } from '../../types'
 
@@ -35,7 +37,15 @@ export function PatientDetail() {
   
   const [activeTab, setActiveTab] = useState<'historial' | 'archivos'>('historial')
   const [formConsultation, setFormConsultation] = useState<Consultation | 'new' | null>(null)
+  const [isConsultationReadOnly, setIsConsultationReadOnly] = useState(false)
+  const [showEditPatientForm, setShowEditPatientForm] = useState(false)
   const [uploading, setUploading] = useState(false)
+  const [toast, setToast] = useState<string | null>(null)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   if (loading) return <div className="p-10 text-center"><div className="w-6 h-6 border-2 border-vet-rose border-t-transparent rounded-full animate-spin mx-auto"/></div>
   if (error || !patient) return <div className="p-10 text-center text-red-500">Error cargando ficha: {error || 'Paciente no encontrado'}</div>
@@ -94,11 +104,34 @@ export function PatientDetail() {
             </div>
           </div>
           
-          <div className="bg-vet-light/40 rounded-xl p-4 border border-vet-light">
-            <h3 className="text-xs uppercase tracking-wider font-bold text-gray-500 mb-2">Tutor Responsable</h3>
-            <p className="font-medium text-gray-900 text-sm">{patient.guardian?.name}</p>
-            <p className="text-xs text-gray-600 mt-1">RUT: <span className="font-medium">{patient.guardian?.rut}</span></p>
-            <p className="text-xs text-gray-600 mt-0.5">Tel: <span className="font-medium">{patient.guardian?.phone}</span></p>
+          <div className="bg-vet-light/40 rounded-xl p-4 border border-vet-light flex flex-col justify-between">
+            <div>
+              <h3 className="text-xs uppercase tracking-wider font-bold text-gray-500 mb-2">Tutor Responsable</h3>
+              <p className="font-medium text-gray-900 text-sm">{patient.guardian?.name}</p>
+              <p className="text-xs text-gray-600 mt-1">RUT: <span className="font-medium">{patient.guardian?.rut}</span></p>
+              <p className="text-xs text-gray-600 mt-0.5 flex items-center gap-2">
+                Tel: <span className="font-medium">{patient.guardian?.phone}</span>
+                {patient.guardian?.phone && (
+                  <a 
+                    href={`https://wa.me/${patient.guardian.phone.replace(/[^0-9]/g, '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-5 h-5 bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors shadow-sm"
+                    title="Abrir WhatsApp"
+                  >
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                    </svg>
+                  </a>
+                )}
+              </p>
+            </div>
+            <button
+              onClick={() => setShowEditPatientForm(true)}
+              className="mt-4 text-xs font-bold text-vet-rose bg-white border border-pink-100 py-2 rounded-lg hover:bg-vet-bone transition shadow-sm"
+            >
+              ✎ Editar Info Paciente
+            </button>
           </div>
         </div>
       </div>
@@ -128,7 +161,10 @@ export function PatientDetail() {
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-lg font-bold text-gray-800">Registros Clínicos</h2>
               <button 
-                onClick={() => setFormConsultation('new')}
+                onClick={() => {
+                  setFormConsultation('new')
+                  setIsConsultationReadOnly(false)
+                }}
                 className="bg-vet-rose text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-pink-600 transition"
               >
                 + Nueva Consulta / R.M.
@@ -151,10 +187,27 @@ export function PatientDetail() {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <button onClick={() => setFormConsultation(c)} className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm" title="Revisar y Editar Ficha">
+                        <button 
+                          onClick={() => {
+                            setFormConsultation(c)
+                            setIsConsultationReadOnly(true)
+                          }} 
+                          className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
+                          title="Ver Ficha (Solo Lectura)"
+                        >
+                          🔍
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setFormConsultation(c)
+                            setIsConsultationReadOnly(false)
+                          }} 
+                          className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
+                          title="Editar Ficha"
+                        >
                           ✏️
                         </button>
-                        <button onClick={() => { if (window.confirm(`¿Estás seguro de ELIMINAR permanentemente la ficha de consulta del día ${new Date(c.created_at || '').toLocaleDateString()}? Esta acción no se puede deshacer.`)) deleteConsultation(c.id) }} className="w-8 h-8 flex justify-center items-center rounded-lg border border-red-50 bg-red-50 hover:bg-red-100 text-red-500 transition shadow-sm" title="Eliminar Registro">
+                        <button onClick={() => { if (window.confirm(`¿Estás seguro de ELIMINAR permanentemente la ficha de consulta del día ${new Date(c.created_at || '').toLocaleDateString()}? Esta acción no se puede deshacer.`)) deleteConsultation(c.id) }} className="w-8 h-8 flex justify-center items-center rounded-lg border border-red-50 bg-red-50 hover:bg-red-100 text-red-500 transition shadow-sm text-sm" title="Eliminar Registro">
                           🗑️
                         </button>
                       </div>
@@ -243,9 +296,58 @@ export function PatientDetail() {
       {formConsultation && (
         <ConsultationForm
           initialData={formConsultation === 'new' ? undefined : formConsultation}
-          onClose={() => setFormConsultation(null)}
+          onClose={() => {
+            setFormConsultation(null)
+            setIsConsultationReadOnly(false)
+          }}
           onSave={saveConsultation}
+          readOnly={isConsultationReadOnly}
         />
+      )}
+
+      {showEditPatientForm && (
+        <PatientForm
+          initialData={patient}
+          onClose={() => setShowEditPatientForm(false)}
+          onSavePatient={async (data) => {
+            // Reusamos la lógica de actualización. 
+            // Podríamos necesitar una función updatePatient en el hook de PatientDetail si es necesario, 
+            // pero usePatientDetail ya tiene acceso al paciente.
+            const { error: err } = await supabase.from('guardians').update({
+              name: data.guardian_name,
+              rut: data.guardian_rut,
+              phone: data.guardian_phone,
+              email: data.guardian_email || '',
+            }).eq('id', patient.guardian_id)
+            
+            if (err) return { error: err.message }
+
+            const { error: pErr } = await supabase.from('patients').update({
+              name: data.name,
+              species: data.species,
+              breed: data.breed,
+              date_of_birth: data.date_of_birth,
+              sex: data.sex,
+              is_reactive: data.is_reactive,
+            }).eq('id', patient.id)
+
+            if (pErr) return { error: pErr.message }
+
+            // Recargar datos
+            window.location.reload() // Forma rápida de recargar todo el estado del hook
+            return { error: null }
+          }}
+          onSaved={(petName) => {
+            setShowEditPatientForm(false)
+            showToast(`🐾 Información de ${petName} actualizada`)
+          }}
+        />
+      )}
+
+      {toast && (
+        <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+          {toast}
+        </div>
       )}
     </div>
   )

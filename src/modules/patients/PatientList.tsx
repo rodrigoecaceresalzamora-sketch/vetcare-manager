@@ -1,9 +1,4 @@
-// ============================================================
-// VetCare Manager — PatientList.tsx
-// Lista general de pacientes y tutores
-// ============================================================
-
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { usePatients } from './usePatients'
 import { PatientForm } from './PatientForm'
@@ -11,9 +6,19 @@ import { speciesEmoji } from '../../lib/utils'
 
 export function PatientList() {
   const navigate = useNavigate()
-  const { patients, loading, error, savePatient, deletePatient } = usePatients()
+  const { patients, loading, error, savePatient, updatePatient, deletePatient } = usePatients()
+  const [searchQuery, setSearchQuery] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+
+  const filteredPatients = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim()
+    if (!q) return patients
+    return patients.filter(p => 
+      p.name.toLowerCase().includes(q) || 
+      p.guardian?.name.toLowerCase().includes(q)
+    )
+  }, [patients, searchQuery])
 
   function showToast(msg: string) {
     setToast(msg)
@@ -41,31 +46,48 @@ export function PatientList() {
       )}
 
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-medium text-gray-900">Directorio de Pacientes</h1>
           <p className="text-sm text-gray-500 mt-0.5">
-            {patients.length} pacientes registrados
+            {filteredPatients.length} {filteredPatients.length === 1 ? 'paciente encontrado' : 'pacientes encontrados'}
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-vet-rose text-white text-sm font-medium rounded-lg hover:bg-vet-dark transition-colors"
-        >
-          <span className="text-base leading-none">+</span>
-          Agendar Paciente
-        </button>
+
+        <div className="flex items-center gap-3">
+          {/* BUSCADOR */}
+          <div className="relative flex-1 md:w-64">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Buscar mascota o tutor..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-vet-rose/20 focus:border-vet-rose transition-all"
+            />
+          </div>
+
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-vet-rose text-white text-sm font-medium rounded-lg hover:bg-vet-dark transition-colors whitespace-nowrap"
+          >
+            <span className="text-base leading-none">+</span>
+            Agendar Paciente
+          </button>
+        </div>
       </div>
 
       {/* Tabla */}
       <div className="bg-white border border-pink-100 rounded-xl overflow-hidden">
-        {patients.length === 0 ? (
+        {filteredPatients.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
-            Aún no hay pacientes, agrega el primero presionando "Agendar Paciente"
+            {searchQuery ? 'No se encontraron pacientes con esa búsqueda' : 'Aún no hay pacientes, agrega el primero presionando "Agendar Paciente"'}
           </div>
         ) : (
           <div className="divide-y divide-pink-50">
-            {patients.map(p => (
+            {filteredPatients.map(p => (
               <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-5 py-4 hover:bg-pink-50/40 transition-colors">
                 
                 {/* Avatar Especie */}
@@ -141,7 +163,13 @@ export function PatientList() {
       {showForm && (
         <PatientForm
           onClose={() => setShowForm(false)}
-          onSavePatient={savePatient}
+          onSavePatient={async (data, pId, gId) => {
+            if (pId && gId) {
+              return await updatePatient(pId, gId, data)
+            } else {
+              return await savePatient(data)
+            }
+          }}
           onSaved={(petName) => {
             setShowForm(false)
             showToast(`🐾 ¡El paciente ${petName} y su tutor han sido registrados con éxito!`)

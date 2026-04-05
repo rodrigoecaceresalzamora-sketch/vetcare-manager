@@ -4,12 +4,13 @@
 // ============================================================
 
 import { useState, useMemo } from 'react'
-import type { Species, Sex } from '../../types'
+import type { Species, Sex, Patient } from '../../types'
 
 interface Props {
+  initialData?: Patient
   onClose: () => void
   onSaved: (name: string) => void
-  onSavePatient: (data: any) => Promise<{ error: string | null }>
+  onSavePatient: (data: any, patientId?: string, guardianId?: string) => Promise<{ error: string | null }>
 }
 
 function calculateAgeAndMonths(dateString: string) {
@@ -30,21 +31,21 @@ function calculateAgeAndMonths(dateString: string) {
   return `${years > 0 ? years + ' años ' : ''}${months > 0 ? months + ' meses' : ''}`.trim()
 }
 
-export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
+export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Props) {
   // Tutor
-  const [gName, setGName] = useState('')
-  const [gRut, setGRut] = useState('')
-  const [gPhone, setGPhone] = useState('')
-  const [gEmail, setGEmail] = useState('')
+  const [gName, setGName] = useState(initialData?.guardian?.name || '')
+  const [gRut, setGRut] = useState(initialData?.guardian?.rut || '')
+  const [gPhone, setGPhone] = useState(initialData?.guardian?.phone || '')
+  const [gEmail, setGEmail] = useState(initialData?.guardian?.email || '')
 
   // Paciente
-  const [pName, setPName] = useState('')
-  const [pSpecies, setPSpecies] = useState<Species>('Perro')
-  const [pBreed, setPBreed] = useState('')
-  const [pDob, setPDob] = useState(new Date().toISOString().split('T')[0])
-  const [pSex, setPSex] = useState<Sex>('No determinado')
-  const [pAdopted, setPAdopted] = useState('')
-  const [pIsReactive, setPIsReactive] = useState(false)
+  const [pName, setPName] = useState(initialData?.name || '')
+  const [pSpecies, setPSpecies] = useState<Species>(initialData?.species || 'Perro')
+  const [pBreed, setPBreed] = useState(initialData?.breed || '')
+  const [pDob, setPDob] = useState(initialData?.date_of_birth || new Date().toISOString().split('T')[0])
+  const [pSex, setPSex] = useState<Sex>(initialData?.sex || 'No determinado')
+  const [pAdopted, setPAdopted] = useState(initialData?.adopted_since || '')
+  const [pIsReactive, setPIsReactive] = useState(initialData?.is_reactive || false)
 
   const [saving, setSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
@@ -61,11 +62,14 @@ export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
       guardian_rut: gRut,
       guardian_phone: gPhone,
       guardian_email: gEmail,
+      name: pName,
+      species: pSpecies,
+      breed: pBreed,
       date_of_birth: pDob || null,
       sex: pSex,
       adopted_since: pAdopted || undefined,
       is_reactive: pIsReactive
-    })
+    }, initialData?.id, initialData?.guardian_id)
 
     setSaving(false)
     if (res.error) {
@@ -81,7 +85,7 @@ export function PatientForm({ onClose, onSaved, onSavePatient }: Props) {
     <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl shadow-xl overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between px-5 py-4 border-b border-pink-100">
-          <h2 className="text-base font-medium text-gray-900">Registrar Nuevo Paciente</h2>
+          <h2 className="text-base font-medium text-gray-900">{initialData ? 'Editar Paciente' : 'Registrar Nuevo Paciente'}</h2>
           <button onClick={onClose} className="w-7 h-7 flex items-center justify-center rounded-lg bg-gray-100 text-gray-500 hover:bg-gray-200 text-sm">✕</button>
         </div>
 

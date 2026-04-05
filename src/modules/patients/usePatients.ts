@@ -91,6 +91,44 @@ export function usePatients() {
     }
   }
 
+  const updatePatient = async (patientId: string, guardianId: string, input: NewPatientInput) => {
+    try {
+      // 1. Actualizamos el Tutor
+      const { error: gErr } = await supabase
+        .from('guardians')
+        .update({
+          name: input.guardian_name,
+          rut: input.guardian_rut,
+          phone: input.guardian_phone,
+          email: input.guardian_email || '',
+        })
+        .eq('id', guardianId)
+
+      if (gErr) throw new Error("Error actualizando tutor: " + gErr.message)
+
+      // 2. Actualizamos el Paciente
+      const { error: pErr } = await supabase
+        .from('patients')
+        .update({
+          name: input.name,
+          species: input.species,
+          breed: input.breed,
+          date_of_birth: input.date_of_birth,
+          sex: input.sex,
+          weight_kg: input.weight_kg,
+          is_reactive: input.is_reactive,
+        })
+        .eq('id', patientId)
+
+      if (pErr) throw new Error("Error actualizando paciente: " + pErr.message)
+
+      await fetchPatients()
+      return { error: null }
+    } catch (err: any) {
+      return { error: err.message }
+    }
+  }
+
   const deletePatient = async (patientId: string, guardianId: string) => {
     try {
       // Borramos primero el paciente (FK), luego el tutor
@@ -107,5 +145,5 @@ export function usePatients() {
     }
   }
 
-  return { patients, loading, error, fetchPatients, savePatient, deletePatient }
+  return { patients, loading, error, fetchPatients, savePatient, updatePatient, deletePatient }
 }

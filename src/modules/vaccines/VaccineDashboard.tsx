@@ -8,7 +8,7 @@
 //   • Formulario de registro de nueva vacuna
 // ============================================================
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useVaccineAlerts } from './useVaccineAlerts'
 import { VaccineForm } from './VaccineForm'
 import {
@@ -57,6 +57,16 @@ export function VaccineDashboard() {
   const [showForm, setShowForm] = useState(false)
   const [sendingId, setSendingId] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const filteredAlerts = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim()
+    if (!q) return alerts
+    return alerts.filter(a => 
+      a.patient.name.toLowerCase().includes(q) || 
+      a.guardian.name.toLowerCase().includes(q)
+    )
+  }, [alerts, searchQuery])
 
   // Muestra un toast durante 2.5s
   function showToast(msg: string) {
@@ -149,21 +159,37 @@ Medica Veterinaria`
       )}
 
       {/* ── Encabezado ──────────────────────────────────────── */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-xl font-medium text-gray-900">Vacunas y notificaciones</h1>
           <p className="text-sm text-gray-500 mt-0.5">
             Panel de control · {alerts.length} registros totales
           </p>
         </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-vet-rose text-white
-                     text-sm font-medium rounded-lg hover:bg-vet-dark transition-colors"
-        >
-          <span className="text-base leading-none">+</span>
-          Registrar vacuna
-        </button>
+
+        <div className="flex items-center gap-3">
+          {/* BUSCADOR */}
+          <div className="relative flex-1 md:w-64">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Buscar paciente o tutor..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-4 py-2 bg-white border border-pink-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-vet-rose/20 focus:border-vet-rose transition-all"
+            />
+          </div>
+
+          <button
+            onClick={() => setShowForm(true)}
+            className="flex items-center gap-2 px-4 py-2 bg-vet-rose text-white text-sm font-medium rounded-lg hover:bg-vet-dark transition-colors whitespace-nowrap"
+          >
+            <span className="text-base leading-none">+</span>
+            Registrar vacuna
+          </button>
+        </div>
       </div>
 
       {/* ── Estadísticas ─────────────────────────────────────── */}
@@ -230,16 +256,16 @@ Medica Veterinaria`
           <h2 className="text-sm font-medium text-gray-900">
             Panel de vacunas — ordenado por urgencia
           </h2>
-          <span className="text-xs text-gray-400">{alerts.length} registros</span>
+          <span className="text-xs text-gray-400">{filteredAlerts.length} {filteredAlerts.length === 1 ? 'registro' : 'registros'}</span>
         </div>
 
-        {alerts.length === 0 ? (
+        {filteredAlerts.length === 0 ? (
           <div className="py-16 text-center text-gray-400 text-sm">
-            Sin vacunas registradas. Agrega la primera arriba.
+            {searchQuery ? 'No se encontraron vacunas con esa búsqueda' : 'Sin vacunas registradas. Agrega la primera arriba.'}
           </div>
         ) : (
           <div className="divide-y divide-pink-50">
-            {alerts.map((alert) => {
+            {filteredAlerts.map((alert) => {
               const s = STATUS_STYLES[alert.status]
               return (
                 <div
