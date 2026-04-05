@@ -122,10 +122,10 @@ export function isValidRUT(rut: string): boolean {
 
 /** Formatea RUT automáticamente mientras el usuario escribe */
 export function formatRUT(value: string): string {
-  const clean = value.replace(/\D/g, '').slice(0, 9)
+  const clean = value.replace(/[^0-9kK]/g, '').slice(0, 9)
   if (clean.length <= 1) return clean
   const body = clean.slice(0, -1)
-  const dv = clean.slice(-1)
+  const dv = clean.slice(-1).toUpperCase()
   const formatted = body.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   return `${formatted}-${dv}`
 }
@@ -134,6 +134,7 @@ export function formatRUT(value: string): string {
  * Valida si un número telefónico tiene al menos 9 dígitos 
  */
 export function isValidPhone(phone: string): boolean {
+  if (!phone) return true
   const clean = phone.replace(/\D/g, '')
   return clean.length >= 9
 }

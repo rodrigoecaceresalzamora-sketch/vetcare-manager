@@ -78,6 +78,7 @@ export interface Appointment {
   guardian_name: string
   guardian_email: string
   guardian_phone?: string
+  guardian_rut?: string
   pet_name: string
   service: AppointmentService
   scheduled_at: string   // ISO datetime
@@ -94,6 +95,7 @@ export interface AppointmentFormData {
   guardian_name: string
   guardian_email: string
   guardian_phone: string
+  guardian_rut: string
   pet_name: string
   service: AppointmentService
   scheduled_at: string

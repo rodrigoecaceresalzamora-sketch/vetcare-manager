@@ -12,10 +12,10 @@ import { supabase } from '../../lib/supabase'
 import { speciesEmoji, calcVaccineStatus } from '../../lib/utils'
 import type { Consultation } from '../../types'
 
-function calculateAgeAndMonths(dateString: string) {
-  if (!dateString) return ''
+function calculateAgeAndMonths(dateString: string | null | undefined) {
+  if (!dateString) return 'Desconocida'
   const dob = new Date(dateString)
-  if (isNaN(dob.getTime())) return ''
+  if (isNaN(dob.getTime())) return 'Desconocida'
   
   const today = new Date()
   let years = today.getFullYear() - dob.getFullYear()
@@ -148,33 +148,71 @@ export function PatientDetail() {
         </div>
       </div>
 
-      {/* ALERTAS DE PRÓXIMOS EVENTOS */}
-      {(upcomingAppointments.length > 0 || vaccinations.some(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date)))) && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {upcomingAppointments.length > 0 && (
-            <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex items-center gap-3">
-              <span className="text-xl">📅</span>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-indigo-600 tracking-wider">Próxima Cita</p>
-                <p className="text-sm font-bold text-indigo-900">
-                  {upcomingAppointments[0].service} - {new Date(upcomingAppointments[0].scheduled_at).toLocaleDateString('es-CL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
-                </p>
+      {/* PRÓXIMOS EVENTOS (Agendas y Vacunas) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-pink-100 overflow-hidden">
+        <div className="bg-pink-50/50 px-5 py-3 border-b border-pink-100 flex items-center justify-between">
+          <h3 className="text-sm font-bold text-gray-700 flex items-center gap-2">
+            <span className="text-lg">📅</span> Próximos Eventos
+          </h3>
+          <span className="text-[10px] font-bold text-vet-rose bg-white px-2 py-0.5 rounded-full border border-pink-100 uppercase tracking-wider">Recordatorios</span>
+        </div>
+        <div className="p-5">
+          {upcomingAppointments.length === 0 && !vaccinations.some(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date))) ? (
+            <p className="text-xs text-gray-400 italic">No hay eventos próximos registrados.</p>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Citas */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-black text-indigo-600 uppercase tracking-tighter">Agenda / Citas</p>
+                {upcomingAppointments.length > 0 ? (
+                  upcomingAppointments.map(app => (
+                    <div key={app.id} className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 flex items-center gap-3">
+                      <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm">🗓️</div>
+                      <div>
+                        <p className="text-sm font-bold text-indigo-900">{app.service}</p>
+                        <p className="text-[10px] text-indigo-600 font-medium">
+                          {new Date(app.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })} a las {new Date(app.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-[10px] text-gray-400">Sin citas pendientes</p>
+                )}
               </div>
-            </div>
-          )}
-          {vaccinations.some(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date))) && (
-            <div className="bg-amber-50 border border-amber-100 rounded-xl p-4 flex items-center gap-3">
-              <span className="text-xl">💉</span>
-              <div>
-                <p className="text-[10px] uppercase font-bold text-amber-600 tracking-wider">Alerta de Vacuna</p>
-                <p className="text-sm font-bold text-amber-900">
-                  {vaccinations.find(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date)))?.vaccine_name} - {vaccinations.find(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date)))?.next_due_date}
-                </p>
+
+              {/* Vacunas */}
+              <div className="space-y-3">
+                <p className="text-[10px] font-black text-amber-600 uppercase tracking-tighter">Vacunas Próximas / Vencidas</p>
+                {vaccinations.filter(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date))).length > 0 ? (
+                  vaccinations.filter(v => ['urgente', 'proxima', 'vencida'].includes(calcVaccineStatus(v.next_due_date))).map(v => {
+                    const status = calcVaccineStatus(v.next_due_date)
+                    const statusColors = {
+                      vencida: 'bg-red-50 border-red-100 text-red-700',
+                      urgente: 'bg-orange-50 border-orange-100 text-orange-700',
+                      proxima: 'bg-amber-50 border-amber-100 text-amber-700',
+                      vigente: 'bg-green-50 border-green-100 text-green-700'
+                    }
+                    return (
+                      <div key={v.id} className={`border rounded-xl p-3 flex items-center gap-3 ${statusColors[status]}`}>
+                        <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-lg shadow-sm">💉</div>
+                        <div>
+                          <p className="text-sm font-bold">{v.vaccine_name}</p>
+                          <p className="text-[10px] font-medium opacity-80">
+                            {status === 'vencida' ? 'Venció el' : 'Próxima dosis:'} {new Date(v.next_due_date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'long', year: 'numeric' })}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })
+                ) : (
+                  <p className="text-[10px] text-gray-400">Todo al día</p>
+                )}
               </div>
             </div>
           )}
         </div>
-      )}
+      </div>
 
       {/* ZONA DE TABS */}
       <div className="border-b border-gray-200">

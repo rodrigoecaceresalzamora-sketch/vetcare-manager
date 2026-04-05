@@ -5,7 +5,7 @@
 
 import { useState, useMemo } from 'react'
 import type { Species, Sex, Patient } from '../../types'
-import { isValidRUT, isValidPhone } from '../../lib/utils'
+import { isValidRUT, isValidPhone, formatRUT } from '../../lib/utils'
 
 interface Props {
   initialData?: Patient
@@ -57,6 +57,11 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
   const rutValid = useMemo(() => !gRut || isValidRUT(gRut), [gRut])
   const phoneValid = useMemo(() => !gPhone || isValidPhone(gPhone), [gPhone])
 
+  const handleRutChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const formatted = formatRUT(e.target.value)
+    setGRut(formatted)
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErrorMsg('')
@@ -105,10 +110,10 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
                 <input required className={inputCls} placeholder="Ej: Pedro Pérez" value={gName} onChange={e => setGName(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">RUT
-                <input className={`${inputCls} ${!rutValid ? 'border-red-500 bg-red-50' : ''}`} placeholder="12.345.678-9" value={gRut} onChange={e => setGRut(e.target.value)} />
+                <input className={`${inputCls} ${!rutValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`} placeholder="12.345.678-9" value={gRut} onChange={handleRutChange} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Teléfono
-                <input required className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50' : ''}`} placeholder="+56 9 1234 5678" value={gPhone} onChange={e => setGPhone(e.target.value)} />
+                <input required className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`} placeholder="+56 9 1234 5678" value={gPhone} onChange={e => setGPhone(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Email (Opcional)
                 <input type="email" className={inputCls} placeholder="correo@ejemplo.com" value={gEmail} onChange={e => setGEmail(e.target.value)} />

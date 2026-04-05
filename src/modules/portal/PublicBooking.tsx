@@ -407,7 +407,7 @@ export function PublicBooking() {
                 </Field>
                 <Field label="Teléfono (opcional)">
                   <input
-                    className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50' : ''}`}
+                    className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`}
                     value={form.guardian_phone}
                     onChange={(e) => setField('guardian_phone', e.target.value)}
                     placeholder="+56 9 1234 5678"

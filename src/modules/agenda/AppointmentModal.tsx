@@ -8,7 +8,7 @@
 
 import { useState, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
-import { generateId, isValidPhone } from '../../lib/utils'
+import { generateId, isValidPhone, isValidRUT, formatRUT } from '../../lib/utils'
 import type { Appointment, AppointmentFormData, AppointmentService } from '../../types'
 import { usePatients } from '../patients/usePatients'
 import { PatientForm } from '../patients/PatientForm'
@@ -40,6 +40,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     guardian_name:    editingAppointment?.guardian_name ?? '',
     guardian_email:   editingAppointment?.guardian_email ?? '',
     guardian_phone:   editingAppointment?.guardian_phone ?? '',
+    guardian_rut:     (editingAppointment as any)?.guardian_rut ?? '',
     pet_name:         editingAppointment?.pet_name ?? '',
     service:          editingAppointment?.service ?? 'Consulta General',
     scheduled_at:     editingAppointment 
@@ -53,8 +54,19 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   const [showPatientForm, setShowPatientForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [fieldError, setFieldError] = useState('')
+  const [searchTerm, setSearchTerm] = useState(editingAppointment?.pet_name ?? '')
+  const [showSuggestions, setShowSuggestions] = useState(false)
 
   const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
+  const rutValid = useMemo(() => !form.guardian_rut || isValidRUT(form.guardian_rut), [form.guardian_rut])
+
+  const filteredPatients = useMemo(() => {
+    if (!searchTerm) return []
+    return patients.filter(p => 
+      p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.guardian?.name.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  }, [searchTerm, patients])
 
   function set<K extends keyof AppointmentFormData>(
     key: K,
@@ -64,19 +76,17 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   }
 
   // Auto-fill logic
-  function handlePatientSelect(petName: string) {
-    const p = patients.find(p => p.name === petName)
-    if (p && p.guardian) {
-      setForm(f => ({
-        ...f,
-        pet_name: p.name,
-        guardian_name: p.guardian?.name || '',
-        guardian_phone: p.guardian?.phone || '',
-        guardian_email: p.guardian?.email || '',
-      }))
-    } else {
-      set('pet_name', petName)
-    }
+  function handlePatientSelect(p: any) {
+    setForm(f => ({
+      ...f,
+      pet_name: p.name,
+      guardian_name: p.guardian?.name || '',
+      guardian_phone: p.guardian?.phone || '',
+      guardian_email: p.guardian?.email || '',
+      guardian_rut: p.guardian?.rut || '',
+    }))
+    setSearchTerm(p.name)
+    setShowSuggestions(false)
   }
 
 
@@ -96,6 +106,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
       guardian_name:    form.guardian_name,
       guardian_email:   form.guardian_email,
       guardian_phone:   form.guardian_phone,
+      guardian_rut:     (form as any).guardian_rut,
       pet_name:         form.pet_name,
       service:          form.service,
       scheduled_at:     new Date(form.scheduled_at).toISOString(),
@@ -176,10 +187,18 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
               </Field>
               <Field label="Teléfono">
                 <input
-                  className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50' : ''}`}
+                  className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`}
                   value={form.guardian_phone}
                   onChange={(e) => set('guardian_phone', e.target.value)}
                   placeholder="+56 9 1234 5678"
+                />
+              </Field>
+              <Field label="RUT">
+                <input
+                  className={`${inputCls} ${!rutValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`}
+                  value={(form as any).guardian_rut}
+                  onChange={(e) => set('guardian_rut' as any, formatRUT(e.target.value))}
+                  placeholder="12.345.678-9"
                 />
               </Field>
               <Field label="Correo electrónico" className="col-span-2">
@@ -198,19 +217,37 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
           {/* Sección cita */}
           <Section title="Detalles de la cita">
             <div className="grid grid-cols-2 gap-3">
-              <Field label="Mascota">
+              <Field label="Mascota" className="relative">
                 <div className="flex gap-1">
-                  <select
-                    className={inputCls}
-                    value={form.pet_name}
-                    onChange={(e) => handlePatientSelect(e.target.value)}
-                    required
-                  >
-                    <option value="">Seleccionar mascota...</option>
-                    {patients.map(p => (
-                      <option key={p.id} value={p.name}>{p.name} ({p.guardian?.name})</option>
-                    ))}
-                  </select>
+                  <div className="relative flex-1">
+                    <input
+                      className={inputCls}
+                      value={searchTerm}
+                      onChange={(e) => {
+                        setSearchTerm(e.target.value)
+                        set('pet_name', e.target.value)
+                        setShowSuggestions(true)
+                      }}
+                      onFocus={() => setShowSuggestions(true)}
+                      placeholder="Buscar o ingresar nombre..."
+                      required
+                    />
+                    {showSuggestions && filteredPatients.length > 0 && (
+                      <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+                        {filteredPatients.map(p => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className="w-full text-left px-3 py-2 text-sm hover:bg-vet-light/50 transition-colors border-b border-gray-50 last:border-0"
+                            onClick={() => handlePatientSelect(p)}
+                          >
+                            <span className="font-bold">{p.name}</span>
+                            <span className="text-[10px] text-gray-500 ml-2">({p.guardian?.name})</span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={() => setShowPatientForm(true)}
