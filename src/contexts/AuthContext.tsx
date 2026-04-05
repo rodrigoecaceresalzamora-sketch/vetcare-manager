@@ -45,21 +45,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return
     }
 
+    const userEmail = user.email?.toLowerCase()
+
     try {
       const { data, error } = await supabase
         .from('staff')
         .select('role')
-        .eq('email', user.email?.toLowerCase())
+        .eq('email', userEmail)
         .single()
 
       if (error || !data) {
-        setRole('tutor')
+        // Fallback de seguridad: Si la tabla no existe o el correo no está registrado,
+        // pero es el administrador principal, le damos acceso de admin.
+        if (userEmail === 'scaceresalzamora@gmail.com') {
+          setRole('admin')
+        } else {
+          setRole('tutor')
+        }
       } else {
         setRole(data.role as Role)
       }
     } catch (err) {
       console.error('Error fetching role:', err)
-      setRole('tutor')
+      // Fallback en caso de error de red o tabla inexistente
+      if (userEmail === 'scaceresalzamora@gmail.com') {
+        setRole('admin')
+      } else {
+        setRole('tutor')
+      }
     }
   }
 
