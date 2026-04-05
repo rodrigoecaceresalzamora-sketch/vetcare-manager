@@ -3,17 +3,6 @@
 //
 // Página pública de agendamiento (sin login).
 // Se accede desde: https://tudominio.cl/reserva
-//
-// Flujo de 4 pasos:
-//   1. Seleccionar servicio
-//   2. Elegir fecha
-//   3. Elegir horario disponible
-//   4. Ingresar datos personales → confirmar
-//
-// Al confirmar:
-//   • Inserta cita en Supabase (RLS permite INSERT anon)
-//   • Invoca Edge Function 'confirm-booking' para enviar email
-//   • Muestra pantalla de confirmación
 // ============================================================
 
 import { useState, useEffect, useMemo } from 'react'
@@ -21,60 +10,28 @@ import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { generateId, isValidPhone } from '../../lib/utils'
-import type { AppointmentService, PublicBookingFormData } from '../../types'
+import type { PublicBookingFormData } from '../../types'
 
-// ── Datos de servicios ────────────────────────────────────────
-const SERVICES: {
-  id: AppointmentService
-  icon: string
-  name: string
-  desc: string
-  duration: string
-  price: string
-}[] = [
-  {
-    id:       'Consulta General',
-    icon:     '🩺',
-    name:     'Consulta General',
-    desc:     'Revisión clínica completa, diagnóstico y tratamiento',
-    duration: '30 min',
-    price:    '$25.000',
-  },
-  {
-    id:       'Vacunación',
-    icon:     '💉',
-    name:     'Vacunación',
-    desc:     'Aplicación de vacunas con registro en carnet digital',
-    duration: '20 min',
-    price:    '$18.000',
-  },
-  {
-    id:       'Control',
-    icon:     '📋',
-    name:     'Control',
-    desc:     'Seguimiento de tratamiento o post-operatorio',
-    duration: '20 min',
-    price:    '$15.000',
-  },
-  {
-    id:       'Telemedicina',
-    icon:     '💻',
-    name:     'Telemedicina',
-    desc:     'Videoconsulta desde la comodidad de tu hogar',
-    duration: '25 min',
-    price:    '$12.000',
-  },
-]
+// ── Cargar servicios dinámicos ──────────────────────────────────
+async function fetchPublicServices() {
+  const { data } = await supabase
+    .from('services')
+    .select('*')
+    .order('name', { ascending: true })
+  return data || []
+}
 
-// ── Próximos 7 días hábiles ───────────────────────────────────
-function getAvailableDates(): { label: string; value: string }[] {
-  const dates: { label: string; value: string }[] = []
+// ── Próximos 7 días permitidos ──────────────────────────────────
+function getAvailableDates(): { label: string; value: string; dow: number }[] {
+  const dates: { label: string; value: string; dow: number }[] = []
   const d = new Date()
   d.setDate(d.getDate() + 1) // Mañana en adelante
 
-  while (dates.length < 7) {
+  const ALLOWED_DAYS = [2, 3, 6, 0] // Mar, Mié, Sáb, Dom
+
+  while (dates.length < 14) { // Buscamos en los próximos 14 días
     const dow = d.getDay()
-    if (dow !== 0 && dow !== 6) { // Excluir fines de semana
+    if (ALLOWED_DAYS.includes(dow)) {
       dates.push({
         label: d.toLocaleDateString('es-CL', {
           weekday: 'short',
@@ -82,28 +39,37 @@ function getAvailableDates(): { label: string; value: string }[] {
           month: 'short',
         }),
         value: d.toISOString().split('T')[0],
+        dow
       })
     }
     d.setDate(d.getDate() + 1)
   }
-  return dates
+  return dates.slice(0, 8) 
 }
 
-// ── Slots de horario ─────────────────────────────────────────
-const TIME_SLOTS = [
-  '09:00', '09:30', '10:00', '10:30',
-  '11:00', '11:30', '12:00', '12:30',
-  '14:00', '14:30', '15:00', '15:30',
-  '16:00', '16:30', '17:00', '17:30',
-]
+// ── Slots de horario dinámicos ─────────────────────────────────
+function getTimeSlots(dow: number): string[] {
+  if (dow === 2 || dow === 3) { // Mar, Mié: 10:00 - 16:00
+    return [
+      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
+      '14:00', '14:30', '15:00', '15:30', '16:00'
+    ]
+  }
+  if (dow === 6 || dow === 0) { // Sáb, Dom: 10:00 - 14:00
+    return [
+      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'
+    ]
+  }
+  return []
+}
 
-// ── Tipos internos ────────────────────────────────────────────
 type Step = 1 | 2 | 3 | 4 | 'confirmed'
 
 export function PublicBooking() {
   const { user } = useAuth()
   const [step, setStep]             = useState<Step>(1)
-  const [service, setService]       = useState<AppointmentService | null>(null)
+  const [service, setService]       = useState<any | null>(null)
+  const [dbServices, setDbServices] = useState<any[]>([])
   const [date, setDate]             = useState<string | null>(null)
   const [time, setTime]             = useState<string | null>(null)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
@@ -112,17 +78,21 @@ export function PublicBooking() {
     guardian_email: user?.email || '',
     guardian_phone: '',
     pet_name:       '',
-    service:        'Consulta General',
+    service:        '',
     scheduled_at:   '',
+    is_home_visit:  false,
+    address:        '',
   })
   const [saving, setSaving]       = useState(false)
   const [fieldError, setFieldError] = useState('')
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [, setBookingId]   = useState<string | null>(null)
 
   const availableDates = getAvailableDates()
 
-  // Carga slots ocupados cuando cambia la fecha
+  useEffect(() => {
+    fetchPublicServices().then(setDbServices)
+  }, [])
+
   useEffect(() => {
     if (!date) return
     supabase
@@ -147,14 +117,13 @@ export function PublicBooking() {
 
   const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
 
-  // ── Confirmar reserva ─────────────────────────────────────────
-  async function handleConfirm(e: React.FormEvent): Promise<void> {
+  async function handleConfirm(e: React.FormEvent) {
     e.preventDefault()
     setFieldError('')
-
     if (!form.guardian_name)  return setFieldError('Ingresa tu nombre')
     if (!form.guardian_email) return setFieldError('Ingresa tu correo')
     if (!form.pet_name)       return setFieldError('Ingresa el nombre de tu mascota')
+    if (form.is_home_visit && !form.address) return setFieldError('Ingresa tu dirección')
 
     const scheduledAt = `${date}T${time}:00`
     const id = generateId()
@@ -166,11 +135,13 @@ export function PublicBooking() {
       guardian_email:   form.guardian_email,
       guardian_phone:   form.guardian_phone,
       pet_name:         form.pet_name,
-      service:          service,
+      service:          service.name,
       scheduled_at:     scheduledAt,
-      duration_minutes: 30,
+      duration_minutes: service.duration_minutes || 30,
       status:           'pendiente',
       source:           'portal',
+      is_home_visit:    form.is_home_visit,
+      address:          form.address,
     })
 
     if (dbErr) {
@@ -179,7 +150,6 @@ export function PublicBooking() {
       return
     }
 
-    // Enviar email de confirmación (best-effort)
     try {
       await supabase.functions.invoke('confirm-booking', {
         body: { appointment_id: id },
@@ -193,51 +163,30 @@ export function PublicBooking() {
     setStep('confirmed')
   }
 
-  // ── Pantalla de confirmación ──────────────────────────────────
   if (step === 'confirmed') {
-    const svc = SERVICES.find((s) => s.id === service)
     return (
       <PortalShell>
         <div className="max-w-md mx-auto py-10 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center
-                          justify-center mx-auto mb-4">
-            <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24"
-                 fill="none" stroke="currentColor" strokeWidth="2.5">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <h2 className="text-xl font-medium text-gray-900 mb-2">
-            ¡Reserva confirmada!
-          </h2>
+          <h2 className="text-xl font-medium text-gray-900 mb-2">¡Reserva enviada!</h2>
           <p className="text-sm text-gray-500 mb-6">
-            Se envió un correo a <strong>{form.guardian_email}</strong> con
-            todos los detalles.
+            Tu reserva para <strong>{form.pet_name}</strong> ha sido enviada. Aparece como <strong>pendiente</strong> hasta que sea confirmada por la Dra. Sofía.
           </p>
-
-          <div className="bg-vet-light/60 rounded-xl p-4 text-left space-y-2 mb-6">
-            <Row label="Servicio"  value={`${svc?.icon} ${svc?.name}`} />
-            <Row label="Mascota"   value={form.pet_name} />
+          <div className="bg-vet-light/60 rounded-xl p-4 text-left space-y-2 mb-6 text-sm">
+            <Row label="Servicio"  value={`${service?.icon || '🩺'} ${service?.name}`} />
             <Row label="Fecha"     value={availableDates.find(d => d.value === date)?.label ?? date ?? ''} />
             <Row label="Hora"      value={time ?? ''} />
-            {service === 'Telemedicina' ? (
-              <Row label="Enlace" value="Google Meet (enviado por email)" accent />
-            ) : (
-              <Row label="Dirección" value="Av. Las Flores 1234, Viña del Mar" />
-            )}
+            {form.is_home_visit && <Row label="Dirección" value={form.address || 'Sí'} />}
           </div>
-
           <button
-            onClick={() => {
-              setStep(1)
-              setService(null)
-              setDate(null)
-              setTime(null)
-              setForm({ guardian_name:'', guardian_email:'', guardian_phone:'', pet_name:'', service:'Consulta General', scheduled_at:'' })
-            }}
-            className="px-6 py-2.5 bg-vet-rose text-white text-sm font-medium
-                       rounded-lg hover:bg-vet-dark transition-colors"
+            onClick={() => { setStep(1); setService(null); setDate(null); setTime(null); }}
+            className="px-6 py-2.5 bg-vet-rose text-white text-sm font-medium rounded-lg hover:bg-vet-dark transition-colors"
           >
-            Hacer otra reserva
+            Volver al inicio
           </button>
         </div>
       </PortalShell>
@@ -246,33 +195,26 @@ export function PublicBooking() {
 
   return (
     <PortalShell>
-      {/* Indicador de pasos */}
       <StepIndicator current={step as number} />
-
-      {/* ── Paso 1: Servicio ─────────────────────────────────── */}
       {step === 1 && (
         <section>
           <SectionTitle step={1} title="Selecciona el servicio" />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {SERVICES.map((svc) => (
+            {dbServices.map((svc) => (
               <button
                 key={svc.id}
-                onClick={() => { setService(svc.id); setStep(2) }}
-                className={`text-left p-4 rounded-xl border transition-all
-                            hover:border-vet-rose hover:bg-vet-light/40
-                            ${service === svc.id
-                              ? 'border-vet-rose bg-vet-light'
-                              : 'border-gray-200 bg-white'
-                            }`}
+                onClick={() => { setService(svc); setStep(2) }}
+                className={`text-left p-4 rounded-xl border transition-all hover:border-vet-rose hover:bg-vet-light/40
+                            ${service?.id === svc.id ? 'border-vet-rose bg-vet-light' : 'border-gray-200 bg-white'}`}
               >
-                <div className="text-2xl mb-2">{svc.icon}</div>
+                <div className="flex justify-between items-start">
+                  <div className="text-2xl mb-2">{svc.icon || '🩺'}</div>
+                  <span className="text-sm font-bold text-gray-900">${svc.price.toLocaleString('es-CL')}</span>
+                </div>
                 <p className="text-sm font-medium text-gray-900">{svc.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{svc.desc}</p>
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{svc.description}</p>
                 <div className="flex gap-3 mt-2">
-                  <span className="text-xs text-vet-rose font-medium">
-                    ⏱ {svc.duration}
-                  </span>
-                  <span className="text-xs text-gray-500">{svc.price}</span>
+                  <span className="text-xs text-vet-rose font-medium">⏱ {svc.duration_minutes} min</span>
                 </div>
               </button>
             ))}
@@ -280,7 +222,6 @@ export function PublicBooking() {
         </section>
       )}
 
-      {/* ── Paso 2: Fecha ────────────────────────────────────── */}
       {step === 2 && (
         <section>
           <SectionTitle step={2} title="Elige la fecha" />
@@ -289,12 +230,8 @@ export function PublicBooking() {
               <button
                 key={d.value}
                 onClick={() => { setDate(d.value); setStep(3) }}
-                className={`flex-shrink-0 px-3 py-2 rounded-lg border text-sm
-                            capitalize transition-all
-                            ${date === d.value
-                              ? 'bg-vet-rose text-white border-vet-rose'
-                              : 'bg-white border-gray-200 text-gray-700 hover:border-vet-rose'
-                            }`}
+                className={`flex-shrink-0 px-3 py-2 rounded-lg border text-sm capitalize transition-all
+                            ${date === d.value ? 'bg-vet-rose text-white border-vet-rose' : 'bg-white border-gray-200 text-gray-700 hover:border-vet-rose'}`}
               >
                 {d.label}
               </button>
@@ -304,35 +241,23 @@ export function PublicBooking() {
         </section>
       )}
 
-      {/* ── Paso 3: Horario ──────────────────────────────────── */}
       {step === 3 && (
         <section>
-          <SectionTitle
-            step={3}
-            title="Horario disponible"
-            sub={availableDates.find(d => d.value === date)?.label}
-          />
-          <div className="grid grid-cols-4 gap-2 mb-4">
-            {TIME_SLOTS.map((slot) => {
+          <SectionTitle step={3} title="Horario disponible" sub={availableDates.find(d => d.value === date)?.label} />
+          <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-6">
+            {getTimeSlots(availableDates.find(d => d.value === date)?.dow ?? 0).map((slot) => {
               const taken = takenSlots.includes(slot)
               return (
                 <button
                   key={slot}
                   disabled={taken}
                   onClick={() => { setTime(slot); setStep(4) }}
-                  className={`py-2 rounded-lg border text-sm font-medium
-                              transition-all
-                              ${taken
-                                ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through'
-                                : time === slot
-                                ? 'bg-vet-rose text-white border-vet-rose'
-                                : 'bg-white border-gray-200 text-gray-700 hover:border-vet-rose hover:bg-vet-light/30'
-                              }`}
+                  className={`py-2 rounded-lg border text-sm font-medium transition-all
+                              ${taken ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through' : 
+                                time === slot ? 'bg-vet-rose text-white border-vet-rose' : 
+                                'bg-white border-gray-200 text-gray-700 hover:border-vet-rose'}`}
                 >
                   {slot}
-                  {taken && (
-                    <div className="text-[9px] font-normal">Ocupado</div>
-                  )}
                 </button>
               )
             })}
@@ -341,113 +266,57 @@ export function PublicBooking() {
         </section>
       )}
 
-      {/* ── Paso 4: Datos personales ─────────────────────────── */}
       {step === 4 && (
-        <section>
+        <section className="space-y-4">
           <SectionTitle step={4} title="Tus datos" />
-
-          {/* Resumen de la reserva */}
-          <div className="bg-vet-light/50 border border-pink-200 rounded-xl
-                          p-3 mb-4 flex flex-wrap gap-x-4 gap-y-1">
-            <span className="text-xs text-vet-dark">
-              <strong>{SERVICES.find(s => s.id === service)?.icon}</strong>{' '}
-              {service}
-            </span>
-            <span className="text-xs text-gray-500">
-              {availableDates.find(d => d.value === date)?.label} · {time}
-            </span>
+          <div className="bg-vet-light/50 border border-pink-200 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1">
+            <span className="text-xs text-vet-dark"><strong>{service?.icon}</strong> {service?.name}</span>
+            <span className="text-xs text-gray-500">{availableDates.find(d => d.value === date)?.label} · {time}</span>
           </div>
 
           {!user ? (
             <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-8 text-center">
-              <div className="w-16 h-16 bg-vet-rose/5 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
-                🔒
-              </div>
-              <h3 className="text-sm font-bold text-gray-900 mb-2">Inicia sesi&oacute;n para continuar</h3>
-              <p className="text-xs text-gray-500 mb-6 max-w-[200px] mx-auto">
-                Para confirmar tu reserva y enviarte el recordatorio, necesitamos que tengas una cuenta.
-              </p>
-              <Link
-                to="/login"
-                state={{ from: { pathname: '/reserva' } }}
-                className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all"
-              >
-                Cerrar sesión e Identificarme
+              <h3 className="text-sm font-bold text-gray-900 mb-2">Identifícate para agendar</h3>
+              <Link to="/login" state={{ from: { pathname: '/reserva' } }}
+                    className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all">
+                Ir al inicio de sesión
               </Link>
             </div>
           ) : (
-            <form onSubmit={handleConfirm} className="space-y-3">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <Field label="Tu nombre completo">
-                  <input
-                    className={inputCls}
-                    value={form.guardian_name}
-                    onChange={(e) => setField('guardian_name', e.target.value)}
-                    placeholder="Ana García López"
-                    required
-                  />
+            <form onSubmit={handleConfirm} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
+                <Field label="Nombre completo">
+                  <input className={inputCls} value={form.guardian_name} onChange={(e) => setField('guardian_name', e.target.value)} required />
                 </Field>
-                <Field label="Nombre de tu mascota">
-                  <input
-                    className={inputCls}
-                    value={form.pet_name}
-                    onChange={(e) => setField('pet_name', e.target.value)}
-                    placeholder="Firulais"
-                    required
-                  />
+                <Field label="Nombre mascota">
+                  <input className={inputCls} value={form.pet_name} onChange={(e) => setField('pet_name', e.target.value)} required />
                 </Field>
-                <Field label="Correo electrónico">
-                  <input
-                    type="email"
-                    readOnly
-                    className={`${inputCls} bg-gray-50 text-gray-500 cursor-not-allowed`}
-                    value={form.guardian_email}
-                    required
-                  />
-                </Field>
-                <Field label="Teléfono (opcional)">
-                  <input
-                    className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`}
-                    value={form.guardian_phone}
-                    onChange={(e) => setField('guardian_phone', e.target.value)}
-                    placeholder="+56 9 1234 5678"
-                  />
+                <Field label="Teléfono">
+                  <input className={inputCls} value={form.guardian_phone} onChange={(e) => setField('guardian_phone', e.target.value)} placeholder="+56 9..." />
                 </Field>
               </div>
 
-              {service === 'Telemedicina' && (
-                <div className="flex items-start gap-2 px-3 py-2 bg-indigo-50
-                                border border-indigo-100 rounded-lg text-xs text-indigo-700">
-                  <span>💻</span>
-                  Recibirás un enlace de Google Meet por correo. Asegúrate de
-                  ingresar un correo válido.
-                </div>
-              )}
-
-              <div className="text-xs text-gray-400">
-                Tus datos se usan únicamente para gestionar tu cita. Cumplimos
-                con la Ley 19.628 de Protección de Datos Personales (Chile).
+              <div className="py-2 border-t border-pink-50 text-left">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input type="checkbox" checked={form.is_home_visit} onChange={(e) => setField('is_home_visit', e.target.checked)} />
+                  <span className="text-sm font-medium text-gray-700">🏠 ¿Es atención a domicilio?</span>
+                </label>
               </div>
 
-              {fieldError && (
-                <p className="text-xs text-red-600">{fieldError}</p>
+              {form.is_home_visit && (
+                <Field label="Dirección del domicilio">
+                  <input className={inputCls} value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="Dirección completa..." required />
+                </Field>
               )}
 
-              <div className="flex gap-2 pt-1">
+              {fieldError && <p className="text-xs text-red-600">⚠️ {fieldError}</p>}
+
+              <div className="flex gap-2">
                 <BackButton onClick={() => setStep(3)} />
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 py-2.5 bg-vet-rose text-white text-sm
-                             font-medium rounded-lg hover:bg-vet-dark
-                             disabled:opacity-50 transition-colors
-                             flex items-center justify-center gap-2"
-                >
-                  {saving && (
-                    <div className="w-4 h-4 border-2 border-white
-                                    border-t-transparent rounded-full animate-spin" />
-                  )}
-                  Confirmar reserva
+                <button type="submit" disabled={saving}
+                        className="flex-1 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark disabled:opacity-50 transition-all flex items-center justify-center gap-2">
+                  {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
+                  Confirmar Reserva
                 </button>
               </div>
             </form>
@@ -458,134 +327,53 @@ export function PublicBooking() {
   )
 }
 
-// ── Sub-componentes del portal ────────────────────────────────
-
-/** Envuelve el portal con header de marca */
 function PortalShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-vet-bone">
-      {/* Header */}
-      <header className="bg-vet-dark py-5 px-4">
-        <div className="max-w-2xl mx-auto flex items-center gap-3">
-          <div className="w-9 h-9 bg-white/15 rounded-lg flex items-center
-                          justify-center text-white text-base">
-            🏥
-          </div>
-          <div>
-            <h1 className="text-white text-base font-medium">VetCare Manager</h1>
-            <p className="text-white/50 text-xs">Reserva tu cita en línea</p>
-          </div>
-        </div>
-      </header>
-
-      {/* Contenido */}
-      <main className="max-w-2xl mx-auto px-4 py-6">
-        {children}
-      </main>
-
-      {/* Footer */}
-      <footer className="text-center py-6 text-xs text-gray-400">
-        Clínica Veterinaria · Av. Las Flores 1234, Viña del Mar
-        <br />
-        <span className="text-vet-rose">+56 32 234 5678</span>
-        {' '}· contacto@vetcare.cl
-      </footer>
+      <header className="bg-vet-dark py-5 px-4"><div className="max-w-2xl mx-auto flex items-center gap-3 text-white">🏥 VetCare Manager</div></header>
+      <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
+      <footer className="text-center py-10 text-xs text-gray-400">© 2026 Clínica Veterinaria Dram. Sofía Cáceres</footer>
     </div>
   )
 }
 
-/** Barra de progreso de pasos */
 function StepIndicator({ current }: { current: number }) {
   const steps = ['Servicio', 'Fecha', 'Horario', 'Tus datos']
   return (
-    <div className="flex items-center mb-6">
-      {steps.map((label, i) => {
-        const n = i + 1
-        const done    = n < current
-        const active  = n === current
-        return (
-          <div key={label} className="flex-1 flex items-center">
-            <div className="flex flex-col items-center">
-              <div
-                className={`w-7 h-7 rounded-full flex items-center justify-center
-                             text-xs font-medium transition-colors
-                             ${done
-                               ? 'bg-vet-rose text-white'
-                               : active
-                               ? 'bg-vet-dark text-white'
-                               : 'bg-gray-200 text-gray-500'
-                             }`}
-              >
-                {done ? '✓' : n}
-              </div>
-              <span className={`text-[10px] mt-1 hidden sm:block
-                               ${active ? 'text-vet-dark font-medium' : 'text-gray-400'}`}>
-                {label}
-              </span>
-            </div>
-            {i < steps.length - 1 && (
-              <div
-                className={`flex-1 h-0.5 mx-1 transition-colors
-                             ${n < current ? 'bg-vet-rose' : 'bg-gray-200'}`}
-              />
-            )}
+    <div className="flex items-center mb-10">
+      {steps.map((label, i) => (
+        <div key={label} className="flex-1 text-center">
+          <div className={`w-8 h-8 rounded-full mx-auto flex items-center justify-center text-xs font-bold mb-1
+                         ${i+1 < current ? 'bg-vet-rose text-white' : i+1 === current ? 'bg-vet-dark text-white' : 'bg-gray-200'}`}>
+            {i+1 < current ? '✓' : i+1}
           </div>
-        )
-      })}
+          <p className="text-[10px] text-gray-400">{label}</p>
+        </div>
+      ))}
     </div>
   )
 }
 
-function SectionTitle({
-  step, title, sub,
-}: { step: number; title: string; sub?: string }) {
+function SectionTitle({ step, title, sub }: any) {
   return (
-    <div className="mb-4">
-      <div className="text-xs font-medium text-vet-rose uppercase tracking-widest mb-1">
-        Paso {step}
-      </div>
-      <h2 className="text-base font-medium text-gray-900">{title}</h2>
-      {sub && <p className="text-sm text-gray-500 mt-0.5 capitalize">{sub}</p>}
+    <div className="mb-6 text-left">
+      <p className="text-[10px] font-bold text-vet-rose uppercase tracking-widest mb-1">Paso {step}</p>
+      <h2 className="text-xl font-bold text-gray-900">{title}</h2>
+      {sub && <p className="text-sm text-gray-500">{sub}</p>}
     </div>
   )
 }
 
-function BackButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex items-center gap-1 text-sm text-gray-500
-                 hover:text-vet-rose transition-colors"
-    >
-      ← Volver
-    </button>
-  )
+function BackButton({ onClick }: any) {
+  return <button type="button" onClick={onClick} className="text-xs text-gray-400 hover:text-vet-rose">← Volver</button>
 }
 
-function Row({ label, value, accent = false }: {
-  label: string; value: string; accent?: boolean
-}) {
-  return (
-    <div className="flex justify-between text-sm">
-      <span className="text-gray-500">{label}</span>
-      <span className={`font-medium ${accent ? 'text-vet-rose' : 'text-gray-900'}`}>
-        {value}
-      </span>
-    </div>
-  )
+function Row({ label, value }: any) {
+  return <div className="flex justify-between py-1 border-b border-pink-50"><span className="text-gray-500">{label}</span><span className="font-bold text-gray-900">{value}</span></div>
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-1">
-      <label className="text-xs text-gray-500 font-medium">{label}</label>
-      {children}
-    </div>
-  )
+function Field({ label, children }: any) {
+  return <div className="flex flex-col gap-1"><label className="text-[10px] font-bold text-gray-500 uppercase">{label}</label>{children}</div>
 }
 
-const inputCls =
-  'w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg bg-white ' +
-  'focus:outline-none focus:ring-2 focus:ring-vet-rose/20 focus:border-vet-rose ' +
-  'transition-colors text-gray-900'
+const inputCls = "w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-vet-rose/5 focus:border-vet-rose transition-all"

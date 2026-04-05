@@ -13,6 +13,20 @@ export interface StaffMember {
   created_at?: string
 }
 
+// ── SERVICIOS Y PRECIOS ──────────────────────────────────────
+export interface Service {
+  id: string
+  name: string
+  description?: string
+  price: number
+  duration_minutes: number
+  icon?: string
+  color?: string
+  bg?: string
+  border?: string
+  created_at?: string
+}
+
 // ── TUTOR / GUARDIAN ─────────────────────────────────────────
 export interface Guardian {
   id: string
@@ -111,6 +125,9 @@ export interface AppointmentFormData {
   scheduled_at: string
   duration_minutes: number
   notes?: string
+  status: AppointmentStatus
+  is_home_visit: boolean
+  address?: string
 }
 
 // ── FORMULARIO RESERVA PÚBLICA ────────────────────────────────
@@ -119,8 +136,10 @@ export interface PublicBookingFormData {
   guardian_email: string
   guardian_phone: string
   pet_name: string
-  service: AppointmentService
+  service: string
   scheduled_at: string
+  is_home_visit: boolean
+  address?: string
 }
 
 // ── ALERTA DE VACUNA (derivado) ───────────────────────────────

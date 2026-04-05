@@ -192,6 +192,39 @@ export function PatientDetail() {
                 ✎ Editar Info Paciente
               </button>
             )}
+
+            {upcomingAppointments.length > 0 && (
+              <div className="mt-4 pt-4 border-t border-pink-50 flex flex-col gap-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Recordar Próxima Cita</p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => {
+                      const next = upcomingAppointments[0]
+                      const date = new Date(next.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+                      const time = new Date(next.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+                      const msg = `¡Hola! Te recordamos la cita de ${patient.name} para el día ${date} a las ${time}. Servicio: ${next.service}.${(next as any).is_home_visit ? ` Dirección: ${(next as any).address}.` : ''} ¡Nos vemos!`
+                      window.open(`https://wa.me/${patient.guardian?.phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank')
+                    }}
+                    className="flex-1 px-3 py-2 bg-green-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-green-600 transition-colors shadow-sm"
+                  >
+                    📱 WhatsApp
+                  </button>
+                  <button
+                    onClick={() => {
+                      const next = upcomingAppointments[0]
+                      const date = new Date(next.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+                      const time = new Date(next.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+                      const subject = `Recordatorio de Cita - ${patient.name}`
+                      const body = `¡Hola! Te recordamos la cita de ${patient.name} para el día ${date} a las ${time}. Servicio: ${next.service}.${(next as any).is_home_visit ? ` Dirección: ${(next as any).address}.` : ''} ¡Nos vemos!`
+                      window.location.href = `mailto:${patient.guardian?.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                    }}
+                    className="flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-600 transition-colors shadow-sm"
+                  >
+                    ✉️ Email
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

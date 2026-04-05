@@ -24,6 +24,7 @@ import { PublicBooking }     from './modules/portal/PublicBooking'
 import { PatientList }       from './modules/patients/PatientList'
 import { PatientDetail }     from './modules/patients/PatientDetail'
 import { StaffManagement }   from './modules/staff/StaffManagement'
+import { PricingManagement } from './modules/staff/PricingManagement'
 import { useVaccineAlerts }  from './modules/vaccines/useVaccineAlerts'
 import { getGravatarUrl }    from './lib/utils'
 
@@ -88,6 +89,12 @@ const icons = {
       <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
       <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
     </svg>
+  ),
+  pricing: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2">
+      <path d="M12 2v20m0-20H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-6zm-4 4h8m-8 4h8m-8 4h4" />
+    </svg>
   )
 }
 
@@ -108,6 +115,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
       urgentBadge: urgentAlerts.length > 0 ? String(urgentAlerts.length) : undefined
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
+    { to: '/precios',   icon: icons.pricing,  label: 'Precios', adminOnly: true },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
   ]
 
@@ -204,7 +212,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
             />
             <div className="min-w-0 flex-1">
               <p className="text-black text-[11px] font-bold truncate">
-                {user?.email === 'scaceresalzamora@gmail.com' ? 'Dra. Sofía Cáceres' : 'Admin'}
+                {user?.email === 'scaceresalzamora@gmail.com' ? 'Dra. Sofía Cáceres' : (role === 'ayudante' ? 'Ayudante' : 'Administrador')}
               </p>
               <p className="text-gray-500 text-[10px] truncate">{user?.email}</p>
             </div>
@@ -341,6 +349,14 @@ export default function App() {
             element={
               <ProtectedRoute requireStaff>
                 <AppLayout><WeekView /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/precios"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><PricingManagement /></AppLayout>
               </ProtectedRoute>
             }
           />

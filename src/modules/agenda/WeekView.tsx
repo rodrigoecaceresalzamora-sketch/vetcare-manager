@@ -321,19 +321,24 @@ export function WeekView() {
 /** Chip de cita dentro de la grilla */
 function AptChip({ apt, onClick }: { apt: Appointment, onClick?: (e: React.MouseEvent) => void }) {
   const meta = SERVICE_META[apt.service] ?? SERVICE_META['Consulta General']
+  const isPending = apt.status === 'pendiente'
+  const isHome = (apt as any).is_home_visit
+  
   return (
     <div
       onClick={onClick}
       className={`${meta.bg} ${meta.color} border-l-2 ${meta.border}
                   rounded px-2 py-1 mb-1 text-[11px] font-semibold
                   truncate cursor-pointer hover:brightness-95 transition-all
-                  ${apt.source === 'portal' ? 'ring-1 ring-pink-300' : ''}`}
-      title={`${apt.pet_name} · ${apt.service} · ${formatTime(apt.scheduled_at)}`}
+                  ${isPending ? 'border-dashed opacity-75 ring-1 ring-vet-rose ring-offset-1' : ''}
+                  ${apt.source === 'portal' && !isPending ? 'ring-1 ring-pink-300' : ''}`}
+      title={`${apt.pet_name} · ${apt.service} · ${formatTime(apt.scheduled_at)} ${isPending ? '(PENDIENTE)' : ''}`}
     >
-      {apt.pet_name}
-      {apt.source === 'portal' && (
-        <span className="ml-1 opacity-60 text-[9px]">🌐</span>
-      )}
+      <div className="flex items-center gap-1">
+        {isPending && <span className="text-[10px] animate-pulse">⏳</span>}
+        {isHome && <span>🏠</span>}
+        <span className="truncate">{apt.pet_name}</span>
+      </div>
     </div>
   )
 }

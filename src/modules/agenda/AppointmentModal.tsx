@@ -11,15 +11,12 @@ import { supabase } from '../../lib/supabase'
 import { usePatients } from '../patients/usePatients'
 import { PatientForm } from '../patients/PatientForm'
 import { useAuth } from '../../contexts/AuthContext'
-import type { Appointment, AppointmentFormData, AppointmentService } from '../../types'
+import type { Appointment, AppointmentFormData, Service } from '../../types'
 import { generateId, isValidPhone, isValidRUT, formatRUT } from '../../lib/utils'
+import { useEffect } from 'react'
+import type { AppointmentService } from '../../types'
 
-const SERVICES: AppointmentService[] = [
-  'Consulta General',
-  'Vacunación',
-  'Control',
-  'Telemedicina',
-]
+const SERVICES_FALLBACK = ['Consulta General', 'Vacunación', 'Control', 'Telemedicina']
 
 const DURATIONS = [
   { value: 20, label: '20 min' },
@@ -49,6 +46,9 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                       : initialDateTime ?? '',
     duration_minutes: editingAppointment?.duration_minutes ?? 30,
     notes:            (editingAppointment as any)?.notes ?? '',
+    status:           editingAppointment?.status ?? 'confirmada',
+    is_home_visit:    (editingAppointment as any)?.is_home_visit ?? false,
+    address:          (editingAppointment as any)?.address ?? '',
   })
   
   const { patients, savePatient } = usePatients()
@@ -58,6 +58,13 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   const [fieldError, setFieldError] = useState('')
   const [searchTerm, setSearchTerm] = useState(editingAppointment?.pet_name ?? '')
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [dbServices, setDbServices] = useState<Service[]>([])
+
+  useEffect(() => {
+    supabase.from('services').select('*').order('name').then(({ data }) => {
+      if (data) setDbServices(data)
+    })
+  }, [])
   
   const isReadOnly = editingAppointment && role === 'ayudante'
 
@@ -122,8 +129,10 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
       scheduled_at:     new Date(form.scheduled_at).toISOString(),
       duration_minutes: form.duration_minutes,
       notes:            form.notes,
-      status:           'confirmada',
+      status:           form.status,
       source:           editingAppointment?.source ?? 'interno',
+      is_home_visit:    form.is_home_visit,
+      address:          form.address,
     }
 
     let id = editingAppointment?.id
@@ -281,9 +290,13 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   onChange={(e) => set('service', e.target.value as AppointmentService)}
                   disabled={isReadOnly}
                 >
-                  {SERVICES.map((s) => (
-                    <option key={s} value={s}>{s}</option>
-                  ))}
+                  {dbServices.length > 0 ? (
+                    dbServices.map(s => <option key={s.id} value={s.name}>{s.name}</option>)
+                  ) : (
+                    SERVICES_FALLBACK.map((s) => (
+                      <option key={s} value={s}>{s}</option>
+                    ))
+                  )}
                 </select>
               </Field>
               <Field label="Fecha y hora">
@@ -319,6 +332,41 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
               </Field>
             </div>
           </Section>
+
+          {/* Sección Domicilio */}
+          <div className="py-2 border-t border-pink-50">
+            <label className="flex items-center gap-3 cursor-pointer group">
+              <div className="relative">
+                <input
+                  type="checkbox"
+                  className="sr-only peer"
+                  checked={form.is_home_visit}
+                  onChange={(e) => set('is_home_visit', e.target.checked)}
+                  disabled={isReadOnly}
+                />
+                <div className="w-10 h-5 bg-gray-200 rounded-full peer 
+                               peer-checked:bg-vet-rose transition-colors" />
+                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full 
+                               transition-transform peer-checked:translate-x-5" />
+              </div>
+              <span className="text-sm font-medium text-gray-700 group-hover:text-vet-rose">
+                🏠 ¿Es una atención a domicilio?
+              </span>
+            </label>
+          </div>
+
+          {form.is_home_visit && (
+            <Field label="Dirección completa">
+              <input
+                className={inputCls}
+                value={form.address}
+                onChange={(e) => set('address', e.target.value)}
+                placeholder="Calle, número, departamento..."
+                disabled={isReadOnly}
+                required
+              />
+            </Field>
+          )}
 
           {/* Aviso telemedicina */}
           {form.service === 'Telemedicina' && (
@@ -358,6 +406,34 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                            bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
               >
                 Eliminar
+              </button>
+            )}
+            {editingAppointment && form.status === 'pendiente' && !isReadOnly && (
+              <button
+                type="button"
+                className="px-4 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700"
+                onClick={async () => {
+                  setSaving(true)
+                  const { error } = await supabase.from('appointments').update({ status: 'confirmada' }).eq('id', editingAppointment.id)
+                  if (!error) onSaved(form.pet_name)
+                  setSaving(false)
+                  onClose()
+                }}
+              >
+                Confirmar
+              </button>
+            )}
+            {editingAppointment && !isReadOnly && (
+              <button
+                type="button"
+                title="Sugerir cambio de hora o enviar mensaje"
+                className="px-3 py-2 text-sm bg-vet-light text-vet-rose border border-vet-rose/20 rounded-lg hover:bg-vet-rose/10"
+                onClick={() => {
+                  const msg = `Hola, le escribimos de la VetCare de la Dra. Sofía. Necesitamos pedirle que elija otra hora para su cita con ${form.pet_name} ya que la actual no está disponible. ¿Podría indicarnos otra disponibilidad?`
+                  window.open(`https://wa.me/${form.guardian_phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank')
+                }}
+              >
+                📱 Reagendar
               </button>
             )}
             <button
