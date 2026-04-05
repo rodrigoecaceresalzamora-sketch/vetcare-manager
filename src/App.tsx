@@ -24,7 +24,7 @@ import { PublicBooking }     from './modules/portal/PublicBooking'
 import { PatientList }       from './modules/patients/PatientList'
 import { PatientDetail }     from './modules/patients/PatientDetail'
 import { StaffManagement }   from './modules/staff/StaffManagement'
-import { PricingManagement } from './modules/staff/PricingManagement'
+import { PricingManagement } from './modules/staff/PricingManagement.tsx'
 import { useVaccineAlerts }  from './modules/vaccines/useVaccineAlerts'
 import { getGravatarUrl }    from './lib/utils'
 
@@ -115,7 +115,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
       urgentBadge: urgentAlerts.length > 0 ? String(urgentAlerts.length) : undefined
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
-    { to: '/precios',   icon: icons.pricing,  label: 'Precios', adminOnly: true },
+    { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
   ]
 
@@ -260,8 +260,8 @@ function MobileNav() {
       hasAlert: urgentAlerts.length > 0 || upcomingAlerts.length > 0
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
-    { to: '/precios',   icon: icons.pricing,  label: 'Precios', adminOnly: true },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
+    { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
