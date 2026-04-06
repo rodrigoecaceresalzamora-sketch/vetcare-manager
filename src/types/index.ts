@@ -39,7 +39,7 @@ export interface Guardian {
 }
 
 // ── PACIENTE ─────────────────────────────────────────────────
-export type Species = 'Perro' | 'Gato' | 'Conejo' | 'Ave' | 'Reptil' | 'Otro'
+export type Species = 'Perro' | 'Gato'
 export type Sex = 'Macho' | 'Hembra' | 'No determinado'
 export type PatientStatus = 'activo' | 'inactivo' | 'fallecido'
 
@@ -149,7 +149,7 @@ export interface PublicBookingFormData {
   pet_sex: Sex                            // Nueva
   pet_date_of_birth?: string               // Nueva (opcional/desconocida)
   pet_adopted_since?: string               // Nueva
-  pet_is_reactive: boolean                 // Nueva
+  pet_is_reactive?: boolean                // Nueva
   service: string
   scheduled_at: string
   is_home_visit: boolean

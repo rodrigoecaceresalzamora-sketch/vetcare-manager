@@ -88,8 +88,8 @@ export function PublicBooking() {
     pet_sex:        'Macho',
     pet_date_of_birth: '',
     pet_adopted_since: '',
-    pet_is_reactive:   false,
   })
+  const [selectedVaccines, setSelectedVaccines] = useState<any[]>([])
   const [saving, setSaving]       = useState(false)
   const [fieldError, setFieldError] = useState('')
   const [, setBookingId]   = useState<string | null>(null)
@@ -141,6 +141,7 @@ export function PublicBooking() {
     setSaving(true)
     const { error: dbErr } = await supabase.from('appointments').insert({
       id,
+      guardian_name:    form.guardian_name,
       guardian_email:   form.guardian_email,
       guardian_phone:   form.guardian_phone,
       guardian_rut:     form.guardian_rut,
@@ -150,8 +151,7 @@ export function PublicBooking() {
       pet_sex:          form.pet_sex,
       pet_date_of_birth: form.pet_date_of_birth || null,
       pet_adopted_since: form.pet_adopted_since || null,
-      pet_is_reactive:   form.pet_is_reactive,
-      service:          service.name,
+      service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map(v => v.name).join(', ')})` : ''),
       scheduled_at:     scheduledAt,
       duration_minutes: service.duration_minutes || 30,
       status:           'pendiente',
@@ -215,11 +215,29 @@ export function PublicBooking() {
       {step === 1 && (
         <section>
           <SectionTitle step={1} title="Selecciona el servicio" />
+          <div className="bg-vet-rose/10 border-l-4 border-vet-rose p-4 rounded-r-xl mb-6">
+            <h3 className="font-bold text-vet-rose text-sm mb-1">Pago y Transferencia 💸</h3>
+            <p className="text-xs text-gray-700 leading-relaxed">
+              Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Una vez agendado, te enviaremos los datos de transferencia.
+            </p>
+            <p className="text-[10px] text-gray-500 mt-2 p-2 bg-white rounded-lg border border-pink-100 italic">
+              * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {dbServices.map((svc) => (
+            {dbServices.filter(s => !s.name.startsWith('Vacunación:')).map((svc) => (
               <button
                 key={svc.id}
-                onClick={() => { setService(svc); setStep(2) }}
+                onClick={() => { 
+                  setService(svc)
+                  setSelectedVaccines([])
+                  if (svc.name === 'Vacunación') {
+                    // Si es vacunación, se mantiene en step 1 para elegir vacunas
+                  } else {
+                    setStep(2) 
+                  }
+                }}
                 className={`text-left p-4 rounded-xl border transition-all hover:border-vet-rose hover:bg-vet-light/40
                             ${service?.id === svc.id ? 'border-vet-rose bg-vet-light' : 'border-gray-200 bg-white'}`}
               >
@@ -235,6 +253,57 @@ export function PublicBooking() {
               </button>
             ))}
           </div>
+
+          {service?.name === 'Vacunación' && (
+            <div className="mt-8 animate-fade-in">
+              <h3 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">Selecciona las vacunas ({selectedVaccines.length}/2 máximo)</h3>
+              <div className="space-y-2">
+                {dbServices.filter(s => s.name.startsWith('Vacunación:')).map(vac => {
+                  const isSelected = selectedVaccines.some(v => v.id === vac.id)
+                  return (
+                    <label key={vac.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-vet-rose bg-vet-light/30' : 'border-gray-200 bg-white hover:border-vet-rose/50'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={isSelected}
+                        className="mt-1 border-gray-300 text-vet-rose focus:ring-vet-rose rounded"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            if (selectedVaccines.length < 2) setSelectedVaccines([...selectedVaccines, vac])
+                          } else {
+                            setSelectedVaccines(selectedVaccines.filter(v => v.id !== vac.id))
+                          }
+                        }}
+                      />
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-bold text-gray-900">{vac.name.replace('Vacunación: ', '')}</span>
+                          <span className="text-xs font-medium text-vet-rose">${vac.price.toLocaleString('es-CL')}</span>
+                        </div>
+                        <p className="text-[10px] text-gray-500 mt-0.5">{vac.description}</p>
+                      </div>
+                    </label>
+                  )
+                })}
+              </div>
+              <div className="mt-4 flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                <span className="text-xs font-bold text-gray-500">Total Base + Vacunas:</span>
+                <span className="text-lg font-black text-gray-900">
+                  ${(service.price + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)).toLocaleString('es-CL')}
+                </span>
+              </div>
+              <p className="text-[10px] text-right text-vet-rose font-bold mb-4 mt-1">
+                Abono 20% requerido: ${((service.price + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}
+              </p>
+              
+              <button
+                onClick={() => setStep(2)}
+                disabled={selectedVaccines.length === 0}
+                className="w-full py-3 bg-vet-rose text-white text-sm font-bold rounded-xl disabled:opacity-50 transition-all hover:bg-vet-dark"
+              >
+                Continuar a Fecha
+              </button>
+            </div>
+          )}
         </section>
       )}
 
@@ -285,9 +354,15 @@ export function PublicBooking() {
       {step === 4 && (
         <section className="space-y-4">
           <SectionTitle step={4} title="Tus datos" />
-          <div className="bg-vet-light/50 border border-pink-200 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1">
-            <span className="text-xs text-vet-dark"><strong>{service?.icon}</strong> {service?.name}</span>
-            <span className="text-xs text-gray-500">{availableDates.find(d => d.value === date)?.label} · {time}</span>
+          <div className="bg-vet-light/50 border border-pink-200 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1 justify-between items-start">
+            <div>
+              <span className="text-xs text-vet-dark block"><strong>{service?.icon}</strong> {service?.name} {selectedVaccines.length > 0 ? `+ ${selectedVaccines.length} vacuna(s)` : ''}</span>
+              <span className="text-xs text-gray-500 block mt-1">{availableDates.find(d => d.value === date)?.label} · {time}</span>
+            </div>
+            <div className="text-right">
+              <span className="text-xs text-gray-500 block">A pagar hoy (Abono 20%)</span>
+              <span className="text-sm font-black text-vet-rose">${(((service?.price || 0) + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}</span>
+            </div>
           </div>
 
           {!user ? (
@@ -325,10 +400,6 @@ export function PublicBooking() {
                     <select className={inputCls} value={form.pet_species} onChange={(e) => setField('pet_species', e.target.value as any)}>
                       <option value="Perro">Perro</option>
                       <option value="Gato">Gato</option>
-                      <option value="Conejo">Conejo</option>
-                      <option value="Ave">Ave</option>
-                      <option value="Reptil">Reptil</option>
-                      <option value="Otro">Otro</option>
                     </select>
                   </Field>
                   <Field label="Sexo">
@@ -347,17 +418,6 @@ export function PublicBooking() {
                   <Field label="Adoptado desde (Opcional)">
                     <input type="date" className={inputCls} value={form.pet_adopted_since} onChange={(e) => setField('pet_adopted_since', e.target.value)} />
                   </Field>
-                  <div className="flex items-center gap-3 h-full pt-6">
-                    <input 
-                      type="checkbox" 
-                      id="is_reactive"
-                      checked={form.pet_is_reactive} 
-                      onChange={(e) => setField('pet_is_reactive', e.target.checked)} 
-                    />
-                    <label htmlFor="is_reactive" className="text-sm font-medium text-red-600 cursor-pointer">
-                      ⚠️ Es agresivo o reactivo
-                    </label>
-                  </div>
                 </div>
               </div>
 
@@ -400,7 +460,7 @@ export function PublicBooking() {
 function PortalShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-vet-bone">
-      <header className="bg-vet-dark py-5 px-4"><div className="max-w-2xl mx-auto flex items-center gap-3 text-white">🏥 VetCare Manager</div></header>
+      <header className="bg-vet-dark py-5 px-4"><div className="max-w-2xl mx-auto flex items-center gap-3 text-white">🏥 VetCare</div></header>
       <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
       <footer className="text-center py-10 text-xs text-gray-400">© 2026 Clínica Veterinaria Dram. Sofía Cáceres</footer>
     </div>

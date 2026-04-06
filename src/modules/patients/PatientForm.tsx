@@ -138,10 +138,6 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
                   <select className={inputCls} value={pSpecies} onChange={e => setPSpecies(e.target.value as Species)}>
                     <option value="Perro">Perro</option>
                     <option value="Gato">Gato</option>
-                    <option value="Conejo">Conejo</option>
-                    <option value="Ave">Ave</option>
-                    <option value="Reptil">Reptil</option>
-                    <option value="Otro">Otro</option>
                   </select>
                 </label>
                 <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Sexo

@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
+import heroImg from '../../assets/hero.png'
+
 export function LoginPage() {
   const [isLogin, setIsLogin] = useState(true)
   const [email, setEmail]     = useState('')
@@ -61,10 +63,10 @@ export function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-2xl shadow-xl mb-4 p-3 border border-pink-100">
-            <img src="/logo.png" alt="VetCare Logo" className="w-12 h-12 object-cover rounded-lg" />
+          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full shadow-xl mb-4 p-1 border border-pink-100 overflow-hidden">
+            <img src={heroImg} alt="Perrito Blanco" className="w-full h-full object-cover rounded-full" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">VetCare Manager</h1>
+          <h1 className="text-2xl font-bold text-gray-900 leading-tight">VetCare</h1>
           <p className="text-gray-500 text-sm mt-1">Gesti&oacute;n Veterinaria de Confianza</p>
         </div>
 

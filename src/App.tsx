@@ -248,7 +248,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
 // ── Mobile Navigation ───────────────────────────────────────────
 function MobileNav() {
   const { pathname } = useLocation()
-  const { user, role } = useAuth()
+  const { user, role, signOut } = useAuth()
   const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
 
   const allNavItems = [
@@ -298,6 +298,17 @@ function MobileNav() {
           </Link>
         )
       })}
+      <button
+        onClick={() => signOut()}
+        className="flex flex-col items-center justify-center p-2 rounded-xl transition-all relative text-gray-400 hover:text-red-500"
+      >
+        <div className="mb-0.5">
+          {icons.logout}
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-tighter">
+          Salir
+        </span>
+      </button>
     </nav>
   )
 }

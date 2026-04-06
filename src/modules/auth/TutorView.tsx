@@ -1,4 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext'
+import heroImg from '../../assets/hero.png'
 
 export function TutorView() {
   const { user, signOut } = useAuth()
@@ -6,8 +7,8 @@ export function TutorView() {
   return (
     <div className="min-h-screen bg-vet-bone flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 border border-pink-100">
-        <div className="w-20 h-20 bg-vet-rose/10 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
-          🐾
+        <div className="w-24 h-24 rounded-full mx-auto mb-6 shadow-lg border border-pink-100 overflow-hidden">
+          <img src={heroImg} alt="Perrito Blanco" className="w-full h-full object-cover" />
         </div>
         
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
@@ -44,7 +45,7 @@ export function TutorView() {
         </div>
         
         <p className="mt-8 text-[10px] text-gray-300 uppercase tracking-widest font-bold">
-          VetCare Manager &middot; Portal del Cliente
+          VetCare &middot; Portal del Cliente
         </p>
       </div>
     </div>
