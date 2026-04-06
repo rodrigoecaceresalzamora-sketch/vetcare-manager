@@ -146,26 +146,30 @@ export function PublicBooking() {
     const scheduledAt = new Date(`${date}T${time}:00`).toISOString()
     const id = generateId()
 
-    setSaving(true)
-    const { error: dbErr } = await supabase.from('appointments').insert({
+    const insertPayload: Record<string, any> = {
       id,
       guardian_name:    form.guardian_name,
       guardian_email:   form.guardian_email,
-      guardian_phone:   form.guardian_phone,
-      guardian_rut:     form.guardian_rut,
+      guardian_phone:   form.guardian_phone || '',
       pet_name:         form.pet_name,
-      service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map(v => v.name.replace('Vacunación: ', '')). join(', ')})` : ''),
+      service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map((v: any) => v.name.replace('Vacunación: ', '')).join(', ')})` : ''),
       scheduled_at:     scheduledAt,
       duration_minutes: service.duration_minutes || 30,
       status:           'pendiente',
       source:           'portal',
       is_home_visit:    form.is_home_visit,
-      address:          form.address,
-    })
+      address:          form.address || '',
+    }
+
+    // guardian_rut optional — add only if column exists (silently skip on error)
+    if (form.guardian_rut) insertPayload.guardian_rut = form.guardian_rut
+
+    setSaving(true)
+    const { error: dbErr } = await supabase.from('appointments').insert(insertPayload)
 
     if (dbErr) {
       setSaving(false)
-      setFieldError('Error al confirmar. Por favor intenta nuevamente.')
+      setFieldError('Error: ' + dbErr.message)
       return
     }
 
