@@ -188,16 +188,6 @@ export function PublicBooking() {
   }
 
   if (step === 'confirmed') {
-    const formattedDate = availableDates.find(d => d.value === date)?.label ?? date ?? ''
-    let msg = `¡Hola! Acabo de agendar una hora en el portal web. Confirmando mi reserva:\n\n🐾 *Paciente:* ${form.pet_name}\n🩺 *Servicio:* ${service?.name}`
-    if (service?.name === 'Vacunación' && selectedVaccines.length > 0) {
-      msg += ` (${selectedVaccines[0].name.replace('Vacunación: ', '')})`
-    }
-    msg += `\n🗓️ *Fecha:* ${formattedDate}\n⏰ *Hora:* ${time}`
-    if (form.is_home_visit) msg += `\n🏠 *Modalidad:* A domicilio (${form.address})`
-    
-    const wppUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`
-
     return (
       <PortalShell>
         <div className="max-w-md mx-auto py-10 text-center">
@@ -217,16 +207,6 @@ export function PublicBooking() {
             {form.is_home_visit && <Row label="Dirección" value={form.address || 'Sí'} />}
           </div>
           
-          <a
-            href={wppUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full px-6 py-3.5 bg-green-500 hover:bg-green-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-500/20 transition-all mb-3 flex items-center justify-center gap-2"
-          >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 0C5.385 0 0 5.383 0 12.029c0 2.124.551 4.195 1.6 6.02L.05 24l6.115-1.602c1.78.96 3.791 1.464 5.867 1.464 6.646 0 12.031-5.384 12.031-12.029C24 5.384 18.615 0 12.031 0zm3.626 17.262c-.156.438-.906.843-1.25.875-.344.032-.782.156-2.5-.563-2.094-.875-3.438-3.031-3.531-3.156-.094-.125-.844-1.125-.844-2.156s.531-1.531.75-1.75c.219-.219.469-.281.625-.281.156 0 .313 0 .438.031.156.031.344-.062.531.406.188.469.656 1.594.719 1.719.063.125.125.281.031.469-.094.188-.156.281-.281.438-.125.156-.281.344-.375.438-.125.125-.281.281-.125.563.156.281.688 1.156 1.469 1.844.969.844 1.813 1.125 2.094 1.25.281.125.438.094.625-.094.156-.25.688-.813.875-1.094.188-.281.375-.25.656-.125.281.125 1.781.844 2.094 1 .313.156.5.219.594.375.093.156.093.875-.063 1.313z"/></svg>
-            Compartir Resumen por WhatsApp
-          </a>
-
           <button
             onClick={() => { setStep(1); setService(null); setDate(null); setTime(null); }}
             className="w-full px-6 py-2.5 bg-vet-light text-vet-dark text-sm font-medium rounded-xl hover:bg-vet-light/80 transition-colors"

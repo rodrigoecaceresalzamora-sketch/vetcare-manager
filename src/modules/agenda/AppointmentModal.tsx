@@ -486,6 +486,22 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     
                     if (!error) {
                       showToast('✅ Cita confirmada y paciente sincronizado automáticamente')
+                      
+                      if (form.guardian_phone) {
+                        try {
+                          const dateObj = new Date(form.scheduled_at)
+                          const dayStr = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+                          const timeStr = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+                          const phoneNum = form.guardian_phone.replace(/[^\d]/g, '')
+                          
+                          const msg = `¡Hola ${form.guardian_name}! Le escribimos de la Clínica Veterinaria VetCare para indicar que la hora para ${form.pet_name} ha sido confirmada.\n\n🩺 Motivo: ${form.service}\n🗓️ Día: ${dayStr}\n⏰ Hora: ${timeStr}\n\n¡Le esperamos y recordamos ser puntual!`
+                          
+                          window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`, '_blank')
+                        } catch (e) {
+                          console.error('Error opening WhatsApp:', e)
+                        }
+                      }
+
                       onSaved(form.pet_name)
                     }
                   } catch (err: any) {
