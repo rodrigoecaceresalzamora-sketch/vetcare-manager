@@ -20,23 +20,11 @@ async function fetchPublicServices() {
     .order('name', { ascending: true })
   
   let services = data || []
-  
-  const known = [
-    { id: 'vac-base', name: 'Vacunación', price: 0, duration_minutes: 15, icon: '🩹', description: 'Servicio base para agendar vacunas' },
-    { id: 'vac-sext', name: 'Vacunación: Sextuple (Perro)', price: 15000, duration_minutes: 15, icon: '💉', description: 'Cubre: Parvovirus, Distemper, Adenovirus 2, Parainfluenza, Leptospirosis.' },
-    { id: 'vac-oct', name: 'Vacunación: Octuple (Perro)', price: 20000, duration_minutes: 15, icon: '💉', description: 'Cubre: Séxtuple + Coronavirus + Leptospira (otra cepa).' },
-    { id: 'vac-kc', name: 'Vacunación: KC (Perro)', price: 18000, duration_minutes: 15, icon: '🌬️', description: 'Prevención de Traqueobronquitis (Tos de las perreras).' },
-    { id: 'vac-tri', name: 'Vacunación: Triple Felina (Gato)', price: 18000, duration_minutes: 15, icon: '🐈', description: 'Cubre: Rinotraqueitis, Calicivirus, Panleucopenia.' },
-    { id: 'vac-leu', name: 'Vacunación: Leucemia (Gato)', price: 20000, duration_minutes: 15, icon: '🩸', description: 'Requiere test negativo.' },
-    { id: 'vac-rab', name: 'Vacunación: Antirrábica', price: 12000, duration_minutes: 15, icon: '🛡️', description: 'Prevención de Rabia.' },
-    { id: 'transfer-data', name: 'DATOS_TRANSFERENCIA', price: 0, duration_minutes: 0, icon: '🏦', description: 'Banco Santander\nCuenta Corriente: 123456789\nRUT: 76.543.210-K\nCorreo: vetcare@ejemplo.cl' }
-  ]
-  
-  known.forEach(k => {
-    if (!services.some((s: any) => s.name === k.name)) {
-      services.push(k)
-    }
-  })
+
+  // Ensure base Vacunación exists so the conditional flow works
+  if (!services.some(s => s.name === 'Vacunación')) {
+    services.push({ id: 'vac-base-virtual', name: 'Vacunación', price: 0, duration_minutes: 15, icon: '💉', description: 'Programa tu esquema de vacunación y escoge la vacuna específica' })
+  }
   
   return services
 }
@@ -281,22 +269,19 @@ export function PublicBooking() {
 
           {service?.name === 'Vacunación' && (
             <div className="mt-8 animate-fade-in">
-              <h3 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">Selecciona las vacunas ({selectedVaccines.length}/2 máximo)</h3>
+              <h3 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">Selecciona la vacuna</h3>
               <div className="space-y-2">
                 {dbServices.filter(s => s.name.startsWith('Vacunación:')).map(vac => {
                   const isSelected = selectedVaccines.some(v => v.id === vac.id)
                   return (
                     <label key={vac.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-vet-rose bg-vet-light/30' : 'border-gray-200 bg-white hover:border-vet-rose/50'}`}>
                       <input 
-                        type="checkbox" 
+                        type="radio" 
+                        name="vaccine_selection"
                         checked={isSelected}
-                        className="mt-1 border-gray-300 text-vet-rose focus:ring-vet-rose rounded"
-                        onChange={(e) => {
-                          if (e.target.checked) {
-                            if (selectedVaccines.length < 2) setSelectedVaccines([...selectedVaccines, vac])
-                          } else {
-                            setSelectedVaccines(selectedVaccines.filter(v => v.id !== vac.id))
-                          }
+                        className="mt-1 border-gray-300 text-vet-rose focus:ring-vet-rose"
+                        onChange={() => {
+                          setSelectedVaccines([vac]) // Sólo permite 1 a la vez
                         }}
                       />
                       <div className="flex-1">
@@ -309,21 +294,29 @@ export function PublicBooking() {
                     </label>
                   )
                 })}
+                {dbServices.filter(s => s.name.startsWith('Vacunación:')).length === 0 && (
+                  <p className="text-sm text-gray-500">No hay vacunas registradas en el sistema en este momento.</p>
+                )}
               </div>
-              <div className="mt-4 flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                <span className="text-xs font-bold text-gray-500">Total Base + Vacunas:</span>
-                <span className="text-lg font-black text-gray-900">
-                  ${(service.price + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)).toLocaleString('es-CL')}
-                </span>
-              </div>
-              <p className="text-[10px] text-right text-vet-rose font-bold mb-4 mt-1">
-                Abono 20% requerido: ${((service.price + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}
-              </p>
+              
+              {selectedVaccines.length > 0 && (
+                <>
+                  <div className="mt-4 flex justify-between items-center bg-gray-50 p-3 rounded-xl">
+                    <span className="text-xs font-bold text-gray-500">Total Vacuna:</span>
+                    <span className="text-lg font-black text-gray-900">
+                      ${(selectedVaccines[0]?.price || 0).toLocaleString('es-CL')}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-right text-vet-rose font-bold mb-4 mt-1">
+                    Abono 20% requerido: ${((selectedVaccines[0]?.price || 0) * 0.20).toLocaleString('es-CL')}
+                  </p>
+                </>
+              )}
               
               <button
                 onClick={() => setStep(2)}
                 disabled={selectedVaccines.length === 0}
-                className="w-full py-3 bg-vet-rose text-white text-sm font-bold rounded-xl disabled:opacity-50 transition-all hover:bg-vet-dark"
+                className="w-full mt-4 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl disabled:opacity-50 transition-all hover:bg-vet-dark"
               >
                 Continuar a Fecha
               </button>
@@ -386,7 +379,7 @@ export function PublicBooking() {
             </div>
             <div className="text-right">
               <span className="text-xs text-gray-500 block">A pagar hoy (Abono 20%)</span>
-              <span className="text-sm font-black text-vet-rose">${(((service?.price || 0) + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}</span>
+              <span className="text-sm font-black text-vet-rose">${(((service?.name === 'Vacunación' ? 0 : (service?.price || 0)) + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}</span>
             </div>
           </div>
 

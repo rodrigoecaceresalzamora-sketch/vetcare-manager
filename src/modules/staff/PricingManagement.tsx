@@ -8,33 +8,24 @@ export function PricingManagement() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
+  const [isAdding, setIsAdding] = useState(false)
+  const [newService, setNewService] = useState<Partial<Service>>({
+    name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺'
+  })
+  const [isVaccine, setIsVaccine] = useState(false)
+
+  function showToast(msg: string) {
+    setToast(msg)
+    setTimeout(() => setToast(null), 3000)
+  }
 
   useEffect(() => {
     fetchServices()
   }, [])
 
-  async function seedMissingServices(existing: Service[]) {
-    const known = [
-      { name: 'Vacunación', price: 0, duration_minutes: 15, icon: '🩹', description: 'Servicio base para agendar vacunas' },
-      { name: 'Vacunación: Sextuple (Perro)', price: 15000, duration_minutes: 15, icon: '💉', description: 'Cubre: Parvovirus, Distemper, Adenovirus 2, Parainfluenza, Leptospirosis.' },
-      { name: 'Vacunación: Octuple (Perro)', price: 20000, duration_minutes: 15, icon: '💉', description: 'Cubre: Séxtuple + Coronavirus + Leptospira (otra cepa).' },
-      { name: 'Vacunación: KC (Perro)', price: 18000, duration_minutes: 15, icon: '🌬️', description: 'Prevención de Traqueobronquitis (Tos de las perreras).' },
-      { name: 'Vacunación: Triple Felina (Gato)', price: 18000, duration_minutes: 15, icon: '🐈', description: 'Cubre: Rinotraqueitis, Calicivirus, Panleucopenia.' },
-      { name: 'Vacunación: Leucemia (Gato)', price: 20000, duration_minutes: 15, icon: '🩸', description: 'Requiere test negativo.' },
-      { name: 'Vacunación: Antirrábica', price: 12000, duration_minutes: 15, icon: '🛡️', description: 'Prevención de Rabia.' },
-      { name: 'DATOS_TRANSFERENCIA', price: 0, duration_minutes: 0, icon: '🏦', description: 'Banco Santander\nCuenta Corriente: 123456789\nRUT: 76.543.210-K\nCorreo: vetcare@ejemplo.cl' }
-    ]
-    const missing = known.filter(k => !existing.some(e => e.name === k.name))
-    if (missing.length > 0) {
-      await supabase.from('services').insert(missing)
-      return true
-    }
-    return false
-  }
-
   async function fetchServices() {
     setLoading(true)
-    let { data, error: err } = await supabase
+    const { data, error: err } = await supabase
       .from('services')
       .select('*')
       .order('name', { ascending: true })
@@ -42,22 +33,64 @@ export function PricingManagement() {
     if (err) {
       setError(err.message)
     } else {
-      const seeded = await seedMissingServices(data as Service[])
-      if (seeded) {
-        const { data: newData } = await supabase.from('services').select('*').order('name', { ascending: true })
-        data = newData
-      }
       setServices(data as Service[])
     }
     setLoading(false)
   }
 
-  function showToast(msg: string) {
-    setToast(msg)
-    setTimeout(() => setToast(null), 3000)
+  async function handleCreateService() {
+    let finalName = newService.name
+    if (isVaccine && !finalName?.startsWith('Vacunación')) {
+      finalName = `Vacunación: ${finalName}`
+    }
+    
+    const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
+    
+    const { error: err } = await supabase
+      .from('services')
+      .insert({
+        id,
+        name: finalName,
+        price: newService.price,
+        duration_minutes: newService.duration_minutes,
+        description: newService.description,
+        icon: newService.icon || '🩺'
+      })
+
+    if (err) {
+      setError('Error al crear: ' + err.message)
+    } else {
+      setIsAdding(false)
+      setNewService({ name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺' })
+      setIsVaccine(false)
+      showToast('✅ Servicio creado con éxito')
+      fetchServices()
+    }
+  }
+
+  async function handleDeleteService(id: string) {
+    if (!confirm('¿Estás seguro de eliminar este servicio? No se podrá recuperar.')) return
+    const { error: err } = await supabase.from('services').delete().eq('id', id)
+    if (err) {
+      setError('Error al eliminar: ' + err.message)
+    } else {
+      showToast('🗑️ Servicio eliminado')
+      fetchServices()
+    }
   }
 
   async function handleUpdateService(service: Service) {
+    const isNewTransferInfo = service.name === 'DATOS_TRANSFERENCIA' && !service.id
+    
+    if (isNewTransferInfo) {
+      const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
+      const { error: err } = await supabase.from('services').insert({
+        id, name: 'DATOS_TRANSFERENCIA', description: service.description, price: 0, duration_minutes: 0, icon: '🏦'
+      })
+      if (err) setError(err.message)
+      else { setEditingId(null); showToast('✅ Datos guardados'); fetchServices() }
+      return
+    }
     const { error: err } = await supabase
       .from('services')
       .update({
@@ -85,12 +118,91 @@ export function PricingManagement() {
         </div>
       )}
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-pink-100">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Precios, Vacunas y Datos</h1>
-          <p className="text-sm text-gray-500">Configura lo que tus clientes ven en el portal de reservas</p>
+          <p className="text-sm text-gray-500 mt-1">Configura lo que tus clientes ven en el portal de reservas</p>
         </div>
+        {!isAdding && (
+          <button 
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-2 px-6 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors"
+          >
+            <span>+</span> Nuevo Servicio / Vacuna
+          </button>
+        )}
       </div>
+
+      {isAdding && (
+        <div className="bg-vet-light/30 border-2 border-dashed border-vet-rose/50 rounded-2xl p-6 animate-fade-in relative">
+          <button onClick={() => setIsAdding(false)} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">✕ Cerrar</button>
+          <h2 className="text-lg font-bold text-gray-900 mb-4">Crear Nuevo Registro</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Nombre</label>
+              <input 
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                placeholder={isVaccine ? "Ej: Sextuple (Perro)" : "Ej: Consulta General"}
+                value={newService.name}
+                onChange={e => setNewService({...newService, name: e.target.value})}
+              />
+            </div>
+            <div className="flex items-center gap-2 pt-6">
+              <input 
+                type="checkbox" 
+                id="is_vaccine_chk"
+                checked={isVaccine}
+                onChange={e => setIsVaccine(e.target.checked)}
+                className="text-vet-rose"
+              />
+              <label htmlFor="is_vaccine_chk" className="text-sm font-medium text-gray-700 cursor-pointer">¿Es una vacuna específica?</label>
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Precio ($)</label>
+              <input 
+                type="number"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                value={newService.price}
+                onChange={e => setNewService({...newService, price: parseInt(e.target.value) || 0})}
+              />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Duración (Mín)</label>
+              <input 
+                type="number"
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                value={newService.duration_minutes}
+                onChange={e => setNewService({...newService, duration_minutes: parseInt(e.target.value) || 15})}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Descripción</label>
+              <textarea 
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                rows={2}
+                value={newService.description}
+                onChange={e => setNewService({...newService, description: e.target.value})}
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Icono / Emoji (opcional)</label>
+              <input 
+                className="w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-center"
+                value={newService.icon}
+                onChange={e => setNewService({...newService, icon: e.target.value})}
+              />
+            </div>
+          </div>
+          <button 
+            onClick={handleCreateService}
+            disabled={!newService.name}
+            className="px-6 py-2 bg-vet-rose text-white text-sm font-bold rounded-xl disabled:opacity-50"
+          >
+            💾 Guardar en base de datos
+          </button>
+        </div>
+      )}
 
       {error && (
         <div className="bg-red-50 border border-red-100 p-4 rounded-xl text-red-700 text-sm">
@@ -135,12 +247,20 @@ export function PricingManagement() {
                     </div>
                   </div>
                   {editingId !== service.id ? (
-                    <button 
-                      onClick={() => setEditingId(service.id)}
-                      className="text-xs font-bold text-vet-rose hover:underline"
-                    >
-                      Editar
-                    </button>
+                    <div className="flex gap-3 items-center">
+                      <button 
+                        onClick={() => setEditingId(service.id)}
+                        className="text-xs font-bold text-vet-rose hover:underline"
+                      >
+                        Editar
+                      </button>
+                      <button 
+                        onClick={() => handleDeleteService(service.id)}
+                        className="text-xs font-bold text-red-500 hover:underline"
+                      >
+                         🗑️
+                      </button>
+                    </div>
                   ) : (
                     <div className="flex gap-2">
                       <button 
@@ -226,37 +346,44 @@ export function PricingManagement() {
         </div>
       </div>
 
-      {services.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-8">
-          <div className="flex justify-between items-start mb-4">
-            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">🏦 Datos de Transferencia Bancaria</h2>
-            {editingId !== 'transfer_data' ? (
-              <button onClick={() => setEditingId('transfer_data')} className="text-xs font-bold text-vet-rose hover:underline">Editar</button>
+      {(services.find(s => s.name === 'DATOS_TRANSFERENCIA') || true) && (() => {
+        const transferObj = services.find(s => s.name === 'DATOS_TRANSFERENCIA') || { name: 'DATOS_TRANSFERENCIA', description: 'Banco Santander\nCuenta Corriente: 123456789\nRUT: 76.543.210-K\nCorreo: vetcare@ejemplo.cl' } as Service
+        return (
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-8">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">🏦 Datos de Transferencia Bancaria</h2>
+              {editingId !== 'transfer_data' ? (
+                <button onClick={() => setEditingId('transfer_data')} className="text-xs font-bold text-vet-rose hover:underline">Editar</button>
+              ) : (
+                <div className="flex gap-2">
+                  <button onClick={() => setEditingId(null)} className="text-xs font-bold text-gray-400 hover:underline">Cancelar</button>
+                  <button onClick={() => handleUpdateService(transferObj)} className="text-xs font-bold text-green-600 hover:underline">Guardar</button>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mb-4 truncate">Aparecerán automáticamente en la pantalla de abonos del 20%.</p>
+            {editingId === 'transfer_data' ? (
+              <textarea
+                className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20 font-mono"
+                rows={4}
+                value={transferObj.description || ''}
+                onChange={(e) => {
+                  const val = e.target.value
+                  if (services.some(s => s.name === 'DATOS_TRANSFERENCIA')) {
+                    setServices(services.map(s => s.name === 'DATOS_TRANSFERENCIA' ? {...s, description: val} : s))
+                  } else {
+                    transferObj.description = val
+                  }
+                }}
+              />
             ) : (
-              <div className="flex gap-2">
-                <button onClick={() => setEditingId(null)} className="text-xs font-bold text-gray-400 hover:underline">Cancelar</button>
-                <button onClick={() => handleUpdateService(services.find(s => s.name === 'DATOS_TRANSFERENCIA')!)} className="text-xs font-bold text-green-600 hover:underline">Guardar</button>
+              <div className="bg-gray-50 p-4 rounded-xl text-sm font-mono whitespace-pre-wrap text-gray-700">
+                {transferObj.description}
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-500 mb-4 truncate">Aparecerán automáticamente en la pantalla de abonos del 20%.</p>
-          {editingId === 'transfer_data' ? (
-            <textarea
-              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20 font-mono"
-              rows={4}
-              value={services.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || ''}
-              onChange={(e) => {
-                const val = e.target.value
-                setServices(services.map(s => s.name === 'DATOS_TRANSFERENCIA' ? {...s, description: val} : s))
-              }}
-            />
-          ) : (
-            <div className="bg-gray-50 p-4 rounded-xl text-sm font-mono whitespace-pre-wrap text-gray-700">
-              {services.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
-            </div>
-          )}
-        </div>
-      )}
+        )
+      })()}
     </div>
   )
 }
