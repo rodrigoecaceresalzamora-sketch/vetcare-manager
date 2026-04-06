@@ -18,7 +18,27 @@ async function fetchPublicServices() {
     .from('services')
     .select('*')
     .order('name', { ascending: true })
-  return data || []
+  
+  let services = data || []
+  
+  const known = [
+    { id: 'vac-base', name: 'Vacunación', price: 0, duration_minutes: 15, icon: '🩹', description: 'Servicio base para agendar vacunas' },
+    { id: 'vac-sext', name: 'Vacunación: Sextuple (Perro)', price: 15000, duration_minutes: 15, icon: '💉', description: 'Cubre: Parvovirus, Distemper, Adenovirus 2, Parainfluenza, Leptospirosis.' },
+    { id: 'vac-oct', name: 'Vacunación: Octuple (Perro)', price: 20000, duration_minutes: 15, icon: '💉', description: 'Cubre: Séxtuple + Coronavirus + Leptospira (otra cepa).' },
+    { id: 'vac-kc', name: 'Vacunación: KC (Perro)', price: 18000, duration_minutes: 15, icon: '🌬️', description: 'Prevención de Traqueobronquitis (Tos de las perreras).' },
+    { id: 'vac-tri', name: 'Vacunación: Triple Felina (Gato)', price: 18000, duration_minutes: 15, icon: '🐈', description: 'Cubre: Rinotraqueitis, Calicivirus, Panleucopenia.' },
+    { id: 'vac-leu', name: 'Vacunación: Leucemia (Gato)', price: 20000, duration_minutes: 15, icon: '🩸', description: 'Requiere test negativo.' },
+    { id: 'vac-rab', name: 'Vacunación: Antirrábica', price: 12000, duration_minutes: 15, icon: '🛡️', description: 'Prevención de Rabia.' },
+    { id: 'transfer-data', name: 'DATOS_TRANSFERENCIA', price: 0, duration_minutes: 0, icon: '🏦', description: 'Banco Santander\nCuenta Corriente: 123456789\nRUT: 76.543.210-K\nCorreo: vetcare@ejemplo.cl' }
+  ]
+  
+  known.forEach(k => {
+    if (!services.some((s: any) => s.name === k.name)) {
+      services.push(k)
+    }
+  })
+  
+  return services
 }
 
 // ── Próximos 7 días permitidos ──────────────────────────────────
