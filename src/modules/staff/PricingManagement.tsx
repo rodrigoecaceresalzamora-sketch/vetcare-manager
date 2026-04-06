@@ -200,131 +200,49 @@ export function PricingManagement() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="space-y-8">
         {loading ? (
-          <div className="col-span-2 py-20 text-center text-gray-400">Cargando servicios e inicializando datos...</div>
+          <div className="py-20 text-center text-gray-400">Cargando servicios e inicializando datos...</div>
         ) : services.length === 0 ? (
-          <div className="col-span-2 py-20 text-center text-gray-400">No hay servicios definidos en la base de datos.</div>
+          <div className="py-20 text-center text-gray-400">No hay servicios definidos en la base de datos.</div>
         ) : (
-          services.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map(service => (
-            <div 
-              key={service.id}
-              className={`bg-white rounded-2xl shadow-sm border transition-all ${
-                editingId === service.id ? 'border-vet-rose ring-4 ring-vet-rose/5 scale-[1.02]' : 'border-gray-100'
-              }`}
-            >
-              <div className="p-5">
-                <div className="flex justify-between items-start mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-xl ${service.bg} border ${service.border} flex items-center justify-center`}>
-                      {editingId === service.id ? (
-                        <input 
-                          className="w-full h-full bg-transparent text-center focus:outline-none placeholder-gray-300"
-                          value={service.icon || ''}
-                          placeholder="🩺"
-                          onChange={(e) => {
-                            const val = e.target.value
-                            setServices(services.map(s => s.id === service.id ? {...s, icon: val} : s))
-                          }}
-                        />
-                      ) : (
-                        <span className="text-lg">{service.icon || '🩺'}</span>
-                      )}
-                    </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900">{service.name}</h3>
-                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Base: {service.duration_minutes} min</p>
-                    </div>
-                  </div>
-                  {editingId !== service.id ? (
-                    <div className="flex gap-3 items-center">
-                      <button 
-                        onClick={() => setEditingId(service.id)}
-                        className="text-xs font-bold text-vet-rose hover:underline"
-                      >
-                        Editar
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteService(service.id)}
-                        className="text-xs font-bold text-red-500 hover:underline"
-                      >
-                         🗑️
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => setEditingId(null)}
-                        className="text-xs font-bold text-gray-400 hover:underline"
-                      >
-                        Cancelar
-                      </button>
-                      <button 
-                        onClick={() => handleUpdateService(service)}
-                        className="text-xs font-bold text-green-600 hover:underline"
-                      >
-                        Guardar
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block text-left">Descripción en portal</label>
-                    {editingId === service.id ? (
-                      <textarea 
-                        className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
-                        value={service.description || ''}
-                        onChange={(e) => {
-                          const val = e.target.value
-                          setServices(services.map(s => s.id === service.id ? {...s, description: val} : s))
-                        }}
-                        rows={2}
-                      />
-                    ) : (
-                      <p className="text-sm text-gray-600 min-h-[40px] text-left">{service.description || 'Sin descripción'}</p>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block text-left">Precio ($)</label>
-                      {editingId === service.id ? (
-                        <input 
-                          type="number"
-                          className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
-                          value={service.price}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value)
-                            setServices(services.map(s => s.id === service.id ? {...s, price: val} : s))
-                          }}
-                        />
-                      ) : (
-                        <p className="text-lg font-bold text-gray-900 text-left">${service.price.toLocaleString('es-CL')}</p>
-                      )}
-                    </div>
-                    <div>
-                      <label className="text-[10px] font-bold text-gray-400 uppercase mb-1 block text-left">Duración (min)</label>
-                      {editingId === service.id ? (
-                        <input 
-                          type="number"
-                          className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
-                          value={service.duration_minutes}
-                          onChange={(e) => {
-                            const val = parseInt(e.target.value)
-                            setServices(services.map(s => s.id === service.id ? {...s, duration_minutes: val} : s))
-                          }}
-                        />
-                      ) : (
-                        <p className="text-lg font-bold text-gray-900 text-left">{service.duration_minutes} min</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
+          <>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">🩺 Servicios Regulares</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA' && !s.name.toLowerCase().includes('vacuna')).map(service => (
+                  <ServiceCard 
+                    key={service.id} 
+                    service={service} 
+                    editingId={editingId} 
+                    setEditingId={setEditingId}
+                    handleUpdateService={handleUpdateService}
+                    handleDeleteService={handleDeleteService}
+                    services={services}
+                    setServices={setServices}
+                  />
+                ))}
               </div>
             </div>
-          ))
+            
+            <div>
+              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">💉 Vacunas Específicas</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA' && s.name.toLowerCase().includes('vacuna')).map(service => (
+                  <ServiceCard 
+                    key={service.id} 
+                    service={service} 
+                    editingId={editingId} 
+                    setEditingId={setEditingId}
+                    handleUpdateService={handleUpdateService}
+                    handleDeleteService={handleDeleteService}
+                    services={services}
+                    setServices={setServices}
+                  />
+                ))}
+              </div>
+            </div>
+          </>
         )}
       </div>
 
@@ -374,6 +292,132 @@ export function PricingManagement() {
           </div>
         )
       })()}
+    </div>
+  )
+}
+
+function ServiceCard({ service, editingId, setEditingId, handleUpdateService, handleDeleteService, services, setServices }: any) {
+  return (
+    <div className={`bg-white rounded-2xl shadow-sm border transition-all ${editingId === service.id ? 'border-vet-rose ring-4 ring-vet-rose/5 scale-[1.02]' : 'border-gray-100'}`}>
+      <div className="p-5">
+        <div className="flex justify-between items-start mb-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl ${service.bg || 'bg-gray-100 text-gray-500'} border ${service.border || 'border-gray-200'} flex items-center justify-center`}>
+              {editingId === service.id ? (
+                <input 
+                  className="w-full h-full bg-transparent text-center focus:outline-none placeholder-gray-300"
+                  value={service.icon || ''}
+                  placeholder="🩺"
+                  onChange={(e) => {
+                    const val = e.target.value
+                    setServices(services.map((s: any) => s.id === service.id ? {...s, icon: val} : s))
+                  }}
+                />
+              ) : (
+                <span className="text-lg">{service.icon || '🩺'}</span>
+              )}
+            </div>
+            <div>
+              <h3 className="font-bold text-gray-900">{service.name}</h3>
+              <p className="text-[10px] text-gray-400 uppercase tracking-widest font-bold">Base: {service.duration_minutes} min</p>
+            </div>
+          </div>
+          {editingId !== service.id ? (
+            <div className="flex gap-3 items-center">
+              <button 
+                onClick={() => setEditingId(service.id)}
+                className="text-xs font-bold text-vet-rose hover:underline"
+              >
+                Editar
+              </button>
+              <button 
+                onClick={() => handleDeleteService(service.id)}
+                className="text-xs font-bold text-red-500 hover:underline"
+              >
+                 🗑️
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-2">
+              <button 
+                onClick={() => {
+                  setEditingId(null)
+                }}
+                className="text-xs font-bold text-gray-400 hover:underline"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => handleUpdateService(service)}
+                className="text-xs font-bold text-green-600 hover:underline"
+              >
+                Guardar
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {editingId === service.id ? (
+          <div className="space-y-4 mb-2 animate-fade-in">
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Descripción en portal</label>
+              <textarea
+                className="w-full px-3 py-2 text-xs bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
+                rows={2}
+                value={service.description || ''}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setServices(services.map((s: any) => s.id === service.id ? {...s, description: val} : s))
+                }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Precio ($)</label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
+                  value={service.price}
+                  onChange={(e) => {
+                    const price = parseInt(e.target.value) || 0
+                    setServices(services.map((s: any) => s.id === service.id ? {...s, price} : s))
+                  }}
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Duración (Mín)</label>
+                <input
+                  type="number"
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
+                  value={service.duration_minutes}
+                  onChange={(e) => {
+                    const duration_minutes = parseInt(e.target.value) || 15
+                    setServices(services.map((s: any) => s.id === service.id ? {...s, duration_minutes} : s))
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="mb-4">
+              <p className="text-[10px] font-bold text-gray-400 uppercase mb-1">Descripción en portal</p>
+              <p className="text-sm text-gray-600 leading-snug">{service.description || <span className="text-gray-300 italic">Sin descripción</span>}</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 border-t border-gray-50 pt-4">
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Precio ($)</p>
+                <p className="font-black text-gray-900">${(service.price || 0).toLocaleString('es-CL')}</p>
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Duración (Mín)</p>
+                <p className="font-bold text-gray-900">{service.duration_minutes} min</p>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   )
 }

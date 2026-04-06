@@ -154,14 +154,10 @@ export function PublicBooking() {
       guardian_phone:   form.guardian_phone,
       guardian_rut:     form.guardian_rut,
       pet_name:         form.pet_name,
-      pet_species:      form.pet_species,
-      pet_breed:        form.pet_breed,
-      pet_sex:          form.pet_sex,
-      pet_date_of_birth: form.pet_date_of_birth || null,
-      pet_adopted_since: form.pet_adopted_since || null,
       service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map(v => v.name).join(', ')})` : ''),
       scheduled_at:     scheduledAt,
       duration_minutes: service.duration_minutes || 30,
+      notes:            `Especie: ${form.pet_species}\nSexo: ${form.pet_sex}\nRaza: ${form.pet_breed}`,
       status:           'pendiente',
       source:           'portal',
       is_home_visit:    form.is_home_visit,
@@ -272,7 +268,7 @@ export function PublicBooking() {
             <div className="mt-8 animate-fade-in">
               <h3 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">Selecciona la vacuna</h3>
               <div className="space-y-2">
-                {dbServices.filter(s => s.name.startsWith('Vacunación:')).map(vac => {
+                {dbServices.filter(s => s.name.startsWith('Vacunación:') || s.name.startsWith('Vacuna')).map(vac => {
                   const isSelected = selectedVaccines.some(v => v.id === vac.id)
                   return (
                     <label key={vac.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-vet-rose bg-vet-light/30' : 'border-gray-200 bg-white hover:border-vet-rose/50'}`}>
@@ -303,13 +299,13 @@ export function PublicBooking() {
               {selectedVaccines.length > 0 && (
                 <>
                   <div className="mt-4 flex justify-between items-center bg-gray-50 p-3 rounded-xl">
-                    <span className="text-xs font-bold text-gray-500">Total Vacuna:</span>
+                    <span className="text-xs font-bold text-gray-500">Total Base + Vacuna:</span>
                     <span className="text-lg font-black text-gray-900">
-                      ${(selectedVaccines[0]?.price || 0).toLocaleString('es-CL')}
+                      ${((service?.price || 0) + (selectedVaccines[0]?.price || 0)).toLocaleString('es-CL')}
                     </span>
                   </div>
                   <p className="text-[10px] text-right text-vet-rose font-bold mb-4 mt-1">
-                    Abono 20% requerido: ${((selectedVaccines[0]?.price || 0) * 0.20).toLocaleString('es-CL')}
+                    Abono 20% requerido: ${(((service?.price || 0) + (selectedVaccines[0]?.price || 0)) * 0.20).toLocaleString('es-CL')}
                   </p>
                 </>
               )}
@@ -380,7 +376,7 @@ export function PublicBooking() {
             </div>
             <div className="text-right">
               <span className="text-xs text-gray-500 block">A pagar hoy (Abono 20%)</span>
-              <span className="text-sm font-black text-vet-rose">${(((service?.name === 'Vacunación' ? 0 : (service?.price || 0)) + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}</span>
+              <span className="text-sm font-black text-vet-rose">${(((service?.price || 0) + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}</span>
             </div>
           </div>
 
@@ -453,23 +449,56 @@ export function PublicBooking() {
               </div>
 
               {form.is_home_visit && (
-                <Field label="Dirección del domicilio">
-                  <input className={inputCls} value={form.address} onChange={(e) => setField('address', e.target.value)} placeholder="Dirección completa..." required />
-                </Field>
+                <div className="animate-fade-in mb-3 text-left">
+                  <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
+                    Dirección Completa
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    className={inputCls}
+                    value={form.address || ''}
+                    onChange={(e) => setField('address', e.target.value)}
+                    placeholder="Ej. Gran Avenida 1234, Depto 402, San Miguel"
+                  />
+                </div>
               )}
 
-              {fieldError && <p className="text-xs text-red-600">⚠️ {fieldError}</p>}
+              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
+                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4 animate-fade-in text-left">
+                  <h4 className="text-xs font-bold text-blue-900 mb-2 uppercase">🏦 Datos de transferencia para el Abono del 20%</h4>
+                  <div className="text-sm text-blue-800 font-mono whitespace-pre-wrap">
+                    {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
+                  </div>
+                </div>
+              )}
+
+              {fieldError && (
+                <p className="text-xs font-medium text-red-500 bg-red-50 p-2 rounded mb-4 text-left">
+                  ⚠️ {fieldError}
+                </p>
+              )}
 
               <div className="flex gap-2">
-                <BackButton onClick={() => setStep(3)} />
-                <button type="submit" disabled={saving}
-                        className="flex-1 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark disabled:opacity-50 transition-all flex items-center justify-center gap-2">
-                  {saving && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                  Confirmar Reserva
+                <button
+                  type="button"
+                  onClick={() => setStep(3)}
+                  className="px-4 py-3 bg-gray-100 text-gray-600 text-sm font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                  disabled={saving}
+                >
+                  ← Volver
+                </button>
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors disabled:opacity-50"
+                >
+                  {saving ? 'Confirmando...' : 'Confirmar Reserva'}
                 </button>
               </div>
             </form>
           )}
+
         </section>
       )}
     </PortalShell>

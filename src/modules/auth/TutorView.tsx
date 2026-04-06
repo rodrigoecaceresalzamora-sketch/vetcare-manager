@@ -1,4 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext'
+import heroImg from '../../assets/hero.png'
 
 export function TutorView() {
   const { user, signOut } = useAuth()
@@ -7,7 +8,7 @@ export function TutorView() {
     <div className="min-h-screen bg-vet-bone flex flex-col items-center justify-center p-6 text-center">
       <div className="max-w-md w-full bg-white rounded-3xl shadow-xl p-10 border border-pink-100">
         <div className="w-24 h-24 rounded-full mx-auto mb-6 shadow-lg border border-pink-100 overflow-hidden">
-          <img src="/hero.png" alt="Perrito Blanco" className="w-full h-full object-cover" />
+          <img src={heroImg} alt="Perrito Blanco" className="w-full h-full object-cover" />
         </div>
         
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
