@@ -53,8 +53,7 @@ export function PricingManagement() {
         name: finalName,
         price: newService.price,
         duration_minutes: newService.duration_minutes,
-        description: newService.description,
-        icon: newService.icon || '🩺'
+        description: newService.description
       })
 
     if (err) {
@@ -85,7 +84,7 @@ export function PricingManagement() {
     if (isNewTransferInfo) {
       const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
       const { error: err } = await supabase.from('services').insert({
-        id, name: 'DATOS_TRANSFERENCIA', description: service.description, price: 0, duration_minutes: 0, icon: '🏦'
+        id, name: 'DATOS_TRANSFERENCIA', description: service.description, price: 0, duration_minutes: 0
       })
       if (err) setError(err.message)
       else { setEditingId(null); showToast('✅ Datos guardados'); fetchServices() }
@@ -96,8 +95,7 @@ export function PricingManagement() {
       .update({
         price: service.price,
         duration_minutes: service.duration_minutes,
-        description: service.description,
-        icon: service.icon
+        description: service.description
       })
       .eq('id', service.id)
 
@@ -183,14 +181,6 @@ export function PricingManagement() {
                 rows={2}
                 value={newService.description}
                 onChange={e => setNewService({...newService, description: e.target.value})}
-              />
-            </div>
-            <div className="md:col-span-2">
-              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Icono / Emoji (opcional)</label>
-              <input 
-                className="w-20 px-3 py-2 bg-white border border-gray-200 rounded-lg text-center"
-                value={newService.icon}
-                onChange={e => setNewService({...newService, icon: e.target.value})}
               />
             </div>
           </div>
