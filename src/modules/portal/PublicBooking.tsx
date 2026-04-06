@@ -218,15 +218,20 @@ export function PublicBooking() {
           <div className="bg-vet-rose/10 border-l-4 border-vet-rose p-4 rounded-r-xl mb-6">
             <h3 className="font-bold text-vet-rose text-sm mb-1">Pago y Transferencia 💸</h3>
             <p className="text-xs text-gray-700 leading-relaxed">
-              Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Una vez agendado, te enviaremos los datos de transferencia.
+              Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
             </p>
-            <p className="text-[10px] text-gray-500 mt-2 p-2 bg-white rounded-lg border border-pink-100 italic">
+            {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
+              <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
+                {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
+              </div>
+            )}
+            <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-pink-100 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {dbServices.filter(s => !s.name.startsWith('Vacunación:')).map((svc) => (
+            {dbServices.filter(s => !s.name.startsWith('Vacunación:') && s.name !== 'DATOS_TRANSFERENCIA').map((svc) => (
               <button
                 key={svc.id}
                 onClick={() => { 

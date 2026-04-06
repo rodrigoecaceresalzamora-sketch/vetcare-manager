@@ -13,15 +13,42 @@ export function PricingManagement() {
     fetchServices()
   }, [])
 
+  async function seedMissingServices(existing: Service[]) {
+    const known = [
+      { name: 'Vacunación', price: 0, duration_minutes: 15, icon: '🩹', description: 'Servicio base para agendar vacunas' },
+      { name: 'Vacunación: Sextuple (Perro)', price: 15000, duration_minutes: 15, icon: '💉', description: 'Cubre: Parvovirus, Distemper, Adenovirus 2, Parainfluenza, Leptospirosis.' },
+      { name: 'Vacunación: Octuple (Perro)', price: 20000, duration_minutes: 15, icon: '💉', description: 'Cubre: Séxtuple + Coronavirus + Leptospira (otra cepa).' },
+      { name: 'Vacunación: KC (Perro)', price: 18000, duration_minutes: 15, icon: '🌬️', description: 'Prevención de Traqueobronquitis (Tos de las perreras).' },
+      { name: 'Vacunación: Triple Felina (Gato)', price: 18000, duration_minutes: 15, icon: '🐈', description: 'Cubre: Rinotraqueitis, Calicivirus, Panleucopenia.' },
+      { name: 'Vacunación: Leucemia (Gato)', price: 20000, duration_minutes: 15, icon: '🩸', description: 'Requiere test negativo.' },
+      { name: 'Vacunación: Antirrábica', price: 12000, duration_minutes: 15, icon: '🛡️', description: 'Prevención de Rabia.' },
+      { name: 'DATOS_TRANSFERENCIA', price: 0, duration_minutes: 0, icon: '🏦', description: 'Banco Santander\nCuenta Corriente: 123456789\nRUT: 76.543.210-K\nCorreo: vetcare@ejemplo.cl' }
+    ]
+    const missing = known.filter(k => !existing.some(e => e.name === k.name))
+    if (missing.length > 0) {
+      await supabase.from('services').insert(missing)
+      return true
+    }
+    return false
+  }
+
   async function fetchServices() {
     setLoading(true)
-    const { data, error: err } = await supabase
+    let { data, error: err } = await supabase
       .from('services')
       .select('*')
       .order('name', { ascending: true })
     
-    if (err) setError(err.message)
-    else setServices(data as Service[])
+    if (err) {
+      setError(err.message)
+    } else {
+      const seeded = await seedMissingServices(data as Service[])
+      if (seeded) {
+        const { data: newData } = await supabase.from('services').select('*').order('name', { ascending: true })
+        data = newData
+      }
+      setServices(data as Service[])
+    }
     setLoading(false)
   }
 
@@ -60,7 +87,7 @@ export function PricingManagement() {
 
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Precios y Servicios</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Gestión de Precios, Vacunas y Datos</h1>
           <p className="text-sm text-gray-500">Configura lo que tus clientes ven en el portal de reservas</p>
         </div>
       </div>
@@ -73,11 +100,11 @@ export function PricingManagement() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {loading ? (
-          <div className="col-span-2 py-20 text-center text-gray-400">Cargando servicios...</div>
+          <div className="col-span-2 py-20 text-center text-gray-400">Cargando servicios e inicializando datos...</div>
         ) : services.length === 0 ? (
           <div className="col-span-2 py-20 text-center text-gray-400">No hay servicios definidos en la base de datos.</div>
         ) : (
-          services.map(service => (
+          services.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map(service => (
             <div 
               key={service.id}
               className={`bg-white rounded-2xl shadow-sm border transition-all ${
@@ -195,9 +222,41 @@ export function PricingManagement() {
         <span className="text-2xl">💡</span>
         <div className="text-xs text-gray-600 space-y-1">
           <p className="font-bold text-vet-rose uppercase tracking-wider">Aviso importante</p>
-          <p>Los cambios en esta sección afectan **directamente** lo que ven tus pacientes en el portal de reserva pública. Asegúrate de que los precios y tiempos sean correctos antes de guardar.</p>
+          <p>Los cambios en esta sección afectan **directamente** lo que ven tus pacientes en el portal de reserva pública. Asegúrate de que los precios y tiempos sean correctos antes de guardar. Las vacunas nuevas se agregan automáticamente al sistema.</p>
         </div>
       </div>
+
+      {services.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-8">
+          <div className="flex justify-between items-start mb-4">
+            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">🏦 Datos de Transferencia Bancaria</h2>
+            {editingId !== 'transfer_data' ? (
+              <button onClick={() => setEditingId('transfer_data')} className="text-xs font-bold text-vet-rose hover:underline">Editar</button>
+            ) : (
+              <div className="flex gap-2">
+                <button onClick={() => setEditingId(null)} className="text-xs font-bold text-gray-400 hover:underline">Cancelar</button>
+                <button onClick={() => handleUpdateService(services.find(s => s.name === 'DATOS_TRANSFERENCIA')!)} className="text-xs font-bold text-green-600 hover:underline">Guardar</button>
+              </div>
+            )}
+          </div>
+          <p className="text-xs text-gray-500 mb-4 truncate">Aparecerán automáticamente en la pantalla de abonos del 20%.</p>
+          {editingId === 'transfer_data' ? (
+            <textarea
+              className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20 font-mono"
+              rows={4}
+              value={services.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || ''}
+              onChange={(e) => {
+                const val = e.target.value
+                setServices(services.map(s => s.name === 'DATOS_TRANSFERENCIA' ? {...s, description: val} : s))
+              }}
+            />
+          ) : (
+            <div className="bg-gray-50 p-4 rounded-xl text-sm font-mono whitespace-pre-wrap text-gray-700">
+              {services.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
