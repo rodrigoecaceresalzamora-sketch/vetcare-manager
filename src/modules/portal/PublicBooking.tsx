@@ -154,10 +154,9 @@ export function PublicBooking() {
       guardian_phone:   form.guardian_phone,
       guardian_rut:     form.guardian_rut,
       pet_name:         form.pet_name,
-      service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map(v => v.name).join(', ')})` : ''),
+      service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map(v => v.name.replace('Vacunación: ', '')). join(', ')})` : ''),
       scheduled_at:     scheduledAt,
       duration_minutes: service.duration_minutes || 30,
-      notes:            `Especie: ${form.pet_species}\nSexo: ${form.pet_sex}\nRaza: ${form.pet_breed}`,
       status:           'pendiente',
       source:           'portal',
       is_home_visit:    form.is_home_visit,
@@ -268,7 +267,7 @@ export function PublicBooking() {
             <div className="mt-8 animate-fade-in">
               <h3 className="text-sm font-bold text-gray-900 mb-3 border-b border-gray-100 pb-2">Selecciona la vacuna</h3>
               <div className="space-y-2">
-                {dbServices.filter(s => s.name.startsWith('Vacunación:') || s.name.startsWith('Vacuna')).map(vac => {
+                {dbServices.filter(s => s.name.startsWith('Vacunación:')).map(vac => {
                   const isSelected = selectedVaccines.some(v => v.id === vac.id)
                   return (
                     <label key={vac.id} className={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-all ${isSelected ? 'border-vet-rose bg-vet-light/30' : 'border-gray-200 bg-white hover:border-vet-rose/50'}`}>

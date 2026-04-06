@@ -210,7 +210,7 @@ export function PricingManagement() {
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">🩺 Servicios Regulares</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA' && !s.name.toLowerCase().includes('vacuna')).map(service => (
+                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA' && !s.name.startsWith('Vacunación:')).map(service => (
                   <ServiceCard 
                     key={service.id} 
                     service={service} 
@@ -228,7 +228,7 @@ export function PricingManagement() {
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">💉 Vacunas Específicas</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA' && s.name.toLowerCase().includes('vacuna')).map(service => (
+                {services.filter(s => s.name.startsWith('Vacunación:')).map(service => (
                   <ServiceCard 
                     key={service.id} 
                     service={service} 
