@@ -318,7 +318,7 @@ export function PricingManagement() {
       </div>
 
       {(services.find(s => s.name === 'DATOS_TRANSFERENCIA') || true) && (() => {
-        const transferObj = services.find(s => s.name === 'DATOS_TRANSFERENCIA') || { name: 'DATOS_TRANSFERENCIA', description: 'Banco Santander\nCuenta Corriente: 123456789\nRUT: 76.543.210-K\nCorreo: vetcare@ejemplo.cl' } as Service
+        const transferObj = services.find(s => s.name === 'DATOS_TRANSFERENCIA') || { name: 'DATOS_TRANSFERENCIA', description: 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: CLINICA VETERINARIA VETCARE\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA' } as Service
         return (
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-8">
             <div className="flex justify-between items-start mb-4">

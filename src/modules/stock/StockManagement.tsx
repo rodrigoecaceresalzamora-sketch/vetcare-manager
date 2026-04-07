@@ -15,6 +15,12 @@ export function StockManagement() {
   const [newItemName, setNewItemName] = useState('')
   const [newItemLot, setNewItemLot] = useState('')
   const [newItemQty, setNewItemQty] = useState<number | string>('')
+  
+  const [editingItemId, setEditingItemId] = useState<string | null>(null)
+  const [editItemName, setEditItemName] = useState('')
+  const [editItemLot, setEditItemLot] = useState('')
+  
+  const [inputQty, setInputQty] = useState<Record<string, string>>({})
 
   function showToast(msg: string) {
     setToast(msg)
@@ -71,6 +77,31 @@ export function StockManagement() {
     if (err) setError(err.message)
     else {
       setItems(items.map(i => i.id === id ? { ...i, quantity: newQty } : i))
+    }
+  }
+
+  async function handleDelete(id: string) {
+    if (!confirm('¿Estás seguro de eliminar este insumo del inventario?')) return
+    const { error: err } = await supabase.from('stock_items').delete().eq('id', id)
+    if (err) setError('Error al eliminar: ' + err.message)
+    else {
+      showToast('Ítem eliminado')
+      fetchStock()
+    }
+  }
+
+  async function handleSaveEdit(id: string) {
+    if (!editItemName.trim()) return
+    const { error: err } = await supabase
+      .from('stock_items')
+      .update({ name: editItemName.trim(), lot_number: editItemLot.trim() || null })
+      .eq('id', id)
+    
+    if (err) setError('Error al actualizar: ' + err.message)
+    else {
+      showToast('Ítem actualizado')
+      setEditingItemId(null)
+      fetchStock()
     }
   }
 
@@ -142,12 +173,45 @@ export function StockManagement() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map(item => (
           <div key={item.id} className="bg-white border flex flex-col justify-between border-pink-100 rounded-xl p-4 shadow-sm hover:border-pink-300 transition-all">
-            <div>
-              <h3 className="font-bold text-gray-900 leading-tight">{item.name}</h3>
-              {item.lot_number && (
-                <p className="text-[10px] uppercase font-bold text-gray-400 mt-1">Lote: <span className="text-gray-600">{item.lot_number}</span></p>
-              )}
-            </div>
+            {editingItemId === item.id ? (
+              <div className="flex flex-col gap-2 mb-4">
+                <input
+                  type="text"
+                  className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-sm font-bold focus:outline-none focus:border-vet-rose"
+                  value={editItemName}
+                  onChange={e => setEditItemName(e.target.value)}
+                  placeholder="Nombre Insumo"
+                />
+                <input
+                  type="text"
+                  className="w-full px-2 py-1 bg-white border border-gray-200 rounded text-xs focus:outline-none focus:border-vet-rose"
+                  value={editItemLot}
+                  onChange={e => setEditItemLot(e.target.value)}
+                  placeholder="Lote (Opcional)"
+                />
+                <div className="flex gap-2 justify-end mt-1">
+                  <button onClick={() => setEditingItemId(null)} className="text-xs text-gray-500 hover:text-gray-700">Cancelar</button>
+                  <button onClick={() => handleSaveEdit(item.id)} className="text-xs text-vet-rose font-bold hover:underline">Guardar</button>
+                </div>
+              </div>
+            ) : (
+              <div>
+                <div className="flex justify-between items-start gap-2">
+                  <h3 className="font-bold text-gray-900 leading-tight">{item.name}</h3>
+                  <div className="flex gap-2">
+                    <button onClick={() => {
+                      setEditingItemId(item.id)
+                      setEditItemName(item.name)
+                      setEditItemLot(item.lot_number || '')
+                    }} className="text-gray-400 hover:text-vet-rose text-xs" title="Editar">✏️</button>
+                    <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 text-xs" title="Eliminar">🗑️</button>
+                  </div>
+                </div>
+                {item.lot_number && (
+                  <p className="text-[10px] uppercase font-bold text-gray-400 mt-1">Lote: <span className="text-gray-600">{item.lot_number}</span></p>
+                )}
+              </div>
+            )}
             
             <div className="flex items-center justify-between mt-4">
               <span className="text-xs text-gray-500 font-medium">Unidades disponibles:</span>
@@ -162,14 +226,17 @@ export function StockManagement() {
                 <input
                   type="number"
                   className={`w-16 text-center border-none p-0 focus:ring-0 bg-transparent font-black ${item.quantity <= 2 ? 'text-red-500' : 'text-gray-900'}`}
-                  value={item.quantity}
+                  value={inputQty[item.id] !== undefined ? inputQty[item.id] : item.quantity}
                   onChange={(e) => {
-                    const qty = e.target.value === '' ? 0 : parseInt(e.target.value)
-                    setItems(items.map(i => i.id === item.id ? { ...i, quantity: qty } : i))
+                    setInputQty({ ...inputQty, [item.id]: e.target.value })
                   }}
                   onBlur={(e) => {
-                    const qty = e.target.value === '' ? 0 : parseInt(e.target.value)
+                    let qty = parseInt(e.target.value)
+                    if (isNaN(qty)) qty = 0
                     updateQty(item.id, qty)
+                    const newMap = { ...inputQty }
+                    delete newMap[item.id]
+                    setInputQty(newMap)
                   }}
                 />
                 <button
