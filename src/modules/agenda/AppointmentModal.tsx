@@ -337,7 +337,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   ))}
                 </select>
               </Field>
-              <Field label="Notas (opcional)" className="col-span-2">
+              <Field label="Motivo / Observaciones" className="col-span-2">
                 <input
                   className={inputCls}
                   value={form.notes}
@@ -468,8 +468,11 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                           const dayStr = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
                           const timeStr = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
                           const phoneNum = form.guardian_phone.replace(/[^\d]/g, '')
+                          const motivo = form.notes?.trim()
+                            ? `\n\nMotivo indicado: ${form.notes.trim()}`
+                            : ''
                           
-                          const msg = `¡Hola ${form.guardian_name}! Le escribimos de la Clínica Veterinaria VetCare para indicar que la hora para ${form.pet_name} ha sido confirmada.\n\n🩺 Motivo: ${form.service}\n🗓️ Día: ${dayStr}\n⏰ Hora: ${timeStr}\n\n¡Le esperamos y recordamos ser puntual!`
+                          const msg = `Hola ${form.guardian_name}, le escribimos de VetCare para informarle que la hora para ${form.pet_name} ha sido confirmada.\n\nServicio: ${form.service}\nDia: ${dayStr}\nHora: ${timeStr}${motivo}\n\nLe esperamos. Recuerde ser puntual.`
                           
                           window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`, '_blank')
                         } catch (e) {
@@ -496,7 +499,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                 title="Sugerir cambio de hora o enviar mensaje"
                 className="px-3 py-2 text-sm bg-vet-light text-vet-rose border border-vet-rose/20 rounded-lg hover:bg-vet-rose/10"
                 onClick={() => {
-                  const msg = `Hola, le escribimos de la VetCare de la Dra. Sofía. Necesitamos pedirle que elija otra hora para su cita con ${form.pet_name} ya que la actual no está disponible. ¿Podría indicarnos otra disponibilidad?`
+                  const msg = `Hola, le escribimos de VetCare. Necesitamos pedirle que elija otra hora para la cita de ${form.pet_name} ya que la actual no está disponible. ¿Podría indicarnos otra disponibilidad?`
                   window.open(`https://wa.me/${form.guardian_phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank')
                 }}
               >

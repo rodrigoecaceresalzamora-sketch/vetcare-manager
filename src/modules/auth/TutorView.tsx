@@ -270,7 +270,7 @@ export function TutorView() {
            <img src="/logo.png" alt="VetCare" className="w-6 h-6 grayscale opacity-30" />
         </div>
         <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] font-black">
-          Clínica Veterinaria VetCare &middot; 2026
+          VetCare &middot; 2026
         </p>
       </footer>
     </div>

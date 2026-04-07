@@ -89,6 +89,7 @@ export function PublicBooking() {
   const [date, setDate]             = useState<string | null>(null)
   const [time, setTime]             = useState<string | null>(null)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
+  const [consultationReason, setConsultationReason] = useState('')
   const [form, setForm]             = useState<PublicBookingFormData>({
     guardian_name:  user?.user_metadata?.full_name || '',
     guardian_email: user?.email || '',
@@ -185,6 +186,7 @@ export function PublicBooking() {
       service:          service.name + (selectedVaccines.length > 0 ? ` (${selectedVaccines.map((v: any) => v.name.replace('Vacunación: ', '')).join(', ')})` : ''),
       scheduled_at:     scheduledAt,
       duration_minutes: service.duration_minutes || 30,
+      notes:            consultationReason || '',
       status:           'pendiente',
       source:           'portal',
       is_home_visit:    false,
@@ -224,25 +226,28 @@ export function PublicBooking() {
     return (
       <PortalShell>
         <div className="max-w-md mx-auto py-10 text-center">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <h2 className="text-xl font-medium text-gray-900 mb-2">¡Reserva enviada!</h2>
-          <p className="text-sm text-gray-500 mb-6">
-            Tu reserva para <strong>{form.pet_name}</strong> ha sido enviada. Aparece como <strong>pendiente</strong> hasta que sea confirmada por la Dra. Sofía.
+          <h2 className="text-2xl font-bold text-gray-900 mb-3">Solicitud recibida</h2>
+          <p className="text-sm text-gray-500 leading-relaxed mb-8">
+            Tu hora para <strong className="text-gray-800">{form.pet_name}</strong> ha sido enviada correctamente.
+            Quedara registrada como <strong className="text-amber-600">pendiente</strong> hasta ser
+            revisada y confirmada. Te avisaremos cuando este lista.
           </p>
-          <div className="bg-vet-light/60 rounded-xl p-4 text-left space-y-2 mb-6 text-sm">
-            <Row label="Servicio"  value={`${service?.icon || '🩺'} ${service?.name}`} />
+          <div className="bg-white border border-pink-100 rounded-2xl p-5 text-left space-y-3 mb-8 shadow-sm">
+            <p className="text-[10px] font-bold text-vet-rose uppercase tracking-widest mb-3">Resumen de tu solicitud</p>
+            <Row label="Servicio"  value={`${service?.name}${selectedVaccines.length > 0 ? ' — ' + selectedVaccines[0]?.name?.replace('Vacunación: ', '') : ''}`} />
             <Row label="Fecha"     value={availableDates.find(d => d.value === date)?.label ?? date ?? ''} />
             <Row label="Hora"      value={time ?? ''} />
-            {form.is_home_visit && <Row label="Dirección" value={form.address || 'Sí'} />}
+            {consultationReason && <Row label="Motivo" value={consultationReason} />}
           </div>
           
           <button
             onClick={() => navigate('/tutor')}
-            className="w-full px-6 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors"
+            className="w-full px-6 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors"
           >
             Volver a mis mascotas
           </button>
@@ -388,7 +393,7 @@ export function PublicBooking() {
                 <button
                   key={slot}
                   disabled={taken}
-                  onClick={() => { setTime(slot); setStep(4) }}
+                  onClick={() => { setTime(slot) }}
                   className={`py-2 rounded-lg border text-sm font-medium transition-all
                               ${taken ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed line-through' : 
                                 time === slot ? 'bg-vet-rose text-white border-vet-rose' : 
@@ -399,7 +404,42 @@ export function PublicBooking() {
               )
             })}
           </div>
-          <BackButton onClick={() => setStep(2)} />
+
+          {/* Motivo de consulta — aparece al seleccionar hora */}
+          {time && (
+            <div className="mt-4 animate-fade-in">
+              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
+                {service?.name === 'Vacunación'
+                  ? 'Vacuna seleccionada'
+                  : 'Motivo de consulta (opcional)'}
+              </label>
+              {service?.name === 'Vacunación' ? (
+                <div className="w-full px-4 py-3 bg-vet-light/50 border border-pink-100 rounded-xl text-sm text-gray-700 font-medium">
+                  {selectedVaccines.length > 0
+                    ? selectedVaccines.map((v: any) => v.name.replace('Vacunación: ', '')).join(', ')
+                    : <span className="text-gray-400 italic">Sin vacuna seleccionada</span>}
+                </div>
+              ) : (
+                <textarea
+                  className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-vet-rose/5 focus:border-vet-rose transition-all resize-none"
+                  rows={3}
+                  placeholder="Describe brevemente el motivo de tu visita…"
+                  value={consultationReason}
+                  onChange={(e) => setConsultationReason(e.target.value)}
+                />
+              )}
+              <button
+                onClick={() => setStep(4)}
+                className="w-full mt-4 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all"
+              >
+                Continuar
+              </button>
+            </div>
+          )}
+
+          <div className="mt-4">
+            <BackButton onClick={() => setStep(2)} />
+          </div>
         </section>
       )}
 
@@ -408,13 +448,24 @@ export function PublicBooking() {
           <SectionTitle step={4} title="Tus datos" />
           <div className="bg-vet-light/50 border border-pink-200 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1 justify-between items-start">
             <div>
-              <span className="text-xs text-vet-dark block"><strong>{service?.icon}</strong> {service?.name} {selectedVaccines.length > 0 ? `+ ${selectedVaccines.length} vacuna(s)` : ''}</span>
+              <span className="text-xs text-vet-dark block"><strong>{service?.icon}</strong> {service?.name} {selectedVaccines.length > 0 ? `— ${selectedVaccines[0]?.name?.replace('Vacunación: ', '')}` : ''}</span>
               <span className="text-xs text-gray-500 block mt-1">{availableDates.find(d => d.value === date)?.label} · {time}</span>
+              {consultationReason && <span className="text-xs text-gray-400 block mt-0.5 italic">{consultationReason}</span>}
             </div>
             <div className="text-right">
               <span className="text-xs text-gray-500 block">A pagar hoy (Abono 20%)</span>
               <span className="text-sm font-black text-vet-rose">${(((service?.price || 0) + selectedVaccines.reduce((sum: number, v: any) => sum + v.price, 0)) * 0.20).toLocaleString('es-CL')}</span>
             </div>
+          </div>
+
+          {/* Aviso abono obligatorio */}
+          <div className="bg-gray-900 text-white rounded-xl px-5 py-4 text-center">
+            <p className="text-base font-black uppercase tracking-wide leading-snug">
+              Sin abono del 20% no se aceptará la consulta
+            </p>
+            <p className="text-xs text-gray-300 mt-1 font-medium">
+              Realiza la transferencia antes de confirmar tu reserva
+            </p>
           </div>
 
           {!user ? (
@@ -538,10 +589,24 @@ export function PublicBooking() {
 
 
               {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
-                <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4 animate-fade-in text-left">
-                  <h4 className="text-xs font-bold text-blue-900 mb-2 uppercase">🏦 Datos de transferencia para el Abono del 20%</h4>
-                  <div className="text-sm text-blue-800 font-mono whitespace-pre-wrap">
+                <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4 animate-fade-in text-left">
+                  <h4 className="text-sm font-black text-gray-900 mb-3 flex items-center gap-2">
+                    <span>🏦</span> Datos de transferencia — Abono 20%
+                  </h4>
+                  <div className="text-sm text-gray-800 font-mono whitespace-pre-wrap bg-white rounded-lg p-3 border border-gray-100 mb-3">
                     {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
+                  </div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-xs font-black text-amber-900 uppercase tracking-wide mb-1">Importante — campo comentario / glosa</p>
+                    <p className="text-xs text-amber-800 leading-relaxed">
+                      Al realizar la transferencia, escribe en el campo de comentario o glosa el
+                      {' '}<strong>nombre de tu mascota</strong> y tu <strong>nombre completo</strong>.
+                    </p>
+                    {form.pet_name && form.guardian_name && (
+                      <p className="text-xs font-mono bg-white border border-amber-200 rounded px-3 py-1.5 mt-2 text-amber-900 font-bold">
+                        Ej: &ldquo;{form.pet_name} — {form.guardian_name}&rdquo;
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
@@ -591,7 +656,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
       </header>
       <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
       <footer className="text-center py-10 px-4 text-[10px] text-gray-400 font-black uppercase tracking-[0.3em]">
-        &copy; 2026 Clínica Veterinaria Dram. Sofía Cáceres &middot; Todos los derechos reservados
+        &copy; 2026 VetCare &middot; Todos los derechos reservados
       </footer>
     </div>
   )

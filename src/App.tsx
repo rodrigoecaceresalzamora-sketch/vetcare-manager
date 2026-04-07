@@ -154,7 +154,6 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
             <h1 className="text-black text-sm font-bold leading-tight uppercase tracking-tight">
               VetCare<br/>Manager
             </h1>
-            <p className="text-gray-500 text-[10px] mt-0.5">Clínica Veterinaria</p>
           </>
         )}
       </div>

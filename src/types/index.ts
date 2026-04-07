@@ -112,6 +112,7 @@ export interface Appointment {
   meet_link?: string
   source: AppointmentSource
   created_at?: string
+  notes?: string
   // Campos del portal público
   pet_species?: Species
   pet_breed?: string

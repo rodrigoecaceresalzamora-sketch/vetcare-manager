@@ -131,12 +131,30 @@ export function usePatients() {
 
   const deletePatient = async (patientId: string, guardianId: string) => {
     try {
-      // Borramos primero el paciente (FK), luego el tutor
+      // 1. Primero eliminamos las citas vinculadas al paciente (FK constraint)
+      const { error: aErr } = await supabase
+        .from('appointments')
+        .delete()
+        .eq('patient_id', patientId)
+      if (aErr) throw new Error('Error borrando citas del paciente: ' + aErr.message)
+
+      // 2. Borramos el paciente
       const { error: pErr } = await supabase.from('patients').delete().eq('id', patientId)
       if (pErr) throw new Error('Error borrando paciente: ' + pErr.message)
 
-      const { error: gErr } = await supabase.from('guardians').delete().eq('id', guardianId)
-      if (gErr) throw new Error('Error borrando tutor: ' + gErr.message)
+      // 3. Verificar si el tutor tiene más pacientes antes de eliminarlo
+      const { data: sibling } = await supabase
+        .from('patients')
+        .select('id')
+        .eq('guardian_id', guardianId)
+        .limit(1)
+        .maybeSingle()
+
+      if (!sibling) {
+        // Sin más mascotas: borrar tutor
+        const { error: gErr } = await supabase.from('guardians').delete().eq('id', guardianId)
+        if (gErr) throw new Error('Error borrando tutor: ' + gErr.message)
+      }
 
       await fetchPatients()
       return { error: null }

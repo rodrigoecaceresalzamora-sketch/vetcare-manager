@@ -160,18 +160,20 @@ export function PricingManagement() {
               <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Precio ($)</label>
               <input 
                 type="number"
+                min="0"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                value={newService.price}
-                onChange={e => setNewService({...newService, price: parseInt(e.target.value) || 0})}
+                value={newService.price ?? ''}
+                onChange={e => setNewService({...newService, price: e.target.value === '' ? 0 : parseInt(e.target.value)})}
               />
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Duración (Mín)</label>
               <input 
                 type="number"
+                min="1"
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                value={newService.duration_minutes}
-                onChange={e => setNewService({...newService, duration_minutes: parseInt(e.target.value) || 15})}
+                value={newService.duration_minutes ?? ''}
+                onChange={e => setNewService({...newService, duration_minutes: e.target.value === '' ? 15 : parseInt(e.target.value)})}
               />
             </div>
             <div className="md:col-span-2">
@@ -376,10 +378,12 @@ function ServiceCard({ service, editingId, setEditingId, handleUpdateService, ha
                 <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Precio ($)</label>
                 <input
                   type="number"
+                  min="0"
                   className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
                   value={service.price}
                   onChange={(e) => {
-                    const price = parseInt(e.target.value) || 0
+                    const raw = e.target.value
+                    const price = raw === '' ? 0 : parseInt(raw)
                     setServices(services.map((s: any) => s.id === service.id ? {...s, price} : s))
                   }}
                 />
