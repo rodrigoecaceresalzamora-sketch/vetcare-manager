@@ -20,6 +20,7 @@ export interface StockItem {
   quantity: number
   unit: string
   min_quantity: number
+  lot_number?: string
   created_at?: string
 }
 

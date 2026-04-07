@@ -13,6 +13,7 @@ export function StockManagement() {
   const [toast, setToast] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [newItemName, setNewItemName] = useState('')
+  const [newItemLot, setNewItemLot] = useState('')
   const [newItemQty, setNewItemQty] = useState<number | string>('')
 
   function showToast(msg: string) {
@@ -41,13 +42,19 @@ export function StockManagement() {
     const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
     const { error: err } = await supabase
       .from('stock_items')
-      .insert({ id, name: newItemName.trim(), quantity: newItemQty === '' ? 0 : Number(newItemQty) })
+      .insert({ 
+        id, 
+        name: newItemName.trim(), 
+        lot_number: newItemLot.trim() || null,
+        quantity: newItemQty === '' ? 0 : Number(newItemQty) 
+      })
 
     if (err) {
       setError('Error al crear: ' + err.message)
     } else {
       showToast('Ítem creado correctamente')
       setNewItemName('')
+      setNewItemLot('')
       setNewItemQty('')
       setIsAdding(false)
       fetchStock()
@@ -104,6 +111,15 @@ export function StockManagement() {
               onChange={e => setNewItemName(e.target.value)}
             />
           </div>
+          <div className="flex-1 min-w-[200px]">
+            <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Número de Lote (Opcional)</label>
+            <input
+              placeholder="Ej: LOTE-12345"
+              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+              value={newItemLot}
+              onChange={e => setNewItemLot(e.target.value)}
+            />
+          </div>
           <div className="w-32">
             <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Stock Inicial</label>
             <input
@@ -126,9 +142,14 @@ export function StockManagement() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {items.map(item => (
           <div key={item.id} className="bg-white border flex flex-col justify-between border-pink-100 rounded-xl p-4 shadow-sm hover:border-pink-300 transition-all">
-            <h3 className="font-bold text-gray-900 leading-tight mb-4">{item.name}</h3>
+            <div>
+              <h3 className="font-bold text-gray-900 leading-tight">{item.name}</h3>
+              {item.lot_number && (
+                <p className="text-[10px] uppercase font-bold text-gray-400 mt-1">Lote: <span className="text-gray-600">{item.lot_number}</span></p>
+              )}
+            </div>
             
-            <div className="flex items-center justify-between mt-auto">
+            <div className="flex items-center justify-between mt-4">
               <span className="text-xs text-gray-500 font-medium">Unidades disponibles:</span>
               <div className="flex items-center gap-3 bg-gray-50 rounded-lg p-1 border border-gray-100">
                 <button
