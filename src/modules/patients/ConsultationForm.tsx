@@ -140,7 +140,7 @@ export function ConsultationForm({ initialData, onClose, onSave, readOnly = fals
                 }}
               >
                 <option value="">-- Sin servicio asociado --</option>
-                {services.map(s => (
+                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map(s => (
                   <option key={s.id} value={s.id}>{s.name} {(s.stock_usage && s.stock_usage.length > 0) ? '(Descuenta stock)' : ''}</option>
                 ))}
               </select>

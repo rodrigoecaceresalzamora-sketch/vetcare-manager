@@ -13,7 +13,7 @@ export function StockManagement() {
   const [toast, setToast] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [newItemName, setNewItemName] = useState('')
-  const [newItemQty, setNewItemQty] = useState(0)
+  const [newItemQty, setNewItemQty] = useState<number | string>('')
 
   function showToast(msg: string) {
     setToast(msg)
@@ -41,14 +41,14 @@ export function StockManagement() {
     const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
     const { error: err } = await supabase
       .from('stock_items')
-      .insert({ id, name: newItemName.trim(), quantity: newItemQty })
+      .insert({ id, name: newItemName.trim(), quantity: newItemQty === '' ? 0 : Number(newItemQty) })
 
     if (err) {
       setError('Error al crear: ' + err.message)
     } else {
       showToast('Ítem creado correctamente')
       setNewItemName('')
-      setNewItemQty(0)
+      setNewItemQty('')
       setIsAdding(false)
       fetchStock()
     }
@@ -110,8 +110,8 @@ export function StockManagement() {
               type="number"
               min="0"
               className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-lg text-sm outline-none"
-              value={newItemQty === 0 && !newItemName ? '' : newItemQty}
-              onChange={e => setNewItemQty(e.target.value === '' ? 0 : parseInt(e.target.value))}
+              value={newItemQty}
+              onChange={e => setNewItemQty(e.target.value === '' ? '' : parseInt(e.target.value))}
             />
           </div>
           <button
@@ -138,9 +138,19 @@ export function StockManagement() {
                 >
                   -
                 </button>
-                <span className={`w-6 text-center font-black ${item.quantity <= 2 ? 'text-red-500' : 'text-gray-900'}`}>
-                  {item.quantity}
-                </span>
+                <input
+                  type="number"
+                  className={`w-16 text-center border-none p-0 focus:ring-0 bg-transparent font-black ${item.quantity <= 2 ? 'text-red-500' : 'text-gray-900'}`}
+                  value={item.quantity}
+                  onChange={(e) => {
+                    const qty = e.target.value === '' ? 0 : parseInt(e.target.value)
+                    setItems(items.map(i => i.id === item.id ? { ...i, quantity: qty } : i))
+                  }}
+                  onBlur={(e) => {
+                    const qty = e.target.value === '' ? 0 : parseInt(e.target.value)
+                    updateQty(item.id, qty)
+                  }}
+                />
                 <button
                   onClick={() => updateQty(item.id, item.quantity + 1)}
                   className="w-8 h-8 flex items-center justify-center rounded bg-white border border-gray-200 text-gray-700 hover:bg-green-50 hover:text-green-600 hover:border-green-200 font-bold transition-all"
