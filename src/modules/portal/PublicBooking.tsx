@@ -267,11 +267,9 @@ export function PublicBooking() {
             <p className="text-xs text-gray-700 leading-relaxed">
               Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
             </p>
-            {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
-              <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
-                {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
-              </div>
-            )}
+            <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
+              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: CLINICA VETERINARIA VETCARE\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
+            </div>
             <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-pink-100 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
             </p>
@@ -405,32 +403,12 @@ export function PublicBooking() {
             })}
           </div>
 
-          {/* Motivo de consulta — aparece al seleccionar hora */}
+          {/* Continuar button for step 3 */}
           {time && (
             <div className="mt-4 animate-fade-in">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest block mb-2">
-                {service?.name === 'Vacunación'
-                  ? 'Vacuna seleccionada'
-                  : 'Motivo de consulta (opcional)'}
-              </label>
-              {service?.name === 'Vacunación' ? (
-                <div className="w-full px-4 py-3 bg-vet-light/50 border border-pink-100 rounded-xl text-sm text-gray-700 font-medium">
-                  {selectedVaccines.length > 0
-                    ? selectedVaccines.map((v: any) => v.name.replace('Vacunación: ', '')).join(', ')
-                    : <span className="text-gray-400 italic">Sin vacuna seleccionada</span>}
-                </div>
-              ) : (
-                <textarea
-                  className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-vet-rose/5 focus:border-vet-rose transition-all resize-none"
-                  rows={3}
-                  placeholder="Describe brevemente el motivo de tu visita…"
-                  value={consultationReason}
-                  onChange={(e) => setConsultationReason(e.target.value)}
-                />
-              )}
               <button
                 onClick={() => setStep(4)}
-                className="w-full mt-4 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all"
+                className="w-full py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all"
               >
                 Continuar
               </button>
@@ -587,14 +565,37 @@ export function PublicBooking() {
                 </div>
               </div>
 
+              {/* Motivo de Consulta Obligatorio */}
+              <div className="bg-white border-2 border-vet-rose/10 rounded-2xl p-4 my-4">
+                <label className="text-[10px] font-bold text-vet-dark uppercase tracking-widest block mb-2">
+                  {service?.name === 'Vacunación' ? 'Vacuna seleccionada' : 'Motivo de consulta (Requerido)'}
+                </label>
+                {service?.name === 'Vacunación' ? (
+                  <div className="w-full px-4 py-3 bg-vet-light/50 border border-pink-100 rounded-xl text-sm text-gray-700 font-medium mb-3">
+                    {selectedVaccines.length > 0
+                      ? selectedVaccines.map((v: any) => v.name.replace('Vacunación: ', '')).join(', ')
+                      : <span className="text-gray-400 italic">Sin vacuna seleccionada</span>}
+                  </div>
+                ) : (
+                  <textarea
+                    className="w-full px-4 py-3 bg-white border border-gray-100 rounded-xl text-sm focus:outline-none focus:ring-4 focus:ring-vet-rose/5 focus:border-vet-rose transition-all resize-none mb-3"
+                    rows={3}
+                    required
+                    placeholder="Describe el motivo de la consulta..."
+                    value={consultationReason}
+                    onChange={(e) => setConsultationReason(e.target.value)}
+                  />
+                )}
+              </div>
 
-              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
+
+              {true && (
                 <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4 animate-fade-in text-left">
                   <h4 className="text-sm font-black text-gray-900 mb-3 flex items-center gap-2">
                     <span>🏦</span> Datos de transferencia — Abono 20%
                   </h4>
                   <div className="text-sm text-gray-800 font-mono whitespace-pre-wrap bg-white rounded-lg p-3 border border-gray-100 mb-3">
-                    {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description}
+                    {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: CLINICA VETERINARIA VETCARE\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <p className="text-xs font-black text-amber-900 uppercase tracking-wide mb-1">Importante — campo comentario / glosa</p>
