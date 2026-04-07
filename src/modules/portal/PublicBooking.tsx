@@ -597,17 +597,22 @@ export function PublicBooking() {
                   <div className="text-sm text-gray-800 font-mono whitespace-pre-wrap bg-white rounded-lg p-3 border border-gray-100 mb-3">
                     {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: JUAN PEREZ\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
                   </div>
-                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
-                    <p className="text-xs font-black text-amber-900 uppercase tracking-wide mb-1">Importante — campo comentario / glosa</p>
-                    <p className="text-xs text-amber-800 leading-relaxed">
-                      Al realizar la transferencia, escribe en el campo de comentario o glosa el
-                      {' '}<strong>nombre de tu mascota</strong> y tu <strong>nombre completo</strong>.
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                    <p className="text-xs font-black text-amber-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+                      ⚠️ Importante — Mensaje de la Transferencia
                     </p>
-                    {form.pet_name && form.guardian_name && (
-                      <p className="text-xs font-mono bg-white border border-amber-200 rounded px-3 py-1.5 mt-2 text-amber-900 font-bold">
-                        Ej: &ldquo;{form.pet_name} — {form.guardian_name}&rdquo;
-                      </p>
-                    )}
+                    <p className="text-xs text-amber-800 leading-relaxed mb-3">
+                      Al hacer la transferencia en tu banco, asegúrate de escribir el nombre de tu mascota en el campo <strong>Asunto</strong> o <strong>Comentario/Glosa</strong>. A continuación, un ejemplo de cómo debería verse:
+                    </p>
+                    <div className="bg-white border text-[11px] border-amber-200 rounded p-3 text-amber-900 font-mono space-y-1.5 shadow-sm">
+                      <p className="font-bold underline mb-2">EJEMPLO DE TRANSFERENCIA</p>
+                      <p><strong>NOMBRE:</strong> JUAN PEREZ</p>
+                      <p><strong>BANCO:</strong> BANCO DE CHILE</p>
+                      <p><strong>CTA CORRIENTE:</strong> 123456789</p>
+                      <p><strong>CORREO:</strong> PAGOS@VETCARE.CL</p>
+                      <p><strong>RUT:</strong> 76.123.456-7</p>
+                      <p className="bg-amber-100/50 p-1 rounded inline-block font-black mt-1"><strong>ASUNTO:</strong> {form.pet_name ? form.pet_name.toUpperCase() : 'NOMBRE DE LA MASCOTA'}</p>
+                    </div>
                   </div>
                 </div>
               )}
