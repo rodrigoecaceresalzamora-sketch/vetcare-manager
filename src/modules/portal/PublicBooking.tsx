@@ -268,7 +268,7 @@ export function PublicBooking() {
               Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
             </p>
             <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
-              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: CLINICA VETERINARIA VETCARE\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
+              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: JUAN PEREZ\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
             </div>
             <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-pink-100 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
@@ -595,7 +595,7 @@ export function PublicBooking() {
                     <span>🏦</span> Datos de transferencia — Abono 20%
                   </h4>
                   <div className="text-sm text-gray-800 font-mono whitespace-pre-wrap bg-white rounded-lg p-3 border border-gray-100 mb-3">
-                    {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: CLINICA VETERINARIA VETCARE\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
+                    {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: JUAN PEREZ\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
                     <p className="text-xs font-black text-amber-900 uppercase tracking-wide mb-1">Importante — campo comentario / glosa</p>
