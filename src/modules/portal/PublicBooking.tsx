@@ -11,7 +11,6 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { generateId } from '../../lib/utils'
 import type { PublicBookingFormData } from '../../types'
-import heroImg from '../../assets/hero.png'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
 async function fetchPublicServices() {
@@ -514,7 +513,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-vet-bone">
       <header className="bg-vet-dark py-4 px-4">
         <div className="max-w-2xl mx-auto flex items-center gap-3 text-white">
-          <img src={heroImg} alt="VetCare" className="w-8 h-8 rounded-full object-cover border-2 border-white/30" />
+          <img src="/hero.png" alt="VetCare" className="w-8 h-8 rounded-full object-cover border-2 border-white/30" onError={(e) => { (e.target as HTMLImageElement).style.display='none' }} />
           <span className="font-bold text-sm">VetCare — Clínica Veterinaria</span>
         </div>
       </header>

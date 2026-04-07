@@ -3,6 +3,22 @@
 -- CORRE ESTO EN EL EDITOR SQL DE SUPABASE
 -- ============================================================
 
+-- Eliminar constraint que limita los servicios a valores fijos
+ALTER TABLE public.appointments DROP CONSTRAINT IF EXISTS appointments_service_check;
+
+-- Si la columna service tiene un tipo ENUM, cámbiala a text
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_name = 'appointments' AND column_name = 'service'
+    AND data_type = 'USER-DEFINED'
+  ) THEN
+    EXECUTE 'ALTER TABLE public.appointments ALTER COLUMN service TYPE text';
+  END IF;
+END;
+$$;
+
 CREATE TABLE IF NOT EXISTS public.appointments (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   guardian_name    text NOT NULL,
