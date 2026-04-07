@@ -22,41 +22,8 @@ export function TutorView() {
     setError(null)
 
     try {
-      // 1. Buscar Guardian
-      const { data: guardian, error: gErr } = await supabase
-        .from('guardians')
-        .select('id')
-        .eq('email', user.email)
-        .maybeSingle()
-
-      if (gErr) throw gErr
-      if (!guardian) {
-        setPets([])
-        setLoading(false)
-        return
-      }
-
-      // 2. Buscar Mascotas
-      const { data: patients, error: pErr } = await supabase
-        .from('patients')
-        .select('*')
-        .eq('guardian_id', guardian.id)
-        .eq('status', 'activo')
-
-      if (pErr) throw pErr
-
-      // 3. Buscar Vacunas Próximas para todas las mascotas
-      const patientIds = patients.map(p => p.id)
-      const { data: vaccinations, error: vErr } = await supabase
-        .from('vaccinations')
-        .select('*')
-        .in('patient_id', patientIds)
-        .gte('next_due_date', new Date().toISOString().split('T')[0])
-        .order('next_due_date', { ascending: true })
-
-      if (vErr) throw vErr
-
-      // 4. Buscar Citas Próximas (por pet_name y email)
+      // 1. Buscar Citas de este tutor (por email)
+      // Esto nos sirve para identificar mascotas incluso si no tienen ficha clínica aún
       const { data: appointments, error: aErr } = await supabase
         .from('appointments')
         .select('*')
@@ -67,18 +34,68 @@ export function TutorView() {
 
       if (aErr) throw aErr
 
-      // 5. Combinar datos
-      const enrichedPets = patients.map(pet => {
-        const nextVaccineRecord = vaccinations.find(v => v.patient_id === pet.id)
-        // Buscamos cita por ID de paciente O por nombre (compatibilidad)
-        const nextApp = appointments.find(a => 
-          a.patient_id === pet.id || 
-          (a.pet_name.toLowerCase() === pet.name.toLowerCase() && !a.patient_id)
-        )
-        return { ...pet, nextVaccine: nextVaccineRecord, nextAppointment: nextApp }
+      // 2. Buscar Guardian oficial
+      const { data: guardian } = await supabase
+        .from('guardians')
+        .select('id')
+        .eq('email', user.email)
+        .maybeSingle()
+
+      let officialPatients: Patient[] = []
+      let vaccinations: Vaccination[] = []
+
+      if (guardian) {
+        // 3. Buscar Mascotas oficiales
+        const { data: pData } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('guardian_id', guardian.id)
+          .eq('status', 'activo')
+        
+        officialPatients = pData || []
+
+        // 4. Buscar Vacunas
+        if (officialPatients.length > 0) {
+          const { data: vData } = await supabase
+            .from('vaccinations')
+            .select('*')
+            .in('patient_id', officialPatients.map(p => p.id))
+            .gte('next_due_date', new Date().toISOString().split('T')[0])
+            .order('next_due_date', { ascending: true })
+          
+          vaccinations = vData || []
+        }
+      }
+
+      // 5. Consolidar lista de mascotas (oficiales + de citas)
+      const petMap = new Map<string, any>()
+
+      // Agregar pacientes oficiales
+      officialPatients.forEach(p => {
+        petMap.set(p.name.toLowerCase(), {
+          ...p,
+          nextVaccine: vaccinations.find(v => v.patient_id === p.id),
+          nextAppointment: appointments.find(a => a.patient_id === p.id || a.pet_name.toLowerCase() === p.name.toLowerCase())
+        })
       })
 
-      setPets(enrichedPets)
+      // Agregar mascotas de citas que NO estén en pacientes oficiales
+      appointments.forEach(a => {
+        const key = a.pet_name.toLowerCase()
+        if (!petMap.has(key)) {
+          petMap.set(key, {
+            id: `temp-${a.id}`,
+            name: a.pet_name,
+            species: a.pet_species || 'Otro',
+            breed: a.pet_breed || 'Desconocida',
+            sex: a.pet_sex || 'No determinado',
+            is_temp: true,
+            nextAppointment: a
+          })
+        }
+      })
+
+      setPets(Array.from(petMap.values()))
     } catch (err: any) {
       console.error('Error fetching tutor data:', err)
       setError(err.message)
