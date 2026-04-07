@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { generateId, speciesEmoji } from '../../lib/utils'
@@ -75,6 +75,7 @@ type Step = 1 | 2 | 3 | 4 | 'confirmed'
 
 export function PublicBooking() {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [step, setStep]             = useState<Step>(1)
   const [service, setService]       = useState<any | null>(null)
   const [dbServices, setDbServices] = useState<any[]>([])
@@ -227,10 +228,10 @@ export function PublicBooking() {
           </div>
           
           <button
-            onClick={() => { setStep(1); setService(null); setDate(null); setTime(null); }}
-            className="w-full px-6 py-2.5 bg-vet-light text-vet-dark text-sm font-medium rounded-xl hover:bg-vet-light/80 transition-colors"
+            onClick={() => navigate('/tutor')}
+            className="w-full px-6 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors"
           >
-            Volver al inicio
+            Volver a mis mascotas
           </button>
         </div>
       </PortalShell>
@@ -581,15 +582,19 @@ export function PublicBooking() {
 
 function PortalShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-vet-bone">
-      <header className="bg-vet-dark py-4 px-4">
+    <div className="min-h-screen bg-vet-bone font-sans">
+      <header className="bg-[#a65d80] py-4 px-4 shadow-lg border-b border-pink-200/20">
         <div className="max-w-2xl mx-auto flex items-center gap-3 text-white">
-          <img src="/hero.png" alt="VetCare" className="w-8 h-8 rounded-full object-cover border-2 border-white/30" onError={(e) => { (e.target as HTMLImageElement).style.display='none' }} />
-          <span className="font-bold text-sm">VetCare — Clínica Veterinaria</span>
+          <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
+            <img src="/logo.png" alt="VetCare" className="w-7 h-7 object-contain" />
+          </div>
+          <span className="font-black text-sm uppercase tracking-[0.2em]">VetCare — Gesti&oacute;n Cl&iacute;nica</span>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
-      <footer className="text-center py-10 text-xs text-gray-400">© 2026 Clínica Veterinaria Dram. Sofía Cáceres</footer>
+      <footer className="text-center py-10 px-4 text-[10px] text-gray-400 font-black uppercase tracking-[0.3em]">
+        &copy; 2026 Clínica Veterinaria Dram. Sofía Cáceres &middot; Todos los derechos reservados
+      </footer>
     </div>
   )
 }

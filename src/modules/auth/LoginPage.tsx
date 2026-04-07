@@ -61,11 +61,11 @@ export function LoginPage() {
       <div className="max-w-md w-full">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-24 h-24 bg-white rounded-full shadow-xl mb-4 p-1 border border-pink-100 overflow-hidden">
-            <img src="/hero.png" alt="VetCare" className="w-full h-full object-cover rounded-full" />
+          <div className="inline-flex items-center justify-center w-20 h-20 bg-vet-rose rounded-3xl shadow-xl rotate-3 mb-4 p-4 border-2 border-white">
+            <img src="/logo.png" alt="VetCare" className="w-full h-full object-contain" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 leading-tight">VetCare</h1>
-          <p className="text-gray-500 text-sm mt-1">Gesti&oacute;n Veterinaria de Confianza</p>
+          <h1 className="text-2xl font-black text-gray-900 leading-tight uppercase tracking-tighter">VetCare</h1>
+          <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Gesti&oacute;n Veterinaria</p>
         </div>
 
         {/* Auth Card */}

@@ -234,7 +234,14 @@ export function TutorView() {
                       </p>
                       {pet.nextAppointment ? (
                         <div>
-                          <p className="text-sm font-bold text-gray-800">{pet.nextAppointment.service}</p>
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <p className="text-sm font-bold text-gray-800">{pet.nextAppointment.service}</p>
+                            {pet.nextAppointment.status === 'pendiente' && (
+                              <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[9px] font-black uppercase rounded-lg border border-amber-100">
+                                Pendiente
+                              </span>
+                            )}
+                          </div>
                           <p className="text-xs text-blue-600 font-medium mt-0.5">
                             {new Date(pet.nextAppointment.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })} a las {new Date(pet.nextAppointment.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
                           </p>
