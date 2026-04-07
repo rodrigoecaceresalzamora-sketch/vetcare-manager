@@ -116,7 +116,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
     },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
-    { to: '/precios',   icon: icons.staff,    label: 'Servicios', adminOnly: true },
+    { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {

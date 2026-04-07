@@ -9,7 +9,14 @@ import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { generateId, speciesEmoji } from '../../lib/utils'
+import { 
+  generateId, 
+  speciesEmoji, 
+  isValidPhone, 
+  isValidRUT, 
+  isValidEmail,
+  formatRUT 
+} from '../../lib/utils'
 import type { PublicBookingFormData } from '../../types'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
@@ -157,6 +164,12 @@ export function PublicBooking() {
     setFieldError('')
     if (!form.guardian_name)  return setFieldError('Ingresa tu nombre')
     if (!form.guardian_email) return setFieldError('Ingresa tu correo')
+    if (!isValidEmail(form.guardian_email)) return setFieldError('El correo electrónico no es válido')
+    if (!form.guardian_rut)   return setFieldError('Ingresa tu RUT')
+    if (!isValidRUT(form.guardian_rut)) return setFieldError('El RUT ingresado no es válido')
+    if (!form.guardian_phone) return setFieldError('Ingresa tu teléfono')
+    if (!isValidPhone(form.guardian_phone)) return setFieldError('El teléfono debe tener al menos 9 dígitos')
+    
     if (!form.pet_name)       return setFieldError('Ingresa el nombre de tu mascota')
     if (form.is_home_visit && !form.address) return setFieldError('Ingresa tu dirección')
 
@@ -476,10 +489,22 @@ export function PublicBooking() {
                   <input type="email" className={inputCls} value={form.guardian_email} onChange={(e) => setField('guardian_email', e.target.value)} placeholder="tu@email.com" required />
                 </Field>
                 <Field label="Teléfono">
-                  <input className={inputCls} value={form.guardian_phone} onChange={(e) => setField('guardian_phone', e.target.value)} placeholder="+56 9..." />
+                  <input 
+                    className={`${inputCls} ${!isValidPhone(form.guardian_phone) && form.guardian_phone ? 'border-red-500 bg-red-50' : ''}`} 
+                    value={form.guardian_phone} 
+                    onChange={(e) => setField('guardian_phone', e.target.value)} 
+                    placeholder="+56 9..." 
+                    required 
+                  />
                 </Field>
-                <Field label="RUT (Opcional)">
-                  <input className={inputCls} value={form.guardian_rut} onChange={(e) => setField('guardian_rut', e.target.value)} placeholder="12.345.678-9" />
+                <Field label="RUT">
+                  <input 
+                    className={`${inputCls} ${!isValidRUT(form.guardian_rut || '') && form.guardian_rut ? 'border-red-500 bg-red-50' : ''}`} 
+                    value={form.guardian_rut || ''} 
+                    onChange={(e) => setField('guardian_rut', formatRUT(e.target.value))} 
+                    placeholder="12.345.678-9" 
+                    required 
+                  />
                 </Field>
               </div>
 

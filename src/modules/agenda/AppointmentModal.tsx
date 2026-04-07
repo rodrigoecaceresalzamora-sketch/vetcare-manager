@@ -6,15 +6,19 @@
 // via la Edge Function 'sync-gcal'.
 // ============================================================
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { usePatients } from '../patients/usePatients'
 import { PatientForm } from '../patients/PatientForm'
 import { useAuth } from '../../contexts/AuthContext'
-import type { Appointment, AppointmentFormData, Service } from '../../types'
-import { generateId, isValidPhone, isValidRUT, formatRUT } from '../../lib/utils'
-import { useEffect } from 'react'
-import type { AppointmentService } from '../../types'
+import type { Appointment, AppointmentFormData, Service, AppointmentService } from '../../types'
+import { 
+  generateId, 
+  isValidPhone, 
+  isValidRUT, 
+  isValidEmail,
+  formatRUT 
+} from '../../lib/utils'
 
 const SERVICES_FALLBACK = ['Consulta General', 'Vacunación', 'Control', 'Telemedicina']
 
@@ -73,9 +77,6 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   
   const isReadOnly = editingAppointment && role === 'ayudante'
 
-  const phoneValid = useMemo(() => !form.guardian_phone || isValidPhone(form.guardian_phone), [form.guardian_phone])
-  const rutValid = useMemo(() => !form.guardian_rut || isValidRUT(form.guardian_rut), [form.guardian_rut])
-
   const filteredPatients = useMemo(() => {
     if (!searchTerm) return []
     return patients.filter(p => 
@@ -113,6 +114,12 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
 
     if (!form.guardian_name)  return setFieldError('Nombre del tutor requerido')
     if (!form.guardian_email) return setFieldError('Correo del tutor requerido')
+    if (!isValidEmail(form.guardian_email)) return setFieldError('El correo electrónico no es válido')
+    if (!form.guardian_rut)   return setFieldError('RUT del tutor requerido')
+    if (!isValidRUT(form.guardian_rut)) return setFieldError('El RUT ingresado no es válido')
+    if (!(form as any).guardian_phone) return setFieldError('Teléfono requerido')
+    if (!isValidPhone((form as any).guardian_phone)) return setFieldError('El teléfono debe tener al menos 9 dígitos')
+    
     if (!form.pet_name)       return setFieldError('Nombre de la mascota requerido')
     if (!form.scheduled_at)   return setFieldError('Fecha y hora requerida')
 
@@ -217,26 +224,28 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
               </Field>
               <Field label="Teléfono">
                 <input
-                  className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`}
+                  className={`${inputCls} ${!isValidPhone(form.guardian_phone) && form.guardian_phone ? 'border-red-500 bg-red-50' : ''}`}
                   value={form.guardian_phone}
                   onChange={(e) => set('guardian_phone', e.target.value)}
                   placeholder="+56 9 1234 5678"
                   disabled={isReadOnly}
+                  required
                 />
               </Field>
               <Field label="RUT">
                 <input
-                  className={`${inputCls} ${!rutValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`}
+                  className={`${inputCls} ${!isValidRUT((form as any).guardian_rut) && (form as any).guardian_rut ? 'border-red-500 bg-red-50' : ''}`}
                   value={(form as any).guardian_rut}
                   onChange={(e) => set('guardian_rut' as any, formatRUT(e.target.value))}
                   placeholder="12.345.678-9"
                   disabled={isReadOnly}
+                  required
                 />
               </Field>
               <Field label="Correo electrónico" className="col-span-2">
                 <input
                   type="email"
-                  className={inputCls}
+                  className={`${inputCls} ${!isValidEmail(form.guardian_email) && form.guardian_email ? 'border-red-500 bg-red-50' : ''}`}
                   value={form.guardian_email}
                   onChange={(e) => set('guardian_email', e.target.value)}
                   placeholder="correo@ejemplo.cl"
@@ -425,12 +434,14 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                 onClick={async () => {
                   setSaving(true)
                   try {
-                    // 1. Verificar/Crear Tutor
                     let gId = ''
+                    const searchEmail = form.guardian_email.trim().toLowerCase()
+                    const searchRut = (form as any).guardian_rut?.trim()
+
                     const { data: existingG } = await supabase
                       .from('guardians')
                       .select('id')
-                      .or(`email.eq."${form.guardian_email}",rut.eq."${(form as any).guardian_rut}"`)
+                      .or(`email.ilike.${searchEmail},rut.eq.${searchRut || 'NONE'}`)
                       .maybeSingle()
 
                     if (existingG) {
@@ -451,10 +462,12 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     }
 
                     // 2. Verificar/Crear Paciente
+                    const searchPetName = form.pet_name.trim().toLowerCase()
                     const { data: existingP } = await supabase
                       .from('patients')
                       .select('id')
-                      .match({ guardian_id: gId, name: form.pet_name })
+                      .eq('guardian_id', gId)
+                      .ilike('name', searchPetName)
                       .maybeSingle()
 
                     if (!existingP) {

@@ -134,9 +134,16 @@ export function formatRUT(value: string): string {
  * Valida si un número telefónico tiene al menos 9 dígitos 
  */
 export function isValidPhone(phone: string): boolean {
-  if (!phone) return true
+  if (!phone) return false
   const clean = phone.replace(/\D/g, '')
   return clean.length >= 9
+}
+
+/**
+ * Valida formato de email simple
+ */
+export function isValidEmail(email: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
 }
 
 // ── ESPECIES ──────────────────────────────────────────────────
