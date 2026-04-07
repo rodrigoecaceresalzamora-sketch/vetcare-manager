@@ -150,6 +150,8 @@ export interface PublicBookingFormData {
   pet_date_of_birth?: string               // Nueva (opcional/desconocida)
   pet_adopted_since?: string               // Nueva
   pet_is_reactive?: boolean                // Nueva
+  patient_id?: string                      // Vincular si existe
+  guardian_id?: string                     // Vincular si existe
   service: string
   scheduled_at: string
   is_home_visit: boolean

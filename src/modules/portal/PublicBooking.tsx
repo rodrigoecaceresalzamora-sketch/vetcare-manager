@@ -9,7 +9,7 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { generateId } from '../../lib/utils'
+import { generateId, speciesEmoji } from '../../lib/utils'
 import type { PublicBookingFormData } from '../../types'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
@@ -101,6 +101,22 @@ export function PublicBooking() {
   const [saving, setSaving]       = useState(false)
   const [fieldError, setFieldError] = useState('')
   const [, setBookingId]   = useState<string | null>(null)
+  
+  // ── Cargar mascotas del tutor logueado ───────────────────────
+  const [myPets, setMyPets] = useState<any[]>([])
+
+  useEffect(() => {
+    if (!user?.email) return
+    const fetchMyPets = async () => {
+      const { data: g } = await supabase.from('guardians').select('id').eq('email', user.email).maybeSingle()
+      if (g) {
+        setForm(f => ({ ...f, guardian_id: g.id }))
+        const { data: p } = await supabase.from('patients').select('*').eq('guardian_id', g.id).eq('status', 'activo')
+        if (p) setMyPets(p)
+      }
+    }
+    fetchMyPets()
+  }, [user?.email])
 
   const availableDates = getAvailableDates()
 
@@ -163,6 +179,10 @@ export function PublicBooking() {
 
     // guardian_rut optional — add only if column exists (silently skip on error)
     if (form.guardian_rut) insertPayload.guardian_rut = form.guardian_rut
+    
+    // Vincular IDs si existen
+    if (form.patient_id)   insertPayload.patient_id   = form.patient_id
+    if (form.guardian_id)  insertPayload.guardian_id  = form.guardian_id
 
     setSaving(true)
     const { error: dbErr } = await supabase.from('appointments').insert(insertPayload)
@@ -393,6 +413,57 @@ export function PublicBooking() {
             </div>
           ) : (
             <form onSubmit={handleConfirm} className="space-y-4">
+              {/* Selector de Mascota Existente */}
+              {myPets.length > 0 && (
+                <div className="bg-white border-2 border-vet-rose/10 rounded-2xl p-4 mb-4">
+                  <label className="text-[10px] font-bold text-vet-rose uppercase tracking-widest block mb-2">
+                    ¿Agendar para una mascota guardada?
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                    {myPets.map(pet => (
+                      <button
+                        key={pet.id}
+                        type="button"
+                        onClick={() => {
+                          setField('pet_name', pet.name)
+                          setField('pet_species', pet.species)
+                          setField('pet_breed', pet.breed)
+                          setField('pet_sex', pet.sex)
+                          setField('pet_date_of_birth', pet.date_of_birth)
+                          setField('pet_is_reactive', pet.is_reactive)
+                          setField('patient_id', pet.id)
+                        }}
+                        className={`flex flex-col items-center p-3 rounded-xl border transition-all
+                                    ${form.pet_name === pet.name ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-pink-200'}`}
+                      >
+                        <span className="text-xl mb-1">{speciesEmoji(pet.species)}</span>
+                        <span className="text-xs font-bold text-gray-900">{pet.name}</span>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setForm(f => ({
+                          ...f,
+                          pet_name: '',
+                          pet_species: 'Perro',
+                          pet_breed: '',
+                          pet_sex: 'Macho',
+                          pet_date_of_birth: '',
+                          pet_is_reactive: false,
+                          patient_id: undefined
+                        }))
+                      }}
+                      className={`flex flex-col items-center p-3 rounded-xl border transition-all
+                                  ${!myPets.some(p => p.name === form.pet_name) && form.pet_name === '' ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-pink-200'}`}
+                    >
+                      <span className="text-xl mb-1">✨</span>
+                      <span className="text-xs font-bold text-gray-900">Otra</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                 <Field label="Nombre completo">
                   <input className={inputCls} value={form.guardian_name} onChange={(e) => setField('guardian_name', e.target.value)} required />
