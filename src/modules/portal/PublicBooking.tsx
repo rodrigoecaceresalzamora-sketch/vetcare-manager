@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { generateId } from '../../lib/utils'
 import type { PublicBookingFormData } from '../../types'
+import heroImg from '../../assets/hero.png'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
 async function fetchPublicServices() {
@@ -511,7 +512,12 @@ export function PublicBooking() {
 function PortalShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-vet-bone">
-      <header className="bg-vet-dark py-5 px-4"><div className="max-w-2xl mx-auto flex items-center gap-3 text-white">🏥 VetCare</div></header>
+      <header className="bg-vet-dark py-4 px-4">
+        <div className="max-w-2xl mx-auto flex items-center gap-3 text-white">
+          <img src={heroImg} alt="VetCare" className="w-8 h-8 rounded-full object-cover border-2 border-white/30" />
+          <span className="font-bold text-sm">VetCare — Clínica Veterinaria</span>
+        </div>
+      </header>
       <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
       <footer className="text-center py-10 text-xs text-gray-400">© 2026 Clínica Veterinaria Dram. Sofía Cáceres</footer>
     </div>
