@@ -3,19 +3,28 @@
 // Ficha Clínica: Guarda Examen Físico, Anamnesis y Dx
 // ============================================================
 
-import { useState } from 'react'
-import type { BoostInterval, Consultation } from '../../types'
+import { useState, useEffect } from 'react'
+import type { BoostInterval, Consultation, Service } from '../../types'
+import { supabase } from '../../lib/supabase'
 
 interface Props {
   initialData?: Consultation
   onClose: () => void
-  onSave: (data: any, vaccineData?: any, existingId?: string) => Promise<{ error: string | null }>
+  onSave: (data: any, vaccineData?: any, existingId?: string, selectedService?: Service) => Promise<{ error: string | null }>
   readOnly?: boolean
 }
 
 export function ConsultationForm({ initialData, onClose, onSave, readOnly = false }: Props) {
   const [saving, setSaving] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [services, setServices] = useState<Service[]>([])
+  const [selectedServiceId, setSelectedServiceId] = useState(initialData?.service_id || '')
+
+  useEffect(() => {
+    supabase.from('services').select('*').order('name').then(({ data }) => {
+      if (data) setServices(data as Service[])
+    })
+  }, [])
 
   // Campos libres base
   const [reason, setReason] = useState(initialData?.reason_for_consultation || '')
@@ -54,6 +63,7 @@ export function ConsultationForm({ initialData, onClose, onSave, readOnly = fals
     setErrorMsg('')
     
     const consultationPayload = {
+      service_id: selectedServiceId || null,
       reason_for_consultation: reason,
       current_anamnesis: currentAna,
       remote_anamnesis: remoteAna,
@@ -84,7 +94,11 @@ export function ConsultationForm({ initialData, onClose, onSave, readOnly = fals
       boost_interval: vBoost
     } : undefined
 
-    const res = await onSave(consultationPayload, vacData, initialData?.id)
+    // Pass service selected so patientDetail can deduct stock
+    const selectedService = services.find(s => s.id === selectedServiceId)
+    
+    // We send selectedService to onSave
+    const res = await onSave(consultationPayload, vacData, initialData?.id, selectedService)
 
     setSaving(false)
     if (res.error) setErrorMsg(res.error)
@@ -105,6 +119,34 @@ export function ConsultationForm({ initialData, onClose, onSave, readOnly = fals
         </div>
 
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
+          <div className="bg-pink-50 p-4 border border-pink-100 rounded-xl">
+            <h3 className="text-sm font-bold text-vet-dark mb-3">Servicio o Vacuna Asociada</h3>
+            <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">
+              Seleccionar servicio registrado (Opcional - Descuenta stock según configuración)
+              <select
+                className={inputCls}
+                disabled={readOnly}
+                value={selectedServiceId}
+                onChange={e => {
+                  const sid = e.target.value
+                  setSelectedServiceId(sid)
+                  const s = services.find(x => x.id === sid)
+                  if (s?.name.startsWith('Vacunación:')) {
+                    setDidVaccinate(true)
+                    setVName(s.name.replace('Vacunación: ', ''))
+                  } else if (s && !reason) {
+                    setReason(s.name)
+                  }
+                }}
+              >
+                <option value="">-- Sin servicio asociado --</option>
+                {services.map(s => (
+                  <option key={s.id} value={s.id}>{s.name} {(s.stock_usage && s.stock_usage.length > 0) ? '(Descuenta stock)' : ''}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+
           {/* FASE 1: Motivo y Anamnesis */}
           <div>
             <h3 className="text-sm font-bold text-vet-dark mb-3">1. Motivo y Anamnesis</h3>

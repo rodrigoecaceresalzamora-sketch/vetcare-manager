@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Service } from '../../types'
+import type { Service, StockItem } from '../../types'
 
 export function PricingManagement() {
   const [services, setServices] = useState<Service[]>([])
+  const [stockItems, setStockItems] = useState<StockItem[]>([])
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [newService, setNewService] = useState<Partial<Service>>({
-    name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺'
+    name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: []
   })
   const [isVaccine, setIsVaccine] = useState(false)
 
@@ -35,6 +36,10 @@ export function PricingManagement() {
     } else {
       setServices(data as Service[])
     }
+    
+    const { data: stockData } = await supabase.from('stock_items').select('*').order('name')
+    if (stockData) setStockItems(stockData as StockItem[])
+    
     setLoading(false)
   }
 
@@ -53,14 +58,15 @@ export function PricingManagement() {
         name: finalName,
         price: newService.price,
         duration_minutes: newService.duration_minutes,
-        description: newService.description
+        description: newService.description,
+        stock_usage: newService.stock_usage || []
       })
 
     if (err) {
       setError('Error al crear: ' + err.message)
     } else {
       setIsAdding(false)
-      setNewService({ name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺' })
+      setNewService({ name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: [] })
       setIsVaccine(false)
       showToast('✅ Servicio creado con éxito')
       fetchServices()
@@ -95,7 +101,9 @@ export function PricingManagement() {
       .update({
         price: service.price,
         duration_minutes: service.duration_minutes,
-        description: service.description
+        description: service.description,
+        icon: service.icon,
+        stock_usage: service.stock_usage || []
       })
       .eq('id', service.id)
 
@@ -185,6 +193,57 @@ export function PricingManagement() {
                 onChange={e => setNewService({...newService, description: e.target.value})}
               />
             </div>
+            
+            <div className="md:col-span-2 pt-2 border-t border-gray-100 mt-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-2">📦 Insumos utilizados por consulta</label>
+              <div className="space-y-2 mb-3">
+                {(newService.stock_usage || []).map((usage, idx) => (
+                  <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                    <select
+                      className="flex-1 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded"
+                      value={usage.item_id}
+                      onChange={(e) => {
+                        const newUsage = [...(newService.stock_usage || [])]
+                        newUsage[idx].item_id = e.target.value
+                        setNewService({ ...newService, stock_usage: newUsage })
+                      }}
+                    >
+                      <option value="">Seleccionar Insumo...</option>
+                      {stockItems.map(item => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-20 px-3 py-1.5 text-sm bg-white border border-gray-200 rounded"
+                      value={usage.quantity}
+                      onChange={(e) => {
+                        const newUsage = [...(newService.stock_usage || [])]
+                        newUsage[idx].quantity = e.target.value === '' ? 1 : parseInt(e.target.value)
+                        setNewService({ ...newService, stock_usage: newUsage })
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const newUsage = [...(newService.stock_usage || [])]
+                        newUsage.splice(idx, 1)
+                        setNewService({ ...newService, stock_usage: newUsage })
+                      }}
+                      className="w-8 h-8 flex items-center justify-center bg-red-50 text-red-500 rounded"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setNewService({ ...newService, stock_usage: [...(newService.stock_usage || []), { item_id: '', quantity: 1 }] })}
+                className="text-xs font-bold text-vet-rose hover:bg-pink-50 px-3 py-1.5 rounded-lg border border-pink-100"
+              >
+                + Agregar Insumo
+              </button>
+            </div>
           </div>
           <button 
             onClick={handleCreateService}
@@ -222,6 +281,7 @@ export function PricingManagement() {
                     handleDeleteService={handleDeleteService}
                     services={services}
                     setServices={setServices}
+                    stockItems={stockItems}
                   />
                 ))}
               </div>
@@ -240,6 +300,7 @@ export function PricingManagement() {
                     handleDeleteService={handleDeleteService}
                     services={services}
                     setServices={setServices}
+                    stockItems={stockItems}
                   />
                 ))}
               </div>
@@ -298,7 +359,7 @@ export function PricingManagement() {
   )
 }
 
-function ServiceCard({ service, editingId, setEditingId, handleUpdateService, handleDeleteService, services, setServices }: any) {
+function ServiceCard({ service, editingId, setEditingId, handleUpdateService, handleDeleteService, services, setServices, stockItems }: any) {
   return (
     <div className={`bg-white rounded-2xl shadow-sm border transition-all ${editingId === service.id ? 'border-vet-rose ring-4 ring-vet-rose/5 scale-[1.02]' : 'border-gray-100'}`}>
       <div className="p-5">
@@ -401,6 +462,60 @@ function ServiceCard({ service, editingId, setEditingId, handleUpdateService, ha
                 />
               </div>
             </div>
+            
+            <div className="pt-3 border-t border-gray-100 mt-2">
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-2">📦 Insumos a descontar</label>
+              <div className="space-y-2 mb-3">
+                {(service.stock_usage || []).map((usage: any, idx: number) => (
+                  <div key={idx} className="flex gap-2 items-center bg-gray-50 p-2 rounded-lg border border-gray-200">
+                    <select
+                      className="flex-1 px-3 py-1.5 text-xs bg-white border border-gray-200 rounded"
+                      value={usage.item_id}
+                      onChange={(e) => {
+                        const newUsage = [...(service.stock_usage || [])]
+                        newUsage[idx].item_id = e.target.value
+                        setServices(services.map((s: any) => s.id === service.id ? {...s, stock_usage: newUsage} : s))
+                      }}
+                    >
+                      <option value="">Seleccionar Insumo...</option>
+                      {stockItems.map((item: StockItem) => (
+                        <option key={item.id} value={item.id}>{item.name}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      min="1"
+                      className="w-16 px-2 py-1.5 text-xs bg-white border border-gray-200 rounded"
+                      value={usage.quantity}
+                      onChange={(e) => {
+                        const newUsage = [...(service.stock_usage || [])]
+                        newUsage[idx].quantity = e.target.value === '' ? 1 : parseInt(e.target.value)
+                        setServices(services.map((s: any) => s.id === service.id ? {...s, stock_usage: newUsage} : s))
+                      }}
+                    />
+                    <button
+                      onClick={() => {
+                        const newUsage = [...(service.stock_usage || [])]
+                        newUsage.splice(idx, 1)
+                        setServices(services.map((s: any) => s.id === service.id ? {...s, stock_usage: newUsage} : s))
+                      }}
+                      className="w-6 h-6 flex items-center justify-center bg-red-50 text-red-500 rounded text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  const newUsage = [...(service.stock_usage || []), { item_id: '', quantity: 1 }]
+                  setServices(services.map((s: any) => s.id === service.id ? {...s, stock_usage: newUsage} : s))
+                }}
+                className="text-[10px] font-bold text-vet-rose uppercase hover:underline"
+              >
+                + Agregar Insumo
+              </button>
+            </div>
           </div>
         ) : (
           <>
@@ -419,6 +534,23 @@ function ServiceCard({ service, editingId, setEditingId, handleUpdateService, ha
                 <p className="font-bold text-gray-900">{service.duration_minutes} min</p>
               </div>
             </div>
+            
+            {service.stock_usage && service.stock_usage.length > 0 && (
+              <div className="mt-3 bg-gray-50 rounded-lg p-3 text-xs">
+                <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">Insumos asociados:</p>
+                <div className="space-y-1">
+                  {service.stock_usage.map((usage: any, idx: number) => {
+                    const stockItem = stockItems.find((i: StockItem) => i.id === usage.item_id)
+                    return (
+                      <div key={idx} className="flex justify-between text-gray-600">
+                        <span>{stockItem?.name || <span className="italic text-red-400">Insumo eliminado</span>}</span>
+                        <span className="font-bold">x{usage.quantity}</span>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </>
         )}
       </div>

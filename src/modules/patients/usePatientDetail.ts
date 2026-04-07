@@ -5,7 +5,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
-import type { Patient, Consultation, PatientFile, BoostInterval, Appointment, Vaccination } from '../../types'
+import type { Patient, Consultation, PatientFile, BoostInterval, Appointment, Vaccination, Service } from '../../types'
 import { generateId, calcNextDueDate } from '../../lib/utils'
 
 export function usePatientDetail(patientId: string) {
@@ -106,7 +106,8 @@ export function usePatientDetail(patientId: string) {
   const saveConsultation = async (
     input: Partial<Consultation>, 
     vaccineData?: { vaccine_name: string; lot_number: string; boost_interval: BoostInterval; applied_date: string },
-    existingId?: string
+    existingId?: string,
+    selectedService?: Service
   ) => {
     
     // 1. Guardar la consulta clínica (Editar vs Nuevo)
@@ -138,6 +139,19 @@ export function usePatientDetail(patientId: string) {
         reminder_sent: false
       })
       if (vacErr) return { error: vacErr.message }
+    }
+
+    // 3. Descontar stock (sólo si es NUEVA consulta y hay servicio asociado)
+    if (!existingId && selectedService && selectedService.stock_usage && selectedService.stock_usage.length > 0) {
+      // Por cada item, restar de la base de datos de manera atómica llamando a supabase o trayendo el stock viejo
+      for (const usage of selectedService.stock_usage) {
+        // En supabase lo ideal es una RPC, pero aquí traemos la cantidad actual y restamos.
+        const { data: stockData } = await supabase.from('stock_items').select('quantity').eq('id', usage.item_id).single()
+        if (stockData) {
+          const newQty = Math.max(0, stockData.quantity - usage.quantity)
+          await supabase.from('stock_items').update({ quantity: newQty }).eq('id', usage.item_id)
+        }
+      }
     }
 
     await fetchData()

@@ -13,6 +13,16 @@ export interface StaffMember {
   created_at?: string
 }
 
+// ── STOCK E INVENTARIO ───────────────────────────────────────
+export interface StockItem {
+  id: string
+  name: string
+  quantity: number
+  unit: string
+  min_quantity: number
+  created_at?: string
+}
+
 // ── SERVICIOS Y PRECIOS ──────────────────────────────────────
 export interface Service {
   id: string
@@ -24,6 +34,7 @@ export interface Service {
   color?: string
   bg?: string
   border?: string
+  stock_usage?: { item_id: string, quantity: number }[] // Lista de items de stock a descontar
   created_at?: string
 }
 
@@ -179,6 +190,7 @@ export interface TimeSlot {
 export interface Consultation {
   id: string
   patient_id: string
+  service_id?: string // Vincular consulta a servicio (para descontar stock)
   reason_for_consultation?: string
   current_anamnesis?: string
   remote_anamnesis?: string

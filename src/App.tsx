@@ -25,6 +25,7 @@ import { PatientList }       from './modules/patients/PatientList'
 import { PatientDetail }     from './modules/patients/PatientDetail'
 import { StaffManagement }   from './modules/staff/StaffManagement'
 import { PricingManagement } from './modules/staff/PricingManagement'
+import { StockManagement }   from './modules/stock/StockManagement'
 import { useVaccineAlerts }  from './modules/vaccines/useVaccineAlerts'
 import { getGravatarUrl }    from './lib/utils'
 
@@ -95,6 +96,14 @@ const icons = {
          stroke="currentColor" strokeWidth="2">
       <path d="M12 2v20m0-20H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-6zm-4 4h8m-8 4h8m-8 4h4" />
     </svg>
+  ),
+  stock: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2">
+      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+      <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+      <line x1="12" y1="22.08" x2="12" y2="12"></line>
+    </svg>
   )
 }
 
@@ -117,6 +126,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
+    { to: '/stock',     icon: icons.stock,    label: 'Stock',     adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -261,6 +271,7 @@ function MobileNav() {
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
+    { to: '/stock',     icon: icons.stock,    label: 'Stock', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -393,8 +404,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-
-          {/* Ruta del Tutor */}
+          <Route
+            path="/stock"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><StockManagement /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          {/* Default redirige a portal login público */}
           <Route
             path="/tutor"
             element={
