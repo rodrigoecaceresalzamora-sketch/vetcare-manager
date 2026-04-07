@@ -51,8 +51,8 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     duration_minutes: editingAppointment?.duration_minutes ?? 30,
     notes:            (editingAppointment as any)?.notes ?? '',
     status:           editingAppointment?.status ?? 'confirmada',
-    is_home_visit:    (editingAppointment as any)?.is_home_visit ?? false,
-    address:          (editingAppointment as any)?.address ?? '',
+    is_home_visit:    false,
+    address:          '',
   })
   
   const { patients, savePatient } = usePatients()
@@ -106,9 +106,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     setShowSuggestions(false)
   }
 
-
-
-    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setFieldError('')
 
@@ -143,8 +141,8 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
       notes:            form.notes,
       status:           form.status,
       source:           editingAppointment?.source ?? 'interno',
-      is_home_visit:    form.is_home_visit,
-      address:          form.address,
+      is_home_visit:    false,
+      address:          '',
     }
 
     let id = editingAppointment?.id
@@ -191,8 +189,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4
-                        border-b border-pink-100">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-pink-100">
           <div>
             <h2 className="text-base font-medium text-gray-900">
               {editingAppointment ? 'Editar cita' : 'Nueva cita'}
@@ -351,41 +348,6 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
               </Field>
             </div>
           </Section>
-
-          {/* Sección Domicilio */}
-          <div className="py-2 border-t border-pink-50">
-            <label className="flex items-center gap-3 cursor-pointer group">
-              <div className="relative">
-                <input
-                  type="checkbox"
-                  className="sr-only peer"
-                  checked={form.is_home_visit}
-                  onChange={(e) => set('is_home_visit', e.target.checked)}
-                  disabled={isReadOnly}
-                />
-                <div className="w-10 h-5 bg-gray-200 rounded-full peer 
-                               peer-checked:bg-vet-rose transition-colors" />
-                <div className="absolute left-1 top-1 w-3 h-3 bg-white rounded-full 
-                               transition-transform peer-checked:translate-x-5" />
-              </div>
-              <span className="text-sm font-medium text-gray-700 group-hover:text-vet-rose">
-                🏠 ¿Es una atención a domicilio?
-              </span>
-            </label>
-          </div>
-
-          {form.is_home_visit && (
-            <Field label="Dirección completa">
-              <input
-                className={inputCls}
-                value={form.address}
-                onChange={(e) => set('address', e.target.value)}
-                placeholder="Calle, número, departamento..."
-                disabled={isReadOnly}
-                required
-              />
-            </Field>
-          )}
 
           {/* Aviso telemedicina */}
           {form.service === 'Telemedicina' && (

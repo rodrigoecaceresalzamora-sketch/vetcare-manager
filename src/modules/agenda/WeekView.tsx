@@ -322,7 +322,6 @@ export function WeekView() {
 function AptChip({ apt, onClick }: { apt: Appointment, onClick?: (e: React.MouseEvent) => void }) {
   const meta = SERVICE_META[apt.service] ?? SERVICE_META['Consulta General']
   const isPending = apt.status === 'pendiente'
-  const isHome = (apt as any).is_home_visit
   
   return (
     <div
@@ -336,7 +335,6 @@ function AptChip({ apt, onClick }: { apt: Appointment, onClick?: (e: React.Mouse
     >
       <div className="flex items-center gap-1">
         {isPending && <span className="text-[10px] animate-pulse">⏳</span>}
-        {isHome && <span>🏠</span>}
         <span className="truncate">{apt.pet_name}</span>
       </div>
     </div>

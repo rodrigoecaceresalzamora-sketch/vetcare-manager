@@ -187,8 +187,8 @@ export function PublicBooking() {
       duration_minutes: service.duration_minutes || 30,
       status:           'pendiente',
       source:           'portal',
-      is_home_visit:    form.is_home_visit,
-      address:          form.address || '',
+      is_home_visit:    false,
+      address:          '',
     }
 
     // guardian_rut optional — add only if column exists (silently skip on error)
@@ -536,33 +536,6 @@ export function PublicBooking() {
                 </div>
               </div>
 
-              <div className="py-2 border-t border-pink-50 text-left">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input type="checkbox" checked={form.is_home_visit} onChange={(e) => setField('is_home_visit', e.target.checked)} />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium text-gray-700">🏠 ¿Es atención a domicilio?</span>
-                    <span className="text-[10px] text-vet-rose font-bold uppercase tracking-tight">
-                      * Se agregarán cargos de transporte / domicilio a convenir
-                    </span>
-                  </div>
-                </label>
-              </div>
-
-              {form.is_home_visit && (
-                <div className="animate-fade-in mb-3 text-left">
-                  <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">
-                    Dirección Completa
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    className={inputCls}
-                    value={form.address || ''}
-                    onChange={(e) => setField('address', e.target.value)}
-                    placeholder="Ej. Gran Avenida 1234, Depto 402, San Miguel"
-                  />
-                </div>
-              )}
 
               {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA') && (
                 <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4 animate-fade-in text-left">
