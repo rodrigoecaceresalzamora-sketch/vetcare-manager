@@ -13,7 +13,6 @@ export function PricingManagement() {
   const [newService, setNewService] = useState<Partial<Service>>({
     name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: []
   })
-  const [isVaccine, setIsVaccine] = useState(false)
 
   function showToast(msg: string) {
     setToast(msg)
@@ -45,9 +44,6 @@ export function PricingManagement() {
 
   async function handleCreateService() {
     let finalName = newService.name
-    if (isVaccine && !finalName?.startsWith('Vacunación')) {
-      finalName = `Vacunación: ${finalName}`
-    }
     
     const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
     
@@ -67,7 +63,6 @@ export function PricingManagement() {
     } else {
       setIsAdding(false)
       setNewService({ name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: [] })
-      setIsVaccine(false)
       showToast('✅ Servicio creado con éxito')
       fetchServices()
     }
@@ -127,7 +122,7 @@ export function PricingManagement() {
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-pink-100">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Gestión de Precios, Vacunas y Datos</h1>
-          <p className="text-sm text-gray-500 mt-1">Configura lo que tus clientes ven en el portal de reservas</p>
+          <p className="text-sm text-gray-500">Configura los servicios, precios y duración de las consultas de Veterinaria VetCare.</p>
         </div>
         {!isAdding && (
           <button 
@@ -149,20 +144,10 @@ export function PricingManagement() {
               <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Nombre</label>
               <input 
                 className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
-                placeholder={isVaccine ? "Ej: Sextuple (Perro)" : "Ej: Consulta General"}
+                placeholder="Ej: Consulta General"
                 value={newService.name}
-                onChange={e => setNewService({...newService, name: e.target.value})}
+                onChange={(e) => setNewService({ ...newService, name: e.target.value })}
               />
-            </div>
-            <div className="flex items-center gap-2 pt-6">
-              <input 
-                type="checkbox" 
-                id="is_vaccine_chk"
-                checked={isVaccine}
-                onChange={e => setIsVaccine(e.target.checked)}
-                className="text-vet-rose"
-              />
-              <label htmlFor="is_vaccine_chk" className="text-sm font-medium text-gray-700 cursor-pointer">¿Es una vacuna específica?</label>
             </div>
             <div>
               <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Precio ($)</label>

@@ -131,7 +131,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
 
   const navItems = allNavItems.filter(item => {
     if (item.adminOnly) {
-      // Bypaseamos el rol si es el correo principal de la Dra. Sofia
+      // Bypaseamos el rol si es el correo principal de la Dra. Sofía
       if (user?.email === 'scaceresalzamora@gmail.com') return true
       return role === 'admin'
     }

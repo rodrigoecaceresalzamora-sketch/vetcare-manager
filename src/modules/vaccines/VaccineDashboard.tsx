@@ -123,8 +123,8 @@ Sabado y Domingo de 10:00 a 14:00 hrs
 Para agendar o reprogramar tu cita puedes responder este mensaje o llamarnos al *+56951045611*
 
 Atentamente,
-*Sofia Caceres Alzamora*
-Medica Veterinaria`
+*Sofía Cáceres Alzamora*
+Médica Veterinaria`
 
     const encoded = encodeURIComponent(msg)
     if (!phone) return null

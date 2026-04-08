@@ -210,17 +210,20 @@ export function PatientDetail() {
                     📱 WhatsApp
                   </button>
                   <button
-                    onClick={() => {
+                    onClick={async () => {
                       const next = upcomingAppointments[0]
-                      const date = new Date(next.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
-                      const time = new Date(next.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
-                      const subject = `Recordatorio de Cita - ${patient.name}`
-                      const body = `¡Hola! Te recordamos la cita de ${patient.name} para el día ${date} a las ${time}. Servicio: ${next.service}. ¡Nos vemos!`
-                      window.location.href = `mailto:${patient.guardian?.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+                      try {
+                        await supabase.functions.invoke('confirm-booking', {
+                          body: { appointment_id: next.id },
+                        })
+                        alert('✓ Recordatorio enviado correctamente')
+                      } catch (e) {
+                        alert('Error al enviar el correo automático')
+                      }
                     }}
                     className="flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-600 transition-colors shadow-sm"
                   >
-                    ✉️ Email
+                    ✉️ Email Automático
                   </button>
                 </div>
               </div>
