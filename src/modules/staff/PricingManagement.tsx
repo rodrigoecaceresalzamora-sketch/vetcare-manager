@@ -121,7 +121,7 @@ export function PricingManagement() {
 
       <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-pink-100">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Gestión de Precios, Vacunas y Datos</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Gestión de Servicios y Precios</h1>
           <p className="text-sm text-gray-500">Configura los servicios, precios y duración de las consultas de Veterinaria VetCare.</p>
         </div>
         {!isAdding && (
@@ -129,7 +129,7 @@ export function PricingManagement() {
             onClick={() => setIsAdding(true)}
             className="flex items-center gap-2 px-6 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors"
           >
-            <span>+</span> Nuevo Servicio / Vacuna
+            <span>+</span> Nuevo Servicio
           </button>
         )}
       </div>
@@ -254,28 +254,9 @@ export function PricingManagement() {
         ) : (
           <>
             <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">🩺 Servicios Regulares</h2>
+              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">📋 Lista de Servicios</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA' && !s.name.startsWith('Vacunación:')).map(service => (
-                  <ServiceCard 
-                    key={service.id} 
-                    service={service} 
-                    editingId={editingId} 
-                    setEditingId={setEditingId}
-                    handleUpdateService={handleUpdateService}
-                    handleDeleteService={handleDeleteService}
-                    services={services}
-                    setServices={setServices}
-                    stockItems={stockItems}
-                  />
-                ))}
-              </div>
-            </div>
-            
-            <div>
-              <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">💉 Vacunas Específicas</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.filter(s => s.name.startsWith('Vacunación:')).map(service => (
+                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map(service => (
                   <ServiceCard 
                     key={service.id} 
                     service={service} 
@@ -298,7 +279,7 @@ export function PricingManagement() {
         <span className="text-2xl">💡</span>
         <div className="text-xs text-gray-600 space-y-1">
           <p className="font-bold text-vet-rose uppercase tracking-wider">Aviso importante</p>
-          <p>Los cambios en esta sección afectan **directamente** lo que ven tus pacientes en el portal de reserva pública. Asegúrate de que los precios y tiempos sean correctos antes de guardar. Las vacunas nuevas se agregan automáticamente al sistema.</p>
+          <p>Los cambios en esta sección afectan **directamente** lo que ven tus pacientes en el portal de reserva pública. Asegúrate de que los precios y tiempos sean correctos antes de guardar.</p>
         </div>
       </div>
 

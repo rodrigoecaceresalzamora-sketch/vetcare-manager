@@ -4,16 +4,14 @@ import { supabase } from '../../lib/supabase'
 import { Link } from 'react-router-dom'
 import { 
   speciesEmoji, 
-  formatDate, 
-  daysLeftLabel,
   getGravatarUrl 
 } from '../../lib/utils'
-import type { Patient, Vaccination, Appointment } from '../../types'
+import type { Patient, Appointment } from '../../types'
 
 export function TutorView() {
   const { user, signOut } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [pets, setPets] = useState<(Patient & { nextVaccine?: Vaccination; nextAppointment?: Appointment })[]>([])
+  const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment })[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
@@ -42,7 +40,6 @@ export function TutorView() {
         .maybeSingle()
 
       let officialPatients: Patient[] = []
-      let vaccinations: Vaccination[] = []
 
       if (guardian) {
         // 3. Buscar Mascotas oficiales
@@ -54,17 +51,6 @@ export function TutorView() {
         
         officialPatients = pData || []
 
-        // 4. Buscar Vacunas
-        if (officialPatients.length > 0) {
-          const { data: vData } = await supabase
-            .from('vaccinations')
-            .select('*')
-            .in('patient_id', officialPatients.map(p => p.id))
-            .gte('next_due_date', new Date().toISOString().split('T')[0])
-            .order('next_due_date', { ascending: true })
-          
-          vaccinations = vData || []
-        }
       }
 
       // 5. Consolidar lista de mascotas (oficiales + de citas)
@@ -74,7 +60,6 @@ export function TutorView() {
       officialPatients.forEach(p => {
         petMap.set(p.name.toLowerCase(), {
           ...p,
-          nextVaccine: vaccinations.find(v => v.patient_id === p.id),
           nextAppointment: appointments.find(a => a.patient_id === p.id || a.pet_name.toLowerCase() === p.name.toLowerCase())
         })
       })
@@ -210,21 +195,7 @@ export function TutorView() {
                   <h3 className="text-2xl font-black text-gray-900 mb-6">{pet.name}</h3>
 
                   <div className="space-y-4">
-                    {/* Vacuna */}
-                    <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 group-hover:bg-white group-hover:border-pink-100 transition-colors">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-2 flex items-center gap-2">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                        Próxima Vacuna
-                      </p>
-                      {pet.nextVaccine ? (
-                        <div>
-                          <p className="text-sm font-bold text-gray-800">{pet.nextVaccine.vaccine_name}</p>
-                          <p className="text-xs text-green-600 font-medium mt-0.5">{daysLeftLabel(pet.nextVaccine.next_due_date)} ({formatDate(pet.nextVaccine.next_due_date)})</p>
-                        </div>
-                      ) : (
-                        <p className="text-xs text-gray-400 italic">No hay vacunas programadas</p>
-                      )}
-                    </div>
+
 
                     {/* Cita */}
                     <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 group-hover:bg-white group-hover:border-pink-100 transition-colors">

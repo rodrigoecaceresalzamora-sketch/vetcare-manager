@@ -18,7 +18,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './contexts/ProtectedRoute'
 import { LoginPage } from './modules/auth/LoginPage'
 import { TutorView } from './modules/auth/TutorView'
-import { VaccineDashboard } from './modules/vaccines/VaccineDashboard'
+
 import { WeekView }          from './modules/agenda/WeekView'
 import { PublicBooking }     from './modules/portal/PublicBooking'
 import { PatientList }       from './modules/patients/PatientList'
@@ -26,7 +26,7 @@ import { PatientDetail }     from './modules/patients/PatientDetail'
 import { StaffManagement }   from './modules/staff/StaffManagement'
 import { PricingManagement } from './modules/staff/PricingManagement'
 import { StockManagement }   from './modules/stock/StockManagement'
-import { useVaccineAlerts }  from './modules/vaccines/useVaccineAlerts'
+
 import { getGravatarUrl }    from './lib/utils'
 
 // ── Íconos SVG inline ─────────────────────────────────────────
@@ -112,17 +112,11 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
   const { pathname } = useLocation()
   const { signOut, user, role } = useAuth()
   
-  const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
+
 
   const allNavItems = [
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
-    { 
-      to: '/vacunas',   
-      icon: icons.vaccines, 
-      label: 'Vacunas',   
-      badge: upcomingAlerts.length > 0 ? String(upcomingAlerts.length) : undefined,
-      urgentBadge: urgentAlerts.length > 0 ? String(urgentAlerts.length) : undefined
-    },
+
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
@@ -196,18 +190,6 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
               </div>
               {!isCollapsed && <span className="flex-1 whitespace-nowrap">{item.label}</span>}
               <div className={`flex items-center gap-1 ${isCollapsed ? 'absolute top-1 -right-1 scale-75' : ''}`}>
-                {item.urgentBadge && (
-                  <span className="bg-red-500 text-white text-[10px]
-                                   px-1.5 py-0.5 rounded-full font-bold" title="Urgentes">
-                    {item.urgentBadge}
-                  </span>
-                )}
-                {item.badge && !item.urgentBadge && (
-                  <span className="bg-amber-400 text-white text-[10px]
-                                   px-1.5 py-0.5 rounded-full font-bold" title="Próximas">
-                    {item.badge}
-                  </span>
-                )}
               </div>
             </Link>
           )
@@ -258,16 +240,11 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
 function MobileNav() {
   const { pathname } = useLocation()
   const { user, role, signOut } = useAuth()
-  const { urgentAlerts, upcomingAlerts } = useVaccineAlerts()
+
 
   const allNavItems = [
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
-    { 
-      to: '/vacunas',   
-      icon: icons.vaccines, 
-      label: 'Vacunas',
-      hasAlert: urgentAlerts.length > 0 || upcomingAlerts.length > 0
-    },
+
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
@@ -299,9 +276,6 @@ function MobileNav() {
             <span className="text-[10px] font-bold uppercase tracking-tighter">
               {item.label}
             </span>
-            {item.hasAlert && (
-              <div className="absolute top-1.5 right-3 w-2 h-2 bg-red-500 rounded-full border-2 border-white" />
-            )}
             {active && (
               <div className="absolute -top-1 w-8 h-1 bg-vet-rose rounded-full" />
             )}
@@ -372,14 +346,7 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/vacunas"
-            element={
-              <ProtectedRoute requireStaff>
-                <AppLayout><VaccineDashboard /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
+
           <Route
             path="/agenda"
             element={
@@ -425,7 +392,7 @@ export default function App() {
           {/* Redirección por defecto */}
           <Route 
              path="/" 
-             element={<ProtectedRoute requireStaff><Navigate to="/vacunas" replace /></ProtectedRoute>} 
+             element={<ProtectedRoute requireStaff><Navigate to="/agenda" replace /></ProtectedRoute>} 
           />
           <Route path="*" element={<Navigate to="/reserva" replace />} />
         </Routes>
