@@ -45,9 +45,14 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     guardian_rut:     (editingAppointment as any)?.guardian_rut ?? '',
     pet_name:         editingAppointment?.pet_name ?? '',
     service:          editingAppointment?.service ?? 'Consulta General',
-    scheduled_at:     editingAppointment 
-                      ? new Date(editingAppointment.scheduled_at).toISOString().slice(0, 16)
-                      : initialDateTime ?? '',
+    scheduled_at:     (() => {
+      if (editingAppointment) {
+        const d = new Date(editingAppointment.scheduled_at);
+        const pad = (n: number) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+      return initialDateTime ?? '';
+    })(),
     duration_minutes: editingAppointment?.duration_minutes ?? 30,
     notes:            (editingAppointment as any)?.notes ?? '',
     status:           editingAppointment?.status ?? 'confirmada',

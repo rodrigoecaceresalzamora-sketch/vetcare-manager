@@ -105,8 +105,11 @@ export function WeekView() {
     const cellDate = new Date(weekStart)
     cellDate.setDate(cellDate.getDate() + dayIndex)
     cellDate.setHours(hour, 0, 0, 0)
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const localISO = `${cellDate.getFullYear()}-${pad(cellDate.getMonth() + 1)}-${pad(cellDate.getDate())}T${pad(cellDate.getHours())}:${pad(0)}`;
+    
     setSelectedSlot({
-      date: cellDate.toISOString().slice(0, 16),
+      date: localISO,
       hour,
       appointment: apt
     })

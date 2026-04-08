@@ -166,8 +166,13 @@ export function PublicBooking() {
     if (!form.pet_name)       return setFieldError('Ingresa el nombre de tu mascota')
     if (form.is_home_visit && !form.address) return setFieldError('Ingresa tu dirección')
 
-    // Store with explicit CL offset to avoid UTC drift issues
-    const scheduledAt = `${date}T${time}:00-04:00`
+    const scheduledAt = (() => {
+      if (!date || !time) return '';
+      const [year, month, day] = date.split('-').map(Number);
+      const [hour, minute] = time.split(':').map(Number);
+      const d = new Date(year, month - 1, day, hour, minute);
+      return d.toISOString();
+    })();
     const id = generateId()
 
     const insertPayload: Record<string, any> = {
