@@ -204,6 +204,8 @@ export function StockManagement() {
                     <button onClick={() => {
                       setEditingItemId(item.id)
                       setEditItemName(item.name)
+                      setEditItemLot(item.lot_number || '')
+                    }} className="text-gray-400 hover:text-vet-rose text-xs" title="Editar">✏️</button>
                     {/* Solo admin puede borrar */}
                     {(role === 'admin' || user?.email === 'scaceresalzamora@gmail.com') && (
                       <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 text-xs" title="Eliminar">🗑️</button>

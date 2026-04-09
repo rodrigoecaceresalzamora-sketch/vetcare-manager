@@ -301,6 +301,12 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                       </div>
                     )}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowPatientForm(true)}
+                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-vet-rose text-white rounded-lg hover:bg-vet-dark transition-colors disabled:opacity-50"
+                    title="Registrar nueva mascota"
+                    disabled={isReadOnly}
                   >
                     +
                   </button>
