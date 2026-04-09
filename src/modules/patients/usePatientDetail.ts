@@ -5,10 +5,12 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Patient, Consultation, PatientFile, BoostInterval, Appointment, Vaccination, Service } from '../../types'
 import { generateId, calcNextDueDate } from '../../lib/utils'
 
 export function usePatientDetail(patientId: string) {
+  const { clinicId } = useAuth()
   const [patient, setPatient] = useState<Patient | null>(null)
   const [consultations, setConsultations] = useState<Consultation[]>([])
   const [files, setFiles] = useState<PatientFile[]>([])
@@ -52,17 +54,16 @@ export function usePatientDetail(patientId: string) {
       setVaccinations((vData || []) as Vaccination[])
 
       // 4. Obtener Citas futuras (basado en nombre mascota/tutor por ahora)
-      if (pData) {
         const { data: aData } = await supabase
           .from('appointments')
           .select('*')
+          .eq('clinic_id', clinicId)
           .eq('pet_name', pData.name)
           .eq('guardian_name', pData.guardian?.name)
           .gte('scheduled_at', new Date().toISOString())
           .neq('status', 'cancelada')
           .order('scheduled_at', { ascending: true })
         setUpcomingAppointments((aData || []) as Appointment[])
-      }
 
       // 5. Obtener Archivos del paciente
       await fetchFiles()
@@ -119,7 +120,8 @@ export function usePatientDetail(patientId: string) {
       const { error } = await supabase.from('consultations').insert({
         ...input,
         id: generateId(),
-        patient_id: patientId
+        patient_id: patientId,
+        clinic_id: clinicId
       })
       insError = error?.message
     }
@@ -136,7 +138,8 @@ export function usePatientDetail(patientId: string) {
         lot_number: vaccineData.lot_number,
         applied_date: vaccineData.applied_date,
         next_due_date,
-        reminder_sent: false
+        reminder_sent: false,
+        clinic_id: clinicId
       })
       if (vacErr) return { error: vacErr.message }
     }

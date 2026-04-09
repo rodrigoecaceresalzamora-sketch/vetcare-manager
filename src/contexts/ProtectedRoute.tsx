@@ -29,17 +29,29 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
-  // 2. Si requiere EXACTAMENTE Admin y no lo es (ej: es ayudante o tutor)
+  // 2. Obligar verificación de email
+  if (!user.email_confirmed_at && location.pathname !== '/verify-email') {
+    return <Navigate to="/verify-email" replace />
+  }
+
+  // 3. Si no tiene clínica y no es tutor (es staff/admin nuevo), mandar a onboarding
+  const { clinicId, clinicLoading } = useAuth()
+  if (!clinicLoading && !clinicId && role !== 'tutor' && 
+      location.pathname !== '/onboarding' && location.pathname !== '/verify-email') {
+    return <Navigate to="/onboarding" replace />
+  }
+
+  // 4. Si requiere EXACTAMENTE Admin y no lo es (ej: es ayudante o tutor)
   if (requireAdmin && role !== 'admin') {
     return <Navigate to="/tutor" replace />
   }
 
-  // 3. Si requiere ser Staff (Admin o Ayudante) y es Tutor
+  // 5. Si requiere ser Staff (Admin o Ayudante) y es Tutor
   if (requireStaff && role === 'tutor') {
     return <Navigate to="/tutor" replace />
   }
 
-  // 4. Si es tutor y está en una ruta protegida (no /tutor ni /reserva)
+  // 6. Si es tutor y está en una ruta protegida (no /tutor ni /reserva)
   if (role === 'tutor' && !location.pathname.startsWith('/tutor') && !location.pathname.startsWith('/reserva')) {
     return <Navigate to="/tutor" replace />
   }

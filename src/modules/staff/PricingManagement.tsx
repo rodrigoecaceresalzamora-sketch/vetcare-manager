@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Service, StockItem } from '../../types'
 
 export function PricingManagement() {
+  const { clinicId } = useAuth()
   const [services, setServices] = useState<Service[]>([])
   const [stockItems, setStockItems] = useState<StockItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -28,6 +30,7 @@ export function PricingManagement() {
     const { data, error: err } = await supabase
       .from('services')
       .select('*')
+      .eq('clinic_id', clinicId)
       .order('name', { ascending: true })
     
     if (err) {
@@ -36,7 +39,12 @@ export function PricingManagement() {
       setServices(data as Service[])
     }
     
-    const { data: stockData } = await supabase.from('stock_items').select('*').order('name')
+    
+    const { data: stockData } = await supabase
+      .from('stock_items')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .order('name')
     if (stockData) setStockItems(stockData as StockItem[])
     
     setLoading(false)
@@ -55,7 +63,8 @@ export function PricingManagement() {
         price: newService.price,
         duration_minutes: newService.duration_minutes,
         description: newService.description,
-        stock_usage: newService.stock_usage || []
+        stock_usage: newService.stock_usage || [],
+        clinic_id: clinicId
       })
 
     if (err) {

@@ -28,9 +28,10 @@ export function LoginPage() {
         })
         if (err) throw err
         
-        // Redireccionar según el rol (el AuthContext se encargará)
-        const isAppAdmin = email.toLowerCase() === 'scaceresalzamora@gmail.com'
-        navigate(isAppAdmin ? from : '/tutor')
+        if (err) throw err
+        
+        // Redireccionar al dashboard inteligente
+        navigate('/dashboard')
       } else {
         // --- REGISTRARSE ---
         const { error: err } = await supabase.auth.signUp({
@@ -146,6 +147,29 @@ export function LoginPage() {
                 isLogin ? 'Entrar al Panel' : 'Registrarme ahora'
               )}
             </button>
+
+            <div className="relative py-4">
+               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-100"></div></div>
+               <div className="relative flex justify-center text-[10px] uppercase font-bold text-gray-400"><span className="bg-white px-2">O continuar con</span></div>
+            </div>
+
+            <button
+              type="button"
+              onClick={async () => {
+                await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.origin + '/dashboard' } })
+              }}
+              className="w-full py-3 bg-white border border-gray-100 text-gray-700 font-bold rounded-xl shadow-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-3"
+            >
+              <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" />
+              Google
+            </button>
+
+            {!isLogin && (
+               <div className="flex justify-center py-2">
+                  {/* Contenedor para Turnstile */}
+                  <div id="turnstile-container" className="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
+               </div>
+            )}
 
           </form>
         </div>

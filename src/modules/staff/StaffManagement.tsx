@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import type { StaffMember } from '../../types'
 
 export function StaffManagement() {
+  const { clinicId, planType } = useAuth()
   const [staff, setStaff] = useState<StaffMember[]>([])
   const [loading, setLoading] = useState(true)
   const [newEmail, setNewEmail] = useState('')
@@ -18,6 +20,7 @@ export function StaffManagement() {
     const { data, error: err } = await supabase
       .from('staff')
       .select('*')
+      .eq('clinic_id', clinicId)
       .order('created_at', { ascending: true })
     
     if (err) setError(err.message)
@@ -31,9 +34,24 @@ export function StaffManagement() {
     const email = newEmail.trim().toLowerCase()
     if (!email) return
 
+    // Validación de Límites Plan Básico
+    if (planType === 'basic') {
+      const adminCount = staff.filter(s => s.role === 'admin').length
+      const helperCount = staff.filter(s => s.role === 'ayudante').length
+
+      if (newRole === 'admin' && adminCount >= 2) {
+        setError('El plan Básico solo permite hasta 2 administradores.')
+        return
+      }
+      if (newRole === 'ayudante' && helperCount >= 5) {
+        setError('El plan Básico solo permite hasta 5 ayudantes.')
+        return
+      }
+    }
+
     const { error: err } = await supabase
       .from('staff')
-      .insert([{ email, role: newRole }])
+      .insert([{ email, role: newRole, clinic_id: clinicId }])
 
     if (err) {
       setError(err.message)

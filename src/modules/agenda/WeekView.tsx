@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import { AppointmentModal } from './AppointmentModal'
+import { useAuth } from '../../contexts/AuthContext'
 import { SERVICE_META, formatTime } from '../../lib/utils'
 import type { Appointment, AppointmentService } from '../../types'
 
@@ -31,6 +32,7 @@ function weekLabel(monday: Date): string {
 }
 
 export function WeekView() {
+  const { clinicId } = useAuth()
   const [weekStart, setWeekStart] = useState(() => getMondayOf(new Date()))
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [pendingTotal, setPendingTotal] = useState<Appointment[]>([])
@@ -55,6 +57,7 @@ export function WeekView() {
     const { data: weekApts } = await supabase
       .from('appointments')
       .select('*')
+      .eq('clinic_id', clinicId)
       .gte('scheduled_at', from)
       .lt('scheduled_at', to)
       .neq('status', 'cancelada')
@@ -63,6 +66,7 @@ export function WeekView() {
     const { data: pendingApts } = await supabase
       .from('appointments')
       .select('*')
+      .eq('clinic_id', clinicId)
       .eq('status', 'pendiente')
       .order('scheduled_at')
 

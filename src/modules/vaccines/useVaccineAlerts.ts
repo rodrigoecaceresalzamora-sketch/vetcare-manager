@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 import {
   calcVaccineStatus,
@@ -32,6 +33,7 @@ interface NewVaccineInput {
 }
 
 export function useVaccineAlerts() {
+  const { clinicId } = useAuth()
   const [alerts, setAlerts] = useState<VaccineAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -51,6 +53,7 @@ export function useVaccineAlerts() {
           guardian:guardians (*)
         )
       `)
+      .eq('clinic_id', clinicId)
       .order('next_due_date', { ascending: true })
 
     if (err) {
@@ -94,6 +97,7 @@ export function useVaccineAlerts() {
         lot_number: input.lot_number,
         next_due_date,
         reminder_sent: false,
+        clinic_id: clinicId
       }
 
       const { error: err } = await supabase.from('vaccinations').insert(record)
@@ -109,7 +113,12 @@ export function useVaccineAlerts() {
   // ── Enviar recordatorio por email (llama a Edge Function) ─────
   const sendReminder = useCallback(
     async (vaccinationId: string): Promise<{ error: string | null }> => {
-      const { data: v } = await supabase.from('vaccinations').select('*, patient:patients(*, guardian:guardians(*))').eq('id', vaccinationId).single()
+      const { data: v } = await supabase
+        .from('vaccinations')
+        .select('*, patient:patients(*, guardian:guardians(*))')
+        .eq('id', vaccinationId)
+        .eq('clinic_id', clinicId)
+        .single()
       
       let emailSubject = config?.email_subject_reminder || 'Recordatorio de Vacuna'
       let emailBody = config?.email_body_reminder || 'Hola {tutor}, recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha}.'

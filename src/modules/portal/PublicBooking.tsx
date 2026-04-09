@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { 
@@ -21,10 +21,11 @@ import type { PublicBookingFormData } from '../../types'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
-async function fetchPublicServices() {
+async function fetchPublicServices(clinicId: string) {
   const { data } = await supabase
     .from('services')
     .select('*')
+    .eq('clinic_id', clinicId)
     .order('name', { ascending: true })
   
   return data || []
@@ -64,10 +65,15 @@ function getTimeSlots(dow: number, schedule: Record<string, string[]>): string[]
 type Step = 1 | 2 | 3 | 4 | 'confirmed'
 
 export function PublicBooking() {
+  const { clinicId } = useParams()
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { config } = useClinicConfig()
+  const { config, setPublicClinicId } = useClinicConfig()
   const [step, setStep]             = useState<Step>(1)
+
+  useEffect(() => {
+    if (clinicId) setPublicClinicId(clinicId)
+  }, [clinicId, setPublicClinicId])
   const [service, setService]       = useState<any | null>(null)
   const [dbServices, setDbServices] = useState<any[]>([])
   const [date, setDate]             = useState<string | null>(null)
@@ -98,29 +104,41 @@ export function PublicBooking() {
   const [myPets, setMyPets] = useState<any[]>([])
 
   useEffect(() => {
-    if (!user?.email) return
+    if (!user?.email || !clinicId) return
     const fetchMyPets = async () => {
-      const { data: g } = await supabase.from('guardians').select('id').eq('email', user.email).maybeSingle()
+      const { data: g } = await supabase
+        .from('guardians')
+        .select('id')
+        .eq('email', user.email)
+        .eq('clinic_id', clinicId)
+        .maybeSingle()
+      
       if (g) {
         setForm(f => ({ ...f, guardian_id: g.id }))
-        const { data: p } = await supabase.from('patients').select('*').eq('guardian_id', g.id).eq('status', 'activo')
+        const { data: p } = await supabase
+          .from('patients')
+          .select('*')
+          .eq('guardian_id', g.id)
+          .eq('clinic_id', clinicId)
+          .eq('status', 'activo')
         if (p) setMyPets(p)
       }
     }
     fetchMyPets()
-  }, [user?.email])
+  }, [user?.email, clinicId])
 
   const availableDates = getAvailableDates(config?.schedule || {})
 
   useEffect(() => {
-    fetchPublicServices().then(setDbServices)
-  }, [])
+    if (clinicId) fetchPublicServices(clinicId).then(setDbServices)
+  }, [clinicId])
 
   useEffect(() => {
-    if (!date) return
+    if (!date || !clinicId) return
     supabase
       .from('appointments')
       .select('scheduled_at')
+      .eq('clinic_id', clinicId)
       .gte('scheduled_at', date + 'T00:00:00')
       .lt('scheduled_at',  date + 'T23:59:59')
       .neq('status', 'cancelada')
@@ -130,7 +148,7 @@ export function PublicBooking() {
         )
         setTakenSlots(taken)
       })
-  }, [date])
+  }, [date, clinicId])
 
   function setField<K extends keyof PublicBookingFormData>(
     key: K, value: PublicBookingFormData[K]
@@ -187,6 +205,7 @@ export function PublicBooking() {
       pet_date_of_birth: form.pet_date_of_birth || null,
       pet_adopted_since: form.pet_adopted_since || null,
       pet_is_reactive:  form.pet_is_reactive || false,
+      clinic_id: clinicId
     }
 
     // guardian_rut optional — add only if column exists (silently skip on error)

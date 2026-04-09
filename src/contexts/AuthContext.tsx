@@ -7,8 +7,12 @@ interface AuthContextType {
   session: Session | null
   user: User | null
   role: Role
+  clinicId: string | null
+  planType: 'basic' | 'pro' | null
   loading: boolean
+  clinicLoading: boolean
   signOut: () => Promise<void>
+  refreshAuth: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -17,7 +21,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [role, setRole] = useState<Role>(null)
+  const [clinicId, setClinicId] = useState<string | null>(null)
+  const [planType, setPlanType] = useState<'basic' | 'pro' | null>(null)
   const [loading, setLoading] = useState(true)
+  const [clinicLoading, setClinicLoading] = useState(false)
 
   useEffect(() => {
     // 1. Obtener sesión inicial
@@ -46,38 +53,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const updateRole = async (user: User | null) => {
     if (!user) {
       setRole(null)
+      setClinicId(null)
+      setPlanType(null)
       return
     }
 
+    setClinicLoading(true)
     const userEmail = user.email?.toLowerCase()
 
     try {
-      const { data, error } = await supabase
+      // 1. Buscar en la tabla staff para obtener el rol y la clínica
+      const { data: staffData, error: staffErr } = await supabase
         .from('staff')
-        .select('role')
+        .select('role, clinic_id')
         .eq('email', userEmail)
-        .single()
+        .maybeSingle()
 
-      if (error || !data) {
-        // Fallback de seguridad: Si la tabla no existe o el correo no está registrado,
-        // pero es el administrador principal, le damos acceso de admin.
+      if (staffErr) throw staffErr
+
+      if (staffData) {
+        setRole(staffData.role as Role)
+        setClinicId(staffData.clinic_id)
+        
+        // 2. Obtener información del plan de la clínica
+        if (staffData.clinic_id) {
+          const { data: clinicData } = await supabase
+            .from('clinics')
+            .select('plan_type')
+            .eq('id', staffData.clinic_id)
+            .single()
+          
+          if (clinicData) setPlanType(clinicData.plan_type as 'basic' | 'pro')
+        }
+      } else {
+        // Fallback: Si no está en staff, podría ser un tutor o el admin creando su primera clínica
         if (userEmail === 'scaceresalzamora@gmail.com') {
           setRole('admin')
+          setPlanType('pro') // Forzamos Pro para el admin principal
         } else {
           setRole('tutor')
         }
-      } else {
-        setRole(data.role as Role)
       }
     } catch (err) {
-      console.error('Error fetching role:', err)
-      // Fallback en caso de error de red o tabla inexistente
-      if (userEmail === 'scaceresalzamora@gmail.com') {
-        setRole('admin')
-      } else {
-        setRole('tutor')
-      }
+      console.error('Error in updateRole:', err)
+      setRole('tutor') // Default safe role
+    } finally {
+      setClinicLoading(false)
     }
+  }
+
+  const refreshAuth = async () => {
+    await updateRole(user)
   }
 
   const signOut = async () => {
@@ -90,7 +116,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, role, loading, signOut }}>
+    <AuthContext.Provider value={{ session, user, role, clinicId, planType, loading, clinicLoading, signOut, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   )

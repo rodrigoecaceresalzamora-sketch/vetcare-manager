@@ -5,6 +5,7 @@
 
 import { useState, useCallback, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import type { Patient, Species, Sex } from '../../types'
 import { generateId } from '../../lib/utils'
 
@@ -25,6 +26,7 @@ export interface NewPatientInput {
 }
 
 export function usePatients() {
+  const { clinicId } = useAuth()
   const [patients, setPatients] = useState<Patient[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -37,6 +39,7 @@ export function usePatients() {
     const { data, error: err } = await supabase
       .from('patients')
       .select('*, guardian:guardians(*)')
+      .eq('clinic_id', clinicId)
       .order('created_at', { ascending: false })
 
     if (err) {
@@ -63,6 +66,7 @@ export function usePatients() {
         rut: input.guardian_rut,
         phone: input.guardian_phone,
         email: input.guardian_email || '',
+        clinic_id: clinicId
       })
 
       if (gErr) throw new Error("Error creando tutor: " + gErr.message)
@@ -79,7 +83,8 @@ export function usePatients() {
         sex: input.sex,
         weight_kg: input.weight_kg || 0,
         is_reactive: input.is_reactive || false,
-        status: 'activo'
+        status: 'activo',
+        clinic_id: clinicId
       })
 
       if (pErr) throw new Error("Error creando paciente: " + pErr.message)

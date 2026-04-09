@@ -8,7 +8,7 @@ import { useAuth } from '../../contexts/AuthContext'
 import type { StockItem } from '../../types'
 
 export function StockManagement() {
-  const { role, user } = useAuth()
+  const { role, user, clinicId } = useAuth()
   const [items, setItems] = useState<StockItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -34,6 +34,7 @@ export function StockManagement() {
     const { data, error: err } = await supabase
       .from('stock_items')
       .select('*')
+      .eq('clinic_id', clinicId)
       .order('name', { ascending: true })
 
     if (err) setError(err.message)
@@ -54,7 +55,8 @@ export function StockManagement() {
         id, 
         name: newItemName.trim(), 
         lot_number: newItemLot.trim() || null,
-        quantity: newItemQty === '' ? 0 : Number(newItemQty) 
+        quantity: newItemQty === '' ? 0 : Number(newItemQty),
+        clinic_id: clinicId
       })
 
     if (err) {

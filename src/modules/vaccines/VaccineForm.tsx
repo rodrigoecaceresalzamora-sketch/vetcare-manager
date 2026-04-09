@@ -9,6 +9,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useVaccineAlerts } from './useVaccineAlerts'
+import { useAuth } from '../../contexts/AuthContext'
 import { usePatients } from '../patients/usePatients'
 import { PatientForm } from '../patients/PatientForm'
 import { calcNextDueDate, formatDate } from '../../lib/utils'
@@ -29,6 +30,7 @@ interface Props {
 }
 
 export function VaccineForm({ onClose, onSaved, preselectedPatientId }: Props) {
+  const { clinicId } = useAuth()
   const { saveVaccination } = useVaccineAlerts()
   const { savePatient } = usePatients()
 
@@ -53,6 +55,7 @@ export function VaccineForm({ onClose, onSaved, preselectedPatientId }: Props) {
     supabase
       .from('patients')
       .select('id, name, species, breed')
+      .eq('clinic_id', clinicId)
       .eq('status', 'activo')
       .order('name')
       .then(({ data }) => {

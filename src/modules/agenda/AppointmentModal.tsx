@@ -64,7 +64,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   })
   
   const { patients, savePatient } = usePatients()
-  const { role } = useAuth()
+  const { role, clinicId } = useAuth()
   const [showPatientForm, setShowPatientForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [fieldError, setFieldError] = useState('')
@@ -78,10 +78,15 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   const [dbServices, setDbServices] = useState<Service[]>([])
 
   useEffect(() => {
-    supabase.from('services').select('*').order('name').then(({ data }) => {
-      if (data) setDbServices(data)
-    })
-  }, [])
+    supabase
+      .from('services')
+      .select('*')
+      .eq('clinic_id', clinicId)
+      .order('name')
+      .then(({ data }) => {
+        if (data) setDbServices(data)
+      })
+  }, [clinicId])
   
   const isReadOnly = editingAppointment && role === 'ayudante'
 
@@ -178,7 +183,8 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
       id = generateId()
       const { error: dbErr } = await supabase.from('appointments').insert({
         id,
-        ...payload
+        ...payload,
+        clinic_id: clinicId
       })
 
       if (dbErr) {
@@ -450,6 +456,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     const { data: existingG } = await supabase
                       .from('guardians')
                       .select('id')
+                      .eq('clinic_id', clinicId)
                       .or(`email.ilike.${searchEmail},rut.eq.${searchRut || 'NONE'}`)
                       .maybeSingle()
 
@@ -462,7 +469,8 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                           name:  form.guardian_name,
                           email: form.guardian_email,
                           phone: form.guardian_phone,
-                          rut:   (form as any).guardian_rut
+                          rut:   (form as any).guardian_rut,
+                          clinic_id: clinicId
                         })
                         .select()
                         .single()

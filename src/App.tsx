@@ -29,8 +29,25 @@ import { StaffManagement }   from './modules/staff/StaffManagement'
 import { PricingManagement } from './modules/staff/PricingManagement'
 import { StockManagement }   from './modules/stock/StockManagement'
 import { SettingsManagement } from './modules/staff/SettingsManagement'
+import { LandingPage } from './modules/marketing/LandingPage'
+import { Onboarding } from './modules/auth/Onboarding'
+import { Billing } from './modules/staff/Billing'
 
 import { getGravatarUrl }    from './lib/utils'
+
+function DashboardRedirect() {
+  const { user, role, loading, clinicId } = useAuth()
+  
+  if (loading) return null
+
+  if (!user) return <Navigate to="/" replace />
+  
+  if (role === 'tutor') return <Navigate to="/tutor" replace />
+  
+  if (!clinicId) return <Navigate to="/onboarding" replace />
+  
+  return <Navigate to="/agenda" replace />
+}
 
 // ── Íconos SVG inline ─────────────────────────────────────────
 const icons = {
@@ -107,6 +124,19 @@ const icons = {
       <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
       <line x1="12" y1="22.08" x2="12" y2="12"></line>
     </svg>
+  ),
+  settings: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </svg>
+  ),
+  billing: (
+    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <rect x="2" y="5" width="20" height="14" rx="2" />
+      <line x1="2" y1="10" x2="22" y2="10" />
+    </svg>
   )
 }
 
@@ -125,7 +155,8 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
     { to: '/stock',     icon: icons.stock,    label: 'Stock' },
-    { to: '/config',    icon: icons.globe,    label: 'Configuración', adminOnly: true },
+    { to: '/facturacion', icon: icons.billing, label: 'Planes', adminOnly: true },
+    { to: '/config',    icon: icons.settings, label: 'Configuración', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -254,7 +285,8 @@ function MobileNav() {
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
     { to: '/stock',     icon: icons.stock,    label: 'Stock' },
-    { to: '/config',    icon: icons.globe,    label: 'Configuración', adminOnly: true },
+    { to: '/facturacion', icon: icons.billing, label: 'Planes', adminOnly: true },
+    { to: '/config',    icon: icons.settings, label: 'Configuración', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -309,6 +341,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(() => {
     return localStorage.getItem('sidebar_collapsed') === 'true'
   })
+  const { isPaid, role } = useAuth()
 
   useEffect(() => {
     localStorage.setItem('sidebar_collapsed', String(isCollapsed))
@@ -318,8 +351,24 @@ function AppLayout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-vet-bone">
       <Sidebar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} />
       <MobileNav />
-      <main className={`flex-1 overflow-auto pb-16 md:pb-0 transition-all duration-300`}>
-        {children}
+      <main className="flex-1 flex flex-col min-w-0 transition-all duration-300">
+        {!isPaid && role === 'admin' && (
+          <div className="bg-gray-900 text-white px-4 py-2 flex items-center justify-between gap-4 animate-fade-in z-30 sticky top-0 md:static">
+             <div className="flex items-center gap-2">
+              <span className="text-xs font-bold tracking-tight">⚠️ Plan Básico</span>
+              <span className="hidden sm:inline text-[10px] text-gray-400 font-medium tracking-wide">| Mejora a Pro para funciones ilimitadas</span>
+            </div>
+            <Link 
+              to="/facturacion" 
+              className="bg-vet-rose text-white text-[9px] font-black px-3 py-1.5 rounded-lg uppercase tracking-widest hover:bg-vet-dark transition-all shrink-0 shadow-lg shadow-vet-rose/20"
+            >
+              Mejorar
+            </Link>
+          </div>
+        )}
+        <div className="flex-1 overflow-auto pb-16 md:pb-0">
+          {children}
+        </div>
       </main>
     </div>
   )
@@ -333,10 +382,22 @@ export default function App() {
         <ClinicConfigProvider>
           <Routes>
           {/* Rutas Públicas */}
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/reserva" element={<PublicBooking />} />
+          <Route path="/reserva/:clinicId" element={<PublicBooking />} />
+          <Route path="/reserva" element={<LandingPage />} />
+          <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
+            <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100">
+               <h1 className="text-2xl font-black mb-4">📧 Verifica tu Email</h1>
+               <p className="text-gray-500 text-sm leading-relaxed">Te hemos enviado un enlace de confirmación. Por favor, revisa tu bandeja de entrada para poder activar tu cuenta SaaS.</p>
+               <button onClick={() => window.location.reload()} className="mt-8 w-full py-3 bg-vet-rose text-white font-bold rounded-xl shadow-lg">Ya lo verifiqué</button>
+            </div>
+          </div>} />
 
-          {/* Rutas Protegidas (Solo Admin) */}
+          {/* Rutas Protegidas de Onboarding */}
+          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+
+          {/* Rutas Protegidas (Solo Admin/Staff) */}
           <Route
             path="/pacientes"
             element={
@@ -402,7 +463,15 @@ export default function App() {
               </ProtectedRoute>
             }
           />
-          {/* Default redirige a portal login público */}
+          <Route
+            path="/facturacion"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><Billing /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          
           <Route
             path="/tutor"
             element={
@@ -412,12 +481,9 @@ export default function App() {
             }
           />
 
-          {/* Redirección por defecto */}
-          <Route 
-             path="/" 
-             element={<ProtectedRoute requireStaff><Navigate to="/agenda" replace /></ProtectedRoute>} 
-          />
-          <Route path="*" element={<Navigate to="/reserva" replace />} />
+          {/* Redirección por defecto inteligente */}
+          <Route path="/dashboard" element={<DashboardRedirect />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </ClinicConfigProvider>
       </BrowserRouter>
