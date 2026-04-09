@@ -4,14 +4,15 @@ import { supabase } from '../../lib/supabase'
 import { Link } from 'react-router-dom'
 import { 
   speciesEmoji, 
-  getGravatarUrl 
+  getGravatarUrl,
+  calcVaccineStatus
 } from '../../lib/utils'
-import type { Patient, Appointment } from '../../types'
+import type { Patient, Appointment, Vaccination } from '../../types'
 
 export function TutorView() {
   const { user, signOut } = useAuth()
   const [loading, setLoading] = useState(true)
-  const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment })[]>([])
+  const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
   const [error, setError] = useState<string | null>(null)
 
   const fetchData = useCallback(async () => {
@@ -51,6 +52,27 @@ export function TutorView() {
         
         officialPatients = pData || []
 
+        // 4. Buscar Vacunas de estas mascotas
+        const pIds = officialPatients.map(p => p.id)
+        if (pIds.length > 0) {
+          const { data: vData } = await supabase
+            .from('vaccinations')
+            .select('*')
+            .in('patient_id', pIds)
+            .order('next_due_date', { ascending: true })
+          
+          const vaccinesByPet = new Map<string, Vaccination>()
+          vData?.forEach(v => {
+            if (!vaccinesByPet.has(v.patient_id)) {
+              vaccinesByPet.set(v.patient_id, v)
+            }
+          })
+
+          officialPatients = officialPatients.map(p => ({
+            ...p,
+            nextVaccination: vaccinesByPet.get(p.id)
+          }))
+        }
       }
 
       // 5. Consolidar lista de mascotas (oficiales + de citas)
@@ -219,6 +241,28 @@ export function TutorView() {
                         </div>
                       ) : (
                         <p className="text-xs text-gray-400 italic">Sin horas agendadas</p>
+                      )}
+                    </div>
+
+                    {/* Vacuna */}
+                    <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 group-hover:bg-white group-hover:border-pink-100 transition-colors">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-2 flex items-center gap-2">
+                        <span className="w-1.5 h-1.5 rounded-full bg-amber-400"></span>
+                        Próxima Vacuna
+                      </p>
+                      {pet.nextVaccination ? (
+                        <div>
+                          <p className="text-sm font-bold text-gray-800">{pet.nextVaccination.vaccine_name}</p>
+                          <p className={`text-xs font-medium mt-0.5 ${
+                            ['urgente', 'vencida'].includes(calcVaccineStatus(pet.nextVaccination.next_due_date)) 
+                              ? 'text-red-500 font-bold' 
+                              : 'text-amber-600'
+                          }`}>
+                            {new Date(pet.nextVaccination.next_due_date + 'T12:00:00').toLocaleDateString('es-CL', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400 italic">Sin vacunas registradas</p>
                       )}
                     </div>
                   </div>

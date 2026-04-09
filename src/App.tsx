@@ -20,6 +20,7 @@ import { LoginPage } from './modules/auth/LoginPage'
 import { TutorView } from './modules/auth/TutorView'
 
 import { WeekView }          from './modules/agenda/WeekView'
+import { VaccineDashboard }  from './modules/vaccines/VaccineDashboard'
 import { PublicBooking }     from './modules/portal/PublicBooking'
 import { PatientList }       from './modules/patients/PatientList'
 import { PatientDetail }     from './modules/patients/PatientDetail'
@@ -116,7 +117,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
 
   const allNavItems = [
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
-
+    { to: '/vacunas',   icon: icons.vaccines, label: 'Vacunas' },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
@@ -244,7 +245,7 @@ function MobileNav() {
 
   const allNavItems = [
     { to: '/pacientes', icon: icons.patients, label: 'Pacientes' },
-
+    { to: '/vacunas',   icon: icons.vaccines, label: 'Vacunas' },
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
@@ -352,6 +353,14 @@ export default function App() {
             element={
               <ProtectedRoute requireStaff>
                 <AppLayout><WeekView /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/vacunas"
+            element={
+              <ProtectedRoute requireStaff>
+                <AppLayout><VaccineDashboard /></AppLayout>
               </ProtectedRoute>
             }
           />
