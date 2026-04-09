@@ -51,11 +51,28 @@ DO $$
 DECLARE 
     t text;
 BEGIN 
+    -- 1. Tablas estándar que NO son staff
     FOR t IN SELECT table_name FROM information_schema.tables WHERE table_schema = 'public' 
-    AND table_name IN ('guardians', 'patients', 'vaccinations', 'appointments', 'stock_items', 'services', 'staff', 'clinic_config')
+    AND table_name IN ('guardians', 'patients', 'vaccinations', 'appointments', 'stock_items', 'services', 'clinic_config')
     LOOP
         EXECUTE 'DROP POLICY IF EXISTS "Enable all actions for authenticated users" ON public.' || t;
+        EXECUTE 'DROP POLICY IF EXISTS "Clinic Data Isolation" ON public.' || t;
         EXECUTE 'CREATE POLICY "Clinic Data Isolation" ON public.' || t || 
-                ' FOR ALL USING (clinic_id = (SELECT clinic_id FROM public.staff WHERE email = auth.jwt() ->> ''email''))';
+                ' FOR ALL USING (clinic_id IN (SELECT clinic_id FROM public.staff WHERE email = auth.jwt() ->> ''email''))';
     END LOOP;
 END $$;
+
+-- 2. Manejo especial de la tabla STAFF para evitar RECURSIÓN INFINITA
+DROP POLICY IF EXISTS "Clinic Data Isolation" ON public.staff;
+DROP POLICY IF EXISTS "Enable all actions for authenticated users" ON public.staff;
+
+CREATE POLICY "Staff see own clinic data" ON public.staff
+FOR SELECT USING (
+    email = auth.jwt() ->> 'email' OR 
+    clinic_id IN (SELECT id FROM public.clinics WHERE owner_id = auth.uid())
+);
+
+CREATE POLICY "Admins manage staff" ON public.staff
+FOR ALL USING (
+    clinic_id IN (SELECT id FROM public.clinics WHERE owner_id = auth.uid())
+);

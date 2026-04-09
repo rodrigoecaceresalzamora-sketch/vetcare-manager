@@ -1,6 +1,10 @@
 import { Link } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
 
 export function LandingPage() {
+  const { user, clinicId } = useAuth()
+  const dashboardLink = user ? (clinicId ? '/agenda' : '/onboarding') : '/login'
+  const billingLink = user ? '/facturacion' : '/login'
   return (
     <div className="min-h-screen bg-white font-sans text-gray-900 overflow-x-hidden">
       {/* Header / Nav */}
@@ -37,8 +41,8 @@ export function LandingPage() {
               Agenda, fichas clínicas, control de stock y recordatorios automáticos en una sola plataforma SaaS diseñada para veterinarios modernos.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Link to="/login" className="px-10 py-5 bg-vet-rose text-white rounded-2xl font-black text-lg shadow-2xl shadow-vet-rose/40 hover:scale-105 transition-all text-center">
-                Comenzar ahora
+              <Link to={dashboardLink} className="px-10 py-5 bg-vet-rose text-white rounded-2xl font-black text-lg shadow-2xl shadow-vet-rose/40 hover:scale-105 transition-all text-center">
+                {user ? 'Volver al Panel' : 'Comenzar ahora'}
               </Link>
               <a href="#pricing" className="px-10 py-5 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl font-black text-lg hover:bg-gray-50 transition-all text-center">
                 Ver planes
@@ -82,7 +86,7 @@ export function LandingPage() {
               <li className="flex gap-3 text-gray-600 font-medium text-pink-500">❌ Hasta 2 Administradores</li>
               <li className="flex gap-3 text-gray-600 font-medium">✅ Recordatorios WhatsApp</li>
             </ul>
-            <Link to="/login" className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-center hover:bg-vet-rose transition-colors">
+            <Link to={billingLink} className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-center hover:bg-vet-rose transition-colors">
               Elegir Básico
             </Link>
           </div>
@@ -104,7 +108,7 @@ export function LandingPage() {
               <li className="flex gap-3 text-gray-300 font-medium">✅ Control de Stock Avanzado</li>
               <li className="flex gap-3 text-gray-300 font-medium">✅ Métricas y Estadísticas</li>
             </ul>
-            <Link to="/login" className="w-full py-5 bg-vet-rose text-white rounded-2xl font-black text-center hover:bg-white hover:text-vet-rose transition-all">
+            <Link to={billingLink} className="w-full py-5 bg-vet-rose text-white rounded-2xl font-black text-center hover:bg-white hover:text-vet-rose transition-all">
               Ir a Pro ahora
             </Link>
           </div>
