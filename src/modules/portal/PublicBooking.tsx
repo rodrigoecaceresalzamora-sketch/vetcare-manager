@@ -450,7 +450,7 @@ export function PublicBooking() {
           {!user ? (
             <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-8 text-center">
               <h3 className="text-sm font-bold text-gray-900 mb-2">Identifícate para agendar</h3>
-              <Link to="/login" state={{ from: { pathname: '/reserva' } }}
+              <Link to="/login" state={{ from: { pathname: '/reserva/' + clinicId } }}
                     className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all">
                 Ir al inicio de sesión
               </Link>

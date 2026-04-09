@@ -6,7 +6,7 @@ export function LandingPage() {
   const dashboardLink = user ? (clinicId ? '/agenda' : '/onboarding') : '/login'
   
   return (
-    <div className="min-h-screen bg-vet-bone flex items-center justify-center p-6 font-sans">
+    <div className="min-h-screen bg-vet-bone flex flex-col items-center justify-center p-6 font-sans text-gray-900">
       <div className="max-w-4xl w-full grid md:grid-cols-2 bg-white rounded-[3rem] shadow-2xl overflow-hidden border border-pink-100">
         
         {/* Lado Izquierdo: Acceso */}
@@ -46,14 +46,9 @@ export function LandingPage() {
             Comprar VetCare Manager
           </Link>
         </div>
-
       </div>
-    </div>
-  )
-}
 
-      {/* Footer */}
-      <footer className="py-20 bg-white border-t border-gray-100 text-center">
+      <footer className="mt-10 text-center">
         <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">&copy; 2026 VetCare Manager SaaS. Todos los derechos reservados.</p>
       </footer>
     </div>
