@@ -66,7 +66,7 @@ type Step = 1 | 2 | 3 | 4 | 'confirmed'
 export function PublicBooking() {
   const { user } = useAuth()
   const navigate = useNavigate()
-  const { config, loading: configLoading } = useClinicConfig()
+  const { config } = useClinicConfig()
   const [step, setStep]             = useState<Step>(1)
   const [service, setService]       = useState<any | null>(null)
   const [dbServices, setDbServices] = useState<any[]>([])
@@ -110,7 +110,7 @@ export function PublicBooking() {
     fetchMyPets()
   }, [user?.email])
 
-  const availableDates = getAvailableDates()
+  const availableDates = getAvailableDates(config?.schedule || {})
 
   useEffect(() => {
     fetchPublicServices().then(setDbServices)

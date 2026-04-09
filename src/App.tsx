@@ -16,6 +16,7 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './contexts/ProtectedRoute'
+import { LoginPage } from './modules/auth/LoginPage'
 import { TutorView } from './modules/auth/TutorView'
 import { ClinicConfigProvider, useClinicConfig } from './contexts/ClinicConfigContext'
 
@@ -27,6 +28,7 @@ import { PatientDetail }     from './modules/patients/PatientDetail'
 import { StaffManagement }   from './modules/staff/StaffManagement'
 import { PricingManagement } from './modules/staff/PricingManagement'
 import { StockManagement }   from './modules/stock/StockManagement'
+import { SettingsManagement } from './modules/staff/SettingsManagement'
 
 import { getGravatarUrl }    from './lib/utils'
 

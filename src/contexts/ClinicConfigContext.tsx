@@ -24,7 +24,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const fetchConfig = useCallback(async () => {
     try {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('clinic_config')
         .select('*')
         .eq('id', 1)
@@ -47,12 +47,12 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const updateConfig = async (newConfig: Partial<ClinicConfig>): Promise<boolean> => {
     try {
-      const { error } = await supabase
+      const { error: _error } = await supabase
         .from('clinic_config')
         .update({ ...newConfig, updated_at: new Date().toISOString() })
         .eq('id', 1)
 
-      if (error) throw error
+      if (_error) throw _error
       await fetchConfig()
       return true
     } catch (err) {

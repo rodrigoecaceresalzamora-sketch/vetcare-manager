@@ -54,6 +54,7 @@ export function VaccineDashboard() {
     deleteVaccination,
     refresh,
   } = useVaccineAlerts()
+  const { config } = useClinicConfig()
 
   const [showForm, setShowForm] = useState(false)
   const [sendingId, setSendingId] = useState<string | null>(null)
