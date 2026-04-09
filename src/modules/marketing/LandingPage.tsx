@@ -33,17 +33,20 @@ export function LandingPage() {
             <div className="inline-block px-4 py-1.5 bg-pink-50 text-vet-rose rounded-full text-xs font-black uppercase tracking-widest border border-pink-100">
               ✨ La nueva era de la gestión veterinaria
             </div>
-            <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-gray-900">
-              Tu Clínica Veterinaria <br/> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-vet-rose to-pink-400">en la palma de tu mano.</span>
+            <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-gray-900 uppercase">
+              Todo para tu <br/> 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-vet-rose to-pink-400">Mejor Amigo.</span>
             </h1>
-            <p className="text-xl text-gray-500 leading-relaxed max-w-lg">
-              Gestiona pacientes, vacunas y citas de forma sencilla. Accede a tu portal de tutor o administrador hoy mismo.
+            <p className="text-xl text-gray-600 leading-relaxed max-w-lg font-medium">
+              Agenda consultas, revisa vacunas y mantén el historial de tus mascotas en un solo lugar. El portal más intuitivo para dueños responsables.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link to={dashboardLink} className="px-10 py-5 bg-vet-rose text-white rounded-2xl font-black text-lg shadow-2xl shadow-vet-rose/40 hover:scale-105 transition-all text-center">
-                {user ? 'Volver al Panel' : 'Registrarse / Entrar'}
+                {user ? 'Mi Portal / Agenda' : 'Registrarse / Entrar'}
               </Link>
+              <a href="#professionals" className="px-10 py-5 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl font-black text-lg hover:bg-gray-50 transition-all text-center">
+                ¿Eres Veterinario?
+              </a>
             </div>
           </div>
           <div className="relative">
@@ -59,11 +62,38 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* Section: Professionals Pitch */}
+      <section id="professionals" className="py-24 bg-white">
+        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+          <div className="order-2 md:order-1">
+             <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-vet-rose/20 rounded-full blur-2xl"></div>
+                <h3 className="text-2xl font-black mb-4 uppercase tracking-tight italic">¿Eres Veterinario?</h3>
+                <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                  Transforma la gestión de tu clínica con nuestra plataforma SaaS. <br/>
+                  Control de stock, métricas avanzadas y recordatorios WhatsApp automatizados.
+                </p>
+                <div className="flex items-center gap-4">
+                   <div className="px-4 py-2 bg-vet-rose/10 border border-vet-rose/20 rounded-xl text-vet-rose text-[10px] font-black uppercase">SaaS Profesional</div>
+                   <div className="px-4 py-2 bg-white/5 rounded-xl text-gray-400 text-[10px] font-black uppercase tracking-widest">Multi-tenant</div>
+                </div>
+             </div>
+          </div>
+          <div className="order-1 md:order-2 space-y-6">
+            <h2 className="text-4xl font-black tracking-tighter uppercase leading-tight">Diseñado por veterinarios, <br/><span className="text-vet-rose">para veterinarios.</span></h2>
+            <p className="text-gray-500 font-medium">Automatiza lo complejo y enfócate en lo que importa: la salud animal.</p>
+            <a href="#pricing" className="inline-flex items-center gap-2 text-vet-rose font-black uppercase tracking-widest text-xs hover:gap-4 transition-all">
+               Ver planes para tu clínica <span>→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+
       {/* Pricing Section */}
-      <section id="pricing" className="py-32 bg-gray-50">
+      <section id="pricing" className="py-32 bg-vet-bone/30 mt-12">
         <div className="max-w-7xl mx-auto px-6 text-center space-y-4 mb-20">
-          <h2 className="text-4xl font-black tracking-tighter">Planes que crecen contigo</h2>
-          <p className="text-gray-500 max-w-xl mx-auto font-medium">Desde atención independiente hasta grandes hospitales veterinarios.</p>
+          <h2 className="text-4xl font-black tracking-tighter uppercase">Potencia tu Clínica hoy</h2>
+          <p className="text-gray-500 max-w-xl mx-auto font-medium lowercase">Adquiere la licencia oficial de VetCare Manager y escala tu negocio.</p>
         </div>
 
         <div className="max-w-5xl mx-auto grid md:grid-cols-2 gap-8 px-6">
@@ -83,8 +113,8 @@ export function LandingPage() {
               <li className="flex gap-3 text-gray-600 font-medium text-pink-500">❌ Hasta 2 Administradores</li>
               <li className="flex gap-3 text-gray-600 font-medium">✅ Recordatorios WhatsApp</li>
             </ul>
-            <Link to={billingLink} className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-center hover:bg-vet-rose transition-colors">
-              Elegir Básico
+            <Link to={billingLink} className="w-full py-5 bg-gray-900 text-white rounded-2xl font-black text-center hover:bg-vet-rose transition-colors uppercase tracking-widest text-sm">
+              Comprar VetCare Manager (Basico)
             </Link>
           </div>
 
@@ -105,8 +135,8 @@ export function LandingPage() {
               <li className="flex gap-3 text-gray-300 font-medium">✅ Control de Stock Avanzado</li>
               <li className="flex gap-3 text-gray-300 font-medium">✅ Métricas y Estadísticas</li>
             </ul>
-            <Link to={billingLink} className="w-full py-5 bg-vet-rose text-white rounded-2xl font-black text-center hover:bg-white hover:text-vet-rose transition-all">
-              Ir a Pro ahora
+            <Link to={billingLink} className="w-full py-5 bg-vet-rose text-white rounded-2xl font-black text-center hover:bg-white hover:text-vet-rose transition-all uppercase tracking-widest text-sm shadow-xl shadow-vet-rose/20">
+              Comprar VetCare Manager (Pro)
             </Link>
           </div>
         </div>

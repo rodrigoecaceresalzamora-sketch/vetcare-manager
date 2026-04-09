@@ -92,12 +92,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } else {
-        // Fallback: Si no está en staff, podría ser un tutor o el admin creando su primera clínica
+        // 3. Fallback: Si no está en staff, podría ser el DUEÑO de una clínica
+        const { data: ownedClinic } = await supabase
+          .from('clinics')
+          .select('id, plan_type, is_paid')
+          .eq('owner_id', user.id)
+          .maybeSingle()
+
+        if (ownedClinic) {
+          setRole('admin')
+          setClinicId(ownedClinic.id)
+          setPlanType(ownedClinic.plan_type as 'basic' | 'pro')
+          setIsPaid(!!ownedClinic.is_paid)
+        } else {
+          // Si no es dueño ni staff, es un tutor
+          setRole('tutor')
+        }
+
+        // Caso especial Admin Principal (siempre admin)
         if (userEmail === 'scaceresalzamora@gmail.com') {
           setRole('admin')
-          setPlanType('pro') // Forzamos Pro para el admin principal
-        } else {
-          setRole('tutor')
+          setPlanType('pro')
+          setIsPaid(true)
         }
       }
     } catch (err) {

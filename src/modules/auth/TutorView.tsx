@@ -133,12 +133,13 @@ export function TutorView() {
           </div>
 
           <div className="flex items-center gap-3">
+            </Link>
+            <div className="h-8 w-px bg-gray-100 mx-2 hidden sm:block"></div>
             <Link 
-              to="/reserva"
-              className="px-5 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-pink-200 flex items-center gap-2"
+              to="/facturacion"
+              className="px-4 py-2 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-vet-rose transition-all flex items-center gap-2"
             >
-              <span className="text-lg leading-none">+</span>
-              Agendar Hora
+               Comprar VetCare Manager
             </Link>
             <div className="h-8 w-px bg-gray-100 mx-2 hidden sm:block"></div>
             <button 
@@ -363,9 +364,9 @@ export function TutorView() {
               </div>
               <Link 
                 to="/facturacion"
-                className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-black text-lg hover:bg-vet-rose hover:text-white transition-all shadow-xl whitespace-nowrap"
+                className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-black text-lg hover:bg-vet-rose hover:text-white transition-all shadow-xl whitespace-nowrap uppercase tracking-widest"
               >
-                Comprar Servicio ahora
+                Comprar VetCare Manager
               </Link>
             </div>
           </div>
