@@ -97,7 +97,7 @@ export function useVaccineAlerts() {
         lot_number: input.lot_number,
         next_due_date,
         reminder_sent: false,
-        clinic_id: clinicId
+        clinic_id: clinicId || ''
       }
 
       const { error: err } = await supabase.from('vaccinations').insert(record)

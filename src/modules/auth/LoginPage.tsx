@@ -11,7 +11,6 @@ export function LoginPage() {
   const [error, setError]       = useState<string | null>(null)
   
   const navigate = useNavigate()
-  const location = useLocation()
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()

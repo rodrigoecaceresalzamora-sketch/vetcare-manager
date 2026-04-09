@@ -94,7 +94,7 @@ export function Billing() {
 
           <button 
             disabled={planType === 'basic' || loading}
-            onClick={() => handleUpgrade('Basic', STRIPE_PLANS.BASIC.price)}
+            onClick={() => handleUpgrade('Basic')}
             className={`w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
               planType === 'basic' 
                 ? 'bg-gray-100 text-gray-400 cursor-default' 
@@ -131,7 +131,7 @@ export function Billing() {
 
           <button 
              disabled={loading}
-             onClick={() => handleUpgrade('Pro', STRIPE_PLANS.PRO.price)}
+             onClick={() => handleUpgrade('Pro')}
              className={`w-full py-4 rounded-2xl text-sm font-black uppercase tracking-widest transition-all ${
               planType === 'pro' && isPaid
                 ? 'bg-green-500/10 text-green-400 border-2 border-green-500/20 shadow-none' 
