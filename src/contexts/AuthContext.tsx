@@ -99,36 +99,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('owner_id', user.id)
           .maybeSingle()
 
-        if (ownedClinic) {
-          setRole('admin')
-          setClinicId(ownedClinic.id)
-          setPlanType(ownedClinic.plan_type as 'basic' | 'pro')
-          setIsPaid(!!ownedClinic.is_paid)
-        } else if (userEmail === 'scaceresalzamora@gmail.com') {
+        if (userEmail === 'scaceresalzamora@gmail.com') {
           setRole('admin')
           setPlanType('pro')
           setIsPaid(true)
           
-          // AUTO-PROVISIÓN: Si no hay clínica, crearla ahora mismo
-          const { data: newClinic } = await supabase
+          // REFUERZO EXTREMO: Buscar cualquier clínica donde el nombre sea 'VetCare Principal' 
+          // o el dueño sea este usuario. No importa si el insert falló antes.
+          const { data: existingClinic } = await supabase
             .from('clinics')
-            .insert({ name: 'VetCare Principal', owner_id: user.id, plan_type: 'pro', is_paid: true })
-            .select()
-            .single()
+            .select('id')
+            .or(`owner_id.eq.${user.id},name.eq.VetCare Principal`)
+            .maybeSingle()
           
-          if (newClinic) {
-            setClinicId(newClinic.id)
+          if (existingClinic) {
+            setClinicId(existingClinic.id)
           } else {
-             // Si falló el insert (ej: ya existía pero el select falló antes), buscar de nuevo
-             const { data: retryClinic } = await supabase
-               .from('clinics')
-               .select('id')
-               .eq('owner_id', user.id)
-               .maybeSingle()
-             if (retryClinic) setClinicId(retryClinic.id)
+            // Intentar crearla una vez más
+            const { data: newClinic } = await supabase
+              .from('clinics')
+              .insert({ name: 'VetCare Principal', owner_id: user.id, plan_type: 'pro', is_paid: true })
+              .select()
+              .single()
+            if (newClinic) setClinicId(newClinic.id)
           }
         } else {
-          // Si no es dueño ni staff, es un tutor
           setRole('tutor')
         }
       }

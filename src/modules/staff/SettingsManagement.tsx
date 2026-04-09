@@ -45,17 +45,17 @@ export function SettingsManagement() {
 
   if (loading) return <div className="p-10 text-center animate-pulse text-gray-400 font-medium whitespace-pre">Cargando...</div>
   
-  if (!config) return (
+  if (!config && !clinicId) return (
     <div className="p-10 text-center flex flex-col items-center justify-center min-h-[400px]">
       <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 border border-gray-100 italic text-2xl">⚙️</div>
-      <p className="text-gray-900 font-black uppercase tracking-tight">No se encontró una configuración</p>
+      <p className="text-gray-900 font-black uppercase tracking-tight">No se encontró una clínica vinculada</p>
       <p className="text-xs text-gray-400 mt-2 max-w-xs leading-relaxed font-medium">
-        Tu clínica no tiene un perfil configurado. Estamos intentando generarlo automáticamente... si el problema persiste, contacta a soporte.
+        Asegúrate de haber completado el onboarding o que tu cuenta tenga una clínica asignada.
       </p>
     </div>
   )
 
-  const bookingLink = `${window.location.origin}/reserva/${config.clinic_id}`
+  const bookingLink = clinicId ? `${window.location.origin}/reserva/${clinicId}` : `${window.location.origin}/reserva`
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-8 animate-fade-in">
