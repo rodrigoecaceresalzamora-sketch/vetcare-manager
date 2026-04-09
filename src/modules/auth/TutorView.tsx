@@ -8,9 +8,11 @@ import {
   calcVaccineStatus
 } from '../../lib/utils'
 import type { Patient, Appointment, Vaccination } from '../../types'
+import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
 export function TutorView() {
   const { user, signOut } = useAuth()
+  const { config } = useClinicConfig()
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -122,10 +124,10 @@ export function TutorView() {
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-vet-rose rounded-xl flex items-center justify-center shadow-md rotate-3">
-              <img src="/logo.png" alt="VetCare" className="w-8 h-8 object-contain" />
+              <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-8 h-8 object-contain rounded-md" />
             </div>
             <div>
-              <h1 className="text-lg font-black text-gray-900 leading-none">VETCARE</h1>
+              <h1 className="text-lg font-black text-gray-900 leading-none">{config?.clinic_name || 'VETCARE'}</h1>
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Portal del Tutor</p>
             </div>
           </div>
@@ -161,31 +163,34 @@ export function TutorView() {
             </h3>
             <div className="flex flex-col sm:flex-row gap-6">
               <div className="flex-1">
-                <p className="text-lg font-bold text-gray-900 mb-1">Santa Fe Mascota</p>
-                <p className="text-sm text-gray-600 mb-4">San Enrique 1380, Retiro, Quilpué</p>
+                <p className="text-lg font-bold text-gray-900 mb-1">{config?.clinic_name || 'Veterinaria'}</p>
+                <p className="text-sm text-gray-600 mb-4">{config?.address}</p>
                 
                 <div className="space-y-3">
                   <div className="flex items-start gap-2">
                     <span className="text-xs">⏰</span>
                     <div>
                       <p className="text-xs font-bold text-gray-800">Horarios en Tienda:</p>
-                      <p className="text-[11px] text-gray-600">Martes y Miércoles: 10:00 - 14:00 y 15:00 - 16:00</p>
-                      <p className="text-[11px] text-gray-600">Jueves: 10:00 - 12:30</p>
-                      <p className="text-[11px] text-gray-600">Sábado: 10:00 - 14:00</p>
+                      {Object.keys(config?.schedule || {}).map(day => {
+                        const dayName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][Number(day)]
+                        return (
+                          <p key={day} className="text-[11px] text-gray-600">{dayName}: {config?.schedule[day].slice(0, 1) + ' - ' + config?.schedule[day].slice(-1)}</p>
+                        )
+                      })}
                     </div>
                   </div>
                   <div className="flex items-start gap-2">
                     <span className="text-xs">🏠</span>
                     <div>
                       <p className="text-xs font-bold text-gray-800">Consultas a Domicilio:</p>
-                      <p className="text-[11px] text-gray-600">Contactar vía WhatsApp al <strong>+56 9 5104 5611</strong></p>
+                      <p className="text-[11px] text-gray-600">Contactar vía WhatsApp al <strong>{config?.contact_phone}</strong></p>
                     </div>
                   </div>
                 </div>
               </div>
               <div className="w-full sm:w-48 h-32 sm:h-auto rounded-2xl overflow-hidden shadow-inner border border-pink-50">
                 <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1672.41!2d-71.435!3d-33.05!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689e13!2sSan+Enrique+1380%2C+Quilpu%C3%A9!5e0!3m2!1ses-419!2scl!4v1" 
+                  src={config?.google_maps_embed_url} 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
@@ -203,7 +208,7 @@ export function TutorView() {
               Para visitas fuera de la tienda en Quilpué, agenda directamente por WhatsApp para coordinar factibilidad técnica y horarios especiales.
             </p>
             <a 
-              href="https://wa.me/56951045611" 
+              href={`https://wa.me/${config?.contact_phone?.replace(/[^\d]/g, '')}`} 
               target="_blank" 
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 bg-white text-vet-rose px-6 py-3 rounded-2xl font-black text-sm hover:bg-vet-dark hover:text-white transition-all w-fit shadow-xl"

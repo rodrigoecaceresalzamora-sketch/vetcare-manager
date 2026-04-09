@@ -227,3 +227,23 @@ export interface PatientFile {
   created_at?: string
 }
 
+// ── CONFIGURACIÓN GLOBAL ──────────────────────────────────────
+export interface ClinicConfig {
+  id: number
+  clinic_name: string
+  clinic_logo_url: string | null
+  primary_color: string
+  secondary_color: string
+  contact_phone: string
+  contact_email: string
+  address: string
+  google_maps_embed_url: string
+  transfer_details: string
+  advance_payment_percentage: number
+  wa_template_reminder: string
+  wa_template_confirmation: string
+  schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
+  created_at?: string
+  updated_at?: string
+}
+

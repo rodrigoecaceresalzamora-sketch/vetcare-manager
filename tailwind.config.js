@@ -5,12 +5,12 @@ export default {
         extend: {
             colors: {
                 vet: {
-                    pink: '#c8799f',
-                    rose: '#c8799f',
-                    dark: '#000000',
-                    light: '#ffffff',
-                    amber: '#e8a020',
-                    bone: '#fdf2f7', /* Fondo rosado pastel para el panel derecho */
+                    pink: 'var(--vet-pink)',
+                    rose: 'var(--vet-rose)',
+                    dark: 'var(--vet-dark)',
+                    light: 'var(--vet-light)',
+                    amber: 'var(--vet-amber)',
+                    bone: 'var(--vet-bone)',
                 }
             },
             fontFamily: {

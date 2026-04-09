@@ -11,6 +11,7 @@
 import { useState, useMemo } from 'react'
 import { useVaccineAlerts } from './useVaccineAlerts'
 import { VaccineForm } from './VaccineForm'
+import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 import {
   formatDate,
   daysLeftLabel,
@@ -102,34 +103,18 @@ export function VaccineDashboard() {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
     })
 
-    const msg = `Hola ${guardianName},
-
-Te contactamos desde *VetCare - Sofía Cáceres, Médica Veterinaria* para recordarte que se acerca la fecha de refuerzo de vacuna de *${petName}*.
-
-Cumplir con los plazos de vacunación es fundamental para mantener a tu compañero/a completamente protegido/a.
-
-----------------------------
-*DETALLES DE LA VACUNACION*
-----------------------------
-Mascota: *${petName}*
-Vacuna: *${vaccineName}*
-Fecha sugerida: *${formattedDate}*
-----------------------------
-
-*📍 Lugar de Atencion:*
-San Enrique 1380, Retiro, Quilpué
-(Tienda Santa Fe Mascota)
-
-*⏰ Horario de atencion:*
-Martes y Miércoles de 10:00 a 14:00 y 15:00 a 16:00
-Jueves de 10:00 a 12:30
-Sábado de 10:00 a 14:00
-
-Para agendar o reprogramar tu cita puedes responder este mensaje o llamarnos al *+56951045611*
-
-Atentamente,
-*Sofía Cáceres Alzamora*
-Médica Veterinaria`
+    let msg = config?.wa_template_reminder || ''
+    
+    if (msg) {
+      msg = msg.replace(/{tutor}/g, guardianName)
+      msg = msg.replace(/{mascota}/g, petName)
+      msg = msg.replace(/{vacuna}/g, vaccineName)
+      msg = msg.replace(/{fecha}/g, formattedDate)
+      msg = msg.replace(/{direccion}/g, config?.address || '')
+    } else {
+      // Fallback
+      msg = `Hola ${guardianName}, recordamos la vacuna de ${petName} (${vaccineName}) para el día ${formattedDate}.`
+    }
 
     const encoded = encodeURIComponent(msg)
     if (!phone) return null

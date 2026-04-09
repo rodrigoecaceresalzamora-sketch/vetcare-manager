@@ -80,17 +80,6 @@ export function PricingManagement() {
   }
 
   async function handleUpdateService(service: Service) {
-    const isNewTransferInfo = service.name === 'DATOS_TRANSFERENCIA' && !service.id
-    
-    if (isNewTransferInfo) {
-      const id = crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substr(2, 9)
-      const { error: err } = await supabase.from('services').insert({
-        id, name: 'DATOS_TRANSFERENCIA', description: service.description, price: 0, duration_minutes: 0
-      })
-      if (err) setError(err.message)
-      else { setEditingId(null); showToast('✅ Datos guardados'); fetchServices() }
-      return
-    }
     const { error: err } = await supabase
       .from('services')
       .update({
@@ -256,7 +245,7 @@ export function PricingManagement() {
             <div>
               <h2 className="text-lg font-bold text-gray-900 mb-4 border-b pb-2">📋 Lista de Servicios</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {services.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map(service => (
+                {services.map(service => (
                   <ServiceCard 
                     key={service.id} 
                     service={service} 
@@ -283,44 +272,6 @@ export function PricingManagement() {
         </div>
       </div>
 
-      {(services.find(s => s.name === 'DATOS_TRANSFERENCIA') || true) && (() => {
-        const transferObj = services.find(s => s.name === 'DATOS_TRANSFERENCIA') || { name: 'DATOS_TRANSFERENCIA', description: 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: JUAN PEREZ\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA' } as Service
-        return (
-          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mt-8">
-            <div className="flex justify-between items-start mb-4">
-              <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">🏦 Datos de Transferencia Bancaria</h2>
-              {editingId !== 'transfer_data' ? (
-                <button onClick={() => setEditingId('transfer_data')} className="text-xs font-bold text-vet-rose hover:underline">Editar</button>
-              ) : (
-                <div className="flex gap-2">
-                  <button onClick={() => setEditingId(null)} className="text-xs font-bold text-gray-400 hover:underline">Cancelar</button>
-                  <button onClick={() => handleUpdateService(transferObj)} className="text-xs font-bold text-green-600 hover:underline">Guardar</button>
-                </div>
-              )}
-            </div>
-            <p className="text-xs text-gray-500 mb-4 truncate">Aparecerán automáticamente en la pantalla de abonos del 20%.</p>
-            {editingId === 'transfer_data' ? (
-              <textarea
-                className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20 font-mono"
-                rows={4}
-                value={transferObj.description || ''}
-                onChange={(e) => {
-                  const val = e.target.value
-                  if (services.some(s => s.name === 'DATOS_TRANSFERENCIA')) {
-                    setServices(services.map(s => s.name === 'DATOS_TRANSFERENCIA' ? {...s, description: val} : s))
-                  } else {
-                    transferObj.description = val
-                  }
-                }}
-              />
-            ) : (
-              <div className="bg-gray-50 p-4 rounded-xl text-sm font-mono whitespace-pre-wrap text-gray-700">
-                {transferObj.description}
-              </div>
-            )}
-          </div>
-        )
-      })()}
     </div>
   )
 }

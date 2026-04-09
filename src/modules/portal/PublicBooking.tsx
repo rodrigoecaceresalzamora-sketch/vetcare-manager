@@ -18,6 +18,7 @@ import {
   formatRUT 
 } from '../../lib/utils'
 import type { PublicBookingFormData } from '../../types'
+import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
 async function fetchPublicServices() {
@@ -29,17 +30,17 @@ async function fetchPublicServices() {
   return data || []
 }
 
-// ── Próximos 7 días permitidos ──────────────────────────────────
-function getAvailableDates(): { label: string; value: string; dow: number }[] {
+// ── Próximos días permitidos (dinámicos) ──────────────────────
+function getAvailableDates(schedule: Record<string, string[]>): { label: string; value: string; dow: number }[] {
   const dates: { label: string; value: string; dow: number }[] = []
   const d = new Date()
   d.setDate(d.getDate() + 1) // Mañana en adelante
 
-  const ALLOWED_DAYS = [2, 3, 4, 6] // Mar, Mié, Jue, Sáb
+  const allowedDows = Object.keys(schedule).map(Number)
 
-  while (dates.length < 14) { // Buscamos en los próximos 14 días
+  while (dates.length < 14) { 
     const dow = d.getDay()
-    if (ALLOWED_DAYS.includes(dow)) {
+    if (allowedDows.includes(dow)) {
       dates.push({
         label: d.toLocaleDateString('es-CL', {
           weekday: 'short',
@@ -56,24 +57,8 @@ function getAvailableDates(): { label: string; value: string; dow: number }[] {
 }
 
 // ── Slots de horario dinámicos ─────────────────────────────────
-function getTimeSlots(dow: number): string[] {
-  if (dow === 2 || dow === 3) { // Mar, Mié: 10:00 - 14:00 y 15:00 - 16:00
-    return [
-      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
-      '15:00', '15:30'
-    ]
-  }
-  if (dow === 4) { // Jue: 10:00 - 12:30
-    return [
-      '10:00', '10:30', '11:00', '11:30', '12:00'
-    ]
-  }
-  if (dow === 6) { // Sáb: 10:00 - 14:00
-    return [
-      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'
-    ]
-  }
-  return []
+function getTimeSlots(dow: number, schedule: Record<string, string[]>): string[] {
+  return schedule[String(dow)] || []
 }
 
 type Step = 1 | 2 | 3 | 4 | 'confirmed'
@@ -81,6 +66,7 @@ type Step = 1 | 2 | 3 | 4 | 'confirmed'
 export function PublicBooking() {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { config, loading: configLoading } = useClinicConfig()
   const [step, setStep]             = useState<Step>(1)
   const [service, setService]       = useState<any | null>(null)
   const [dbServices, setDbServices] = useState<any[]>([])
@@ -273,17 +259,17 @@ export function PublicBooking() {
         <section>
            <div className="bg-vet-rose/10 border-l-4 border-vet-rose p-4 rounded-r-xl mb-6">
             <h3 className="font-black text-vet-dark text-sm mb-2 flex items-center gap-2">
-              📍 Atención en Tienda: Santa Fe Mascota
+              📍 Atención en Tienda: {config?.clinic_name || 'VetCare'}
             </h3>
             <p className="text-xs text-gray-700 leading-relaxed mb-3">
-              <strong>Dirección:</strong> San Enrique 1380, Retiro, Quilpué.<br/>
+              <strong>Dirección:</strong> {config?.address}<br/>
               <em>* Atención presencial solo en horarios establecidos.</em>
             </p>
             
             {/* Mapa Interactivo */}
             <div className="w-full h-40 rounded-xl overflow-hidden mb-4 border border-pink-100 shadow-sm bg-gray-50">
               <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1672.41!2d-71.435!3d-33.05!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689e13!2sSan+Enrique+1380%2C+Quilpu%C3%A9!5e0!3m2!1ses-419!2scl!4v1" 
+                src={config?.google_maps_embed_url} 
                 width="100%" 
                 height="100%" 
                 style={{ border: 0 }} 
@@ -295,16 +281,20 @@ export function PublicBooking() {
 
             <h3 className="font-bold text-vet-rose text-xs mb-1">🏠 Consultas a Domicilio</h3>
             <p className="text-[10px] text-gray-600 mb-4 px-2 py-1 bg-white/50 rounded-lg">
-              Para atención a domicilio, por favor contactar directamente por WhatsApp al <strong className="text-green-600">+56 9 5104 5611</strong>. No agendar por este medio.
+              Para atención a domicilio, por favor contactar directamente por WhatsApp al <strong className="text-green-600">{config?.contact_phone}</strong>. No agendar por este medio.
             </p>
 
-            <h3 className="font-bold text-vet-rose text-sm mb-1">Pago y Transferencia 💸</h3>
-            <p className="text-xs text-gray-700 leading-relaxed">
-              Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
-            </p>
-            <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
-              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: DRA. SOFIA CACERES\nBANCO: BANCO FALABELLA\nCTA CORRIENTE: 10452336214\nCORREO: SCACERESALZAMORA@GMAIL.COM\nRUT: 18.249.722-1\nASUNTO: NOMBRE DE LA MASCOTA'}
-            </div>
+            {config?.advance_payment_percentage && config?.advance_payment_percentage > 0 && (
+              <>
+                <h3 className="font-bold text-vet-rose text-sm mb-1">Pago y Transferencia 💸</h3>
+                <p className="text-xs text-gray-700 leading-relaxed">
+                  Para confirmar tu reserva, se requiere un <strong>abono del {config?.advance_payment_percentage}%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
+                </p>
+                <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
+                  {config?.transfer_details}
+                </div>
+              </>
+            )}
             <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-pink-100 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
             </p>
@@ -340,7 +330,7 @@ export function PublicBooking() {
         <section>
           <SectionTitle step={2} title="Elige la fecha" />
           <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
-            {availableDates.map((d) => (
+            {getAvailableDates(config?.schedule || {}).map((d) => (
               <button
                 key={d.value}
                 onClick={() => { setDate(d.value); setStep(3) }}
@@ -357,9 +347,9 @@ export function PublicBooking() {
 
       {step === 3 && (
         <section>
-          <SectionTitle step={3} title="Horario disponible" sub={availableDates.find(d => d.value === date)?.label} />
+          <SectionTitle step={3} title="Horario disponible" sub={getAvailableDates(config?.schedule || {}).find(d => d.value === date)?.label} />
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-6">
-            {getTimeSlots(availableDates.find(d => d.value === date)?.dow ?? 0).map((slot) => {
+            {getTimeSlots(getAvailableDates(config?.schedule || {}).find(d => d.value === date)?.dow ?? 0, config?.schedule || {}).map((slot) => {
               const taken = takenSlots.includes(slot)
               return (
                 <button
@@ -405,20 +395,22 @@ export function PublicBooking() {
               {consultationReason && <span className="text-xs text-gray-400 block mt-0.5 italic">{consultationReason}</span>}
             </div>
             <div className="text-right">
-              <span className="text-xs text-gray-500 block">A pagar hoy (Abono 20%)</span>
-              <span className="text-sm font-black text-vet-rose">${((service?.price || 0) * 0.20).toLocaleString('es-CL')}</span>
+              <span className="text-xs text-gray-500 block">A pagar hoy (Abono {config?.advance_payment_percentage}%)</span>
+              <span className="text-sm font-black text-vet-rose">${((service?.price || 0) * (config?.advance_payment_percentage || 0) / 100).toLocaleString('es-CL')}</span>
             </div>
           </div>
 
           {/* Aviso abono obligatorio */}
-          <div className="bg-gray-900 text-white rounded-xl px-5 py-4 text-center">
-            <p className="text-base font-black uppercase tracking-wide leading-snug">
-              Sin abono del 20% no se aceptará la consulta
-            </p>
-            <p className="text-xs text-gray-300 mt-1 font-medium">
-              Realiza la transferencia antes de confirmar tu reserva
-            </p>
-          </div>
+          {(config?.advance_payment_percentage || 0) > 0 && (
+            <div className="bg-gray-900 text-white rounded-xl px-5 py-4 text-center">
+              <p className="text-base font-black uppercase tracking-wide leading-snug">
+                Sin abono del {config?.advance_payment_percentage}% no se aceptará la consulta
+              </p>
+              <p className="text-xs text-gray-300 mt-1 font-medium">
+                Realiza la transferencia antes de confirmar tu reserva
+              </p>
+            </div>
+          )}
 
           {!user ? (
             <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-8 text-center">
@@ -555,13 +547,13 @@ export function PublicBooking() {
               </div>
 
 
-              {true && (
+              {(config?.advance_payment_percentage || 0) > 0 && (
                 <div className="mb-6 bg-gray-50 border border-gray-200 rounded-xl p-4 animate-fade-in text-left">
                   <h4 className="text-sm font-black text-gray-900 mb-3 flex items-center gap-2">
-                    <span>🏦</span> Datos de transferencia — Abono 20%
+                    <span>🏦</span> Datos de transferencia — Abono {config?.advance_payment_percentage}%
                   </h4>
                   <div className="text-sm text-gray-800 font-mono whitespace-pre-wrap bg-white rounded-lg p-3 border border-gray-100 mb-3">
-                    {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: JUAN PEREZ\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
+                    {config?.transfer_details}
                   </div>
                   <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
                     <p className="text-xs font-black text-amber-900 uppercase tracking-wide mb-3 flex items-center gap-2">
@@ -572,11 +564,10 @@ export function PublicBooking() {
                     </p>
                     <div className="bg-white border text-[11px] border-amber-200 rounded p-3 text-amber-900 font-mono space-y-1.5 shadow-sm">
                       <p className="font-bold underline mb-2">EJEMPLO DE TRANSFERENCIA</p>
-                      <p><strong>NOMBRE:</strong> JUAN PEREZ</p>
-                      <p><strong>BANCO:</strong> BANCO DE CHILE</p>
-                      <p><strong>CTA CORRIENTE:</strong> 123456789</p>
-                      <p><strong>CORREO:</strong> PAGOS@VETCARE.CL</p>
-                      <p><strong>RUT:</strong> 76.123.456-7</p>
+                      <p><strong>NOMBRE:</strong> {config?.clinic_name}</p>
+                      <p><strong>PROPIETARIO:</strong> {config?.clinic_name}</p>
+                      <p><strong>BANCO:</strong> SELECCIONADO</p>
+                      <p><strong>CORREO:</strong> {config?.contact_email}</p>
                       <p className="bg-amber-100/50 p-1 rounded inline-block font-black mt-1"><strong>ASUNTO:</strong> {form.pet_name ? form.pet_name.toUpperCase() : 'NOMBRE DE LA MASCOTA'}</p>
                     </div>
                   </div>
@@ -616,19 +607,20 @@ export function PublicBooking() {
 }
 
 function PortalShell({ children }: { children: React.ReactNode }) {
+  const { config } = useClinicConfig()
   return (
     <div className="min-h-screen bg-vet-bone font-sans">
-      <header className="bg-[#a65d80] py-4 px-4 shadow-lg border-b border-pink-200/20">
+      <header className="bg-vet-pink py-4 px-4 shadow-lg border-b border-pink-200/20">
         <div className="max-w-2xl mx-auto flex items-center gap-3 text-white">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-            <img src="/logo.png" alt="VetCare" className="w-7 h-7 object-contain" />
+            <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-7 h-7 object-contain rounded-lg" />
           </div>
-          <span className="font-black text-sm uppercase tracking-[0.2em]">VetCare — Gestión Clínica</span>
+          <span className="font-black text-sm uppercase tracking-[0.2em]">{config?.clinic_name || 'VetCare'} — Gestión Clínica</span>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
       <footer className="text-center py-10 px-4 text-[10px] text-gray-400 font-black uppercase tracking-[0.3em]">
-        &copy; 2026 VetCare &middot; Todos los derechos reservados
+        &copy; {new Date().getFullYear()} {config?.clinic_name || 'VetCare'} &middot; Todos los derechos reservados
       </footer>
     </div>
   )

@@ -16,8 +16,8 @@ import { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './contexts/ProtectedRoute'
-import { LoginPage } from './modules/auth/LoginPage'
 import { TutorView } from './modules/auth/TutorView'
+import { ClinicConfigProvider, useClinicConfig } from './contexts/ClinicConfigContext'
 
 import { WeekView }          from './modules/agenda/WeekView'
 import { VaccineDashboard }  from './modules/vaccines/VaccineDashboard'
@@ -112,6 +112,7 @@ const icons = {
 function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: () => void }) {
   const { pathname } = useLocation()
   const { signOut, user, role } = useAuth()
+  const { config } = useClinicConfig()
   
 
 
@@ -122,6 +123,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
     { to: '/stock',     icon: icons.stock,    label: 'Stock' },
+    { to: '/config',    icon: icons.globe,    label: 'Configuración', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -150,14 +152,14 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
       {/* Logo */}
       <div className={`px-4 py-6 border-b border-gray-100 flex flex-col ${isCollapsed ? 'items-center' : ''}`}>
         <img 
-          src="/logo.png" 
+          src={config?.clinic_logo_url || "/logo.png"} 
           alt="VetCare Logo" 
           className={`${isCollapsed ? 'w-8 h-8' : 'w-12 h-12'} transition-all object-cover rounded-xl mb-3 shadow-sm border border-pink-100`} 
         />
         {!isCollapsed && (
           <>
             <h1 className="text-black text-sm font-bold leading-tight uppercase tracking-tight">
-              VetCare<br/>Manager
+              {config?.clinic_name || 'VetCare'}<br/>Manager
             </h1>
           </>
         )}
@@ -250,6 +252,7 @@ function MobileNav() {
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
     { to: '/stock',     icon: icons.stock,    label: 'Stock' },
+    { to: '/config',    icon: icons.globe,    label: 'Configuración', adminOnly: true },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -325,7 +328,8 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
+        <ClinicConfigProvider>
+          <Routes>
           {/* Rutas Públicas */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reserva" element={<PublicBooking />} />
@@ -388,6 +392,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/config"
+            element={
+              <ProtectedRoute requireAdmin>
+                <AppLayout><SettingsManagement /></AppLayout>
+              </ProtectedRoute>
+            }
+          />
           {/* Default redirige a portal login público */}
           <Route
             path="/tutor"
@@ -404,7 +416,8 @@ export default function App() {
              element={<ProtectedRoute requireStaff><Navigate to="/agenda" replace /></ProtectedRoute>} 
           />
           <Route path="*" element={<Navigate to="/reserva" replace />} />
-        </Routes>
+          </Routes>
+        </ClinicConfigProvider>
       </BrowserRouter>
     </AuthProvider>
   )
