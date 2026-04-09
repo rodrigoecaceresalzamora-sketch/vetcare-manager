@@ -237,7 +237,6 @@ export interface PatientFile {
 
 // ── CONFIGURACIÓN GLOBAL ──────────────────────────────────────
 export interface ClinicConfig {
-  id: number
   clinic_name: string
   clinic_logo_url: string | null
   primary_color: string

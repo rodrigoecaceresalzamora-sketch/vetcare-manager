@@ -60,18 +60,27 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // AUTO-CREAR CONFIGURACIÓN SI NO EXISTE
         const { data: newConfig } = await supabase
           .from('clinic_config')
-          .insert({ clinic_id: currentClinicId, clinic_name: 'Mi Clínica Veterinaria' })
+          .insert({ clinic_id: currentClinicId, clinic_name: 'VetCare Manager' })
           .select()
           .single()
         
         if (newConfig) {
-          setConfig(newConfig as ClinicConfig)
+          const configWithDefaults = {
+            ...newConfig,
+            wa_template_reminder: newConfig.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
+            wa_template_confirmation: newConfig.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
+            email_subject_booking: newConfig.email_subject_booking || 'Confirmación de Cita - VetCare',
+            email_body_booking: newConfig.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
+            email_subject_reminder: newConfig.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
+            email_body_reminder: newConfig.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.'
+          }
+          setConfig(configWithDefaults as ClinicConfig)
           applyColors(newConfig.primary_color, newConfig.secondary_color)
         }
       }
     } catch (err) {
       console.error('Error fetching clinic config:', err)
-      setConfig(null) // Reset config on error
+      setConfig(null)
     } finally {
       setLoading(false)
     }
