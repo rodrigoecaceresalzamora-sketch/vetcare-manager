@@ -206,8 +206,24 @@ export function PublicBooking() {
     }
 
     try {
+      // Reemplazar placeholders en el email de booking
+      let emailSubject = config?.email_subject_booking || 'Confirmación de Cita'
+      let emailBody = config?.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida.'
+      
+      const formattedDateForEmail = availableDates.find(d => d.value === date)?.label || date || ''
+      
+      const replaceAll = (str: string) => str
+        .replace(/{tutor}/g, form.guardian_name)
+        .replace(/{mascota}/g, form.pet_name)
+        .replace(/{fecha}/g, formattedDateForEmail)
+        .replace(/{hora}/g, time || '')
+
       await supabase.functions.invoke('confirm-booking', {
-        body: { appointment_id: id },
+        body: { 
+          appointment_id: id,
+          custom_subject: replaceAll(emailSubject),
+          custom_body: replaceAll(emailBody)
+        },
       })
     } catch {
       console.warn('Email de confirmación no pudo enviarse')

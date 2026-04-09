@@ -11,6 +11,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 import {
   calcVaccineStatus,
   calcNextDueDate,
@@ -34,6 +35,7 @@ export function useVaccineAlerts() {
   const [alerts, setAlerts] = useState<VaccineAlert[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const { config } = useClinicConfig()
 
   // ── Carga todas las vacunas con joins a patients y guardians ──
   const fetchVaccinations = useCallback(async () => {
@@ -107,8 +109,23 @@ export function useVaccineAlerts() {
   // ── Enviar recordatorio por email (llama a Edge Function) ─────
   const sendReminder = useCallback(
     async (vaccinationId: string): Promise<{ error: string | null }> => {
+      const { data: v } = await supabase.from('vaccinations').select('*, patient:patients(*, guardian:guardians(*))').eq('id', vaccinationId).single()
+      
+      let emailSubject = config?.email_subject_reminder || 'Recordatorio de Vacuna'
+      let emailBody = config?.email_body_reminder || 'Hola {tutor}, recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha}.'
+
+      const replaceAll = (str: string) => str
+        .replace(/{tutor}/g, v.patient.guardian.name)
+        .replace(/{mascota}/g, v.patient.name)
+        .replace(/{vacuna}/g, v.vaccine_name)
+        .replace(/{fecha}/g, v.next_due_date)
+
       const { error: err } = await supabase.functions.invoke('send-vaccine-reminder', {
-        body: { vaccination_id: vaccinationId },
+        body: { 
+          vaccination_id: vaccinationId,
+          custom_subject: replaceAll(emailSubject),
+          custom_body: replaceAll(emailBody)
+        },
       })
 
       if (err) return { error: err.message }

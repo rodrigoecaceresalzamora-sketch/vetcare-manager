@@ -17,9 +17,9 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   const applyColors = useCallback((primary: string, secondary: string) => {
     const root = document.documentElement
-    root.style.setProperty('--vet-pink', primary)
-    root.style.setProperty('--vet-rose', primary)
-    root.style.setProperty('--vet-bone', secondary)
+    root.style.setProperty('--vet-pink', primary || '#a65d80')
+    root.style.setProperty('--vet-rose', primary || '#a65d80')
+    root.style.setProperty('--vet-bone', secondary || '#fdf2f7')
   }, [])
 
   const fetchConfig = useCallback(async () => {

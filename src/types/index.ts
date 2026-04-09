@@ -242,6 +242,10 @@ export interface ClinicConfig {
   advance_payment_percentage: number
   wa_template_reminder: string
   wa_template_confirmation: string
+  email_subject_booking: string
+  email_body_booking: string
+  email_subject_reminder: string
+  email_body_reminder: string
   schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
   created_at?: string
   updated_at?: string

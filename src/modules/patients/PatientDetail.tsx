@@ -10,6 +10,7 @@ import { ConsultationForm } from './ConsultationForm'
 import { PatientForm } from './PatientForm'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
+import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 import { speciesEmoji, calcVaccineStatus } from '../../lib/utils'
 import type { Consultation } from '../../types'
 
@@ -57,6 +58,7 @@ export function PatientDetail() {
   const [uploading, setUploading] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const { config } = useClinicConfig()
 
   function showToast(msg: string) {
     setToast(msg)
@@ -212,13 +214,29 @@ export function PatientDetail() {
                   <button
                     onClick={async () => {
                       const next = upcomingAppointments[0]
+                      const emailSubject = config?.email_subject_booking || 'Recordatorio de Cita'
+                      const emailBody = config?.email_body_booking || 'Hola {tutor}, recordamos tu cita para {mascota}.'
+
+                      const dateStr = new Date(next.scheduled_at).toLocaleDateString('es-CL')
+                      const timeStr = new Date(next.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+
+                      const replaceAll = (str: string) => str
+                        .replace(/{tutor}/g, patient.guardian?.name || '')
+                        .replace(/{mascota}/g, patient.name)
+                        .replace(/{fecha}/g, dateStr)
+                        .replace(/{hora}/g, timeStr)
+
                       try {
                         await supabase.functions.invoke('confirm-booking', {
-                          body: { appointment_id: next.id },
+                          body: { 
+                            appointment_id: next.id,
+                            custom_subject: replaceAll(emailSubject),
+                            custom_body: replaceAll(emailBody)
+                          },
                         })
-                        alert('✓ Recordatorio enviado correctamente')
+                        showToast('✉️ Email enviado correctamente')
                       } catch (e) {
-                        alert('Error al enviar el correo automático')
+                        showToast('❌ Error al enviar el correo')
                       }
                     }}
                     className="flex-1 px-3 py-2 bg-indigo-500 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 hover:bg-indigo-600 transition-colors shadow-sm"

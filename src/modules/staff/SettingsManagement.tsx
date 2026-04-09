@@ -7,7 +7,7 @@ export function SettingsManagement() {
   const [localConfig, setLocalConfig] = useState<Partial<ClinicConfig>>({})
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'general' | 'horarios' | 'finanzas' | 'mensajes'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'horarios' | 'finanzas' | 'mensajes' | 'email'>('general')
 
   useEffect(() => {
     if (config) {
@@ -69,6 +69,7 @@ export function SettingsManagement() {
         <TabBtn active={activeTab === 'horarios'} onClick={() => setActiveTab('horarios')} label="Horarios" icon="⏰" />
         <TabBtn active={activeTab === 'finanzas'} onClick={() => setActiveTab('finanzas')} label="Pagos & Abono" icon="💰" />
         <TabBtn active={activeTab === 'mensajes'} onClick={() => setActiveTab('mensajes')} label="Mensajes WA" icon="📱" />
+        <TabBtn active={activeTab === 'email'} onClick={() => setActiveTab('email')} label="Mensajes Email" icon="✉️" />
       </div>
 
       {/* Content */}
@@ -237,6 +238,46 @@ export function SettingsManagement() {
                      rows={4}
                      value={localConfig.wa_template_confirmation}
                      onChange={e => set('wa_template_confirmation', e.target.value)}
+                   />
+                </div>
+             </section>
+          </div>
+        )}
+
+        {activeTab === 'email' && (
+          <div className="p-8 space-y-8 animate-fade-in">
+             <section className="space-y-8">
+                <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-blue-800 text-xs">
+                   <span className="text-lg">✉️</span>
+                   <div>
+                     <p className="font-bold">Personalización de Correos (Gmail)</p>
+                     <p className="mt-1">Aquí puedes configurar los asuntos y el contenido de los correos automáticos que el sistema envía.</p>
+                   </div>
+                </div>
+
+                <div className="space-y-4">
+                   <h3 className="text-sm font-black text-gray-900 border-l-4 border-blue-400 pl-3">Confirmación de Reserva</h3>
+                   <Input label="Asunto del Email" value={localConfig.email_subject_booking} onChange={v => set('email_subject_booking', v)} />
+                   <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
+                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
+                   <textarea 
+                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                     rows={5}
+                     value={localConfig.email_body_booking}
+                     onChange={e => set('email_body_booking', e.target.value)}
+                   />
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                   <h3 className="text-sm font-black text-gray-900 border-l-4 border-amber-400 pl-3">Recordatorio de Vacuna</h3>
+                   <Input label="Asunto del Email" value={localConfig.email_subject_reminder} onChange={v => set('email_subject_reminder', v)} />
+                   <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
+                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{vacuna}"}, {"{fecha}"}</p>
+                   <textarea 
+                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                     rows={5}
+                     value={localConfig.email_body_reminder}
+                     onChange={e => set('email_body_reminder', e.target.value)}
                    />
                 </div>
              </section>
