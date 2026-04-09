@@ -11,7 +11,7 @@ import type { Patient, Appointment, Vaccination } from '../../types'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
 export function TutorView() {
-  const { user, signOut } = useAuth()
+  const { user, signOut, clinicId } = useAuth()
   const { config } = useClinicConfig()
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
