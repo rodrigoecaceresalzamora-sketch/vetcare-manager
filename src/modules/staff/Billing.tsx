@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { STRIPE_PLANS } from '../../lib/stripe'
@@ -9,7 +9,7 @@ export function Billing() {
   const [success, setSuccess] = useState(false)
 
   // Simulación de checkout para el demo
-  async function handleUpgrade(planName: string, amount: number) {
+  async function handleUpgrade(planName: string) {
     setLoading(true)
     
     // En un entorno real, aquí llamaríamos a una Edge Function que cree un Stripe Checkout Session

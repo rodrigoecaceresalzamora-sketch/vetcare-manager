@@ -9,6 +9,7 @@ interface AuthContextType {
   role: Role
   clinicId: string | null
   planType: 'basic' | 'pro' | null
+  isPaid: boolean
   loading: boolean
   clinicLoading: boolean
   signOut: () => Promise<void>
@@ -23,6 +24,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<Role>(null)
   const [clinicId, setClinicId] = useState<string | null>(null)
   const [planType, setPlanType] = useState<'basic' | 'pro' | null>(null)
+  const [isPaid, setIsPaid] = useState(false)
   const [loading, setLoading] = useState(true)
   const [clinicLoading, setClinicLoading] = useState(false)
 
@@ -55,6 +57,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setRole(null)
       setClinicId(null)
       setPlanType(null)
+      setIsPaid(false)
       return
     }
 
@@ -79,11 +82,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (staffData.clinic_id) {
           const { data: clinicData } = await supabase
             .from('clinics')
-            .select('plan_type')
+            .select('plan_type, is_paid')
             .eq('id', staffData.clinic_id)
             .single()
           
-          if (clinicData) setPlanType(clinicData.plan_type as 'basic' | 'pro')
+          if (clinicData) {
+            setPlanType(clinicData.plan_type as 'basic' | 'pro')
+            setIsPaid(!!clinicData.is_paid)
+          }
         }
       } else {
         // Fallback: Si no está en staff, podría ser un tutor o el admin creando su primera clínica
@@ -116,7 +122,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   return (
-    <AuthContext.Provider value={{ session, user, role, clinicId, planType, loading, clinicLoading, signOut, refreshAuth }}>
+    <AuthContext.Provider value={{ session, user, role, clinicId, planType, isPaid, loading, clinicLoading, signOut, refreshAuth }}>
       {children}
     </AuthContext.Provider>
   )

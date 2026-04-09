@@ -10,6 +10,7 @@ export interface StaffMember {
   id: string
   email: string
   role: 'admin' | 'ayudante'
+  clinic_id: string
   created_at?: string
 }
 
@@ -21,6 +22,7 @@ export interface StockItem {
   unit: string
   min_quantity: number
   lot_number?: string
+  clinic_id: string
   created_at?: string
 }
 
@@ -36,6 +38,7 @@ export interface Service {
   bg?: string
   border?: string
   stock_usage?: { item_id: string, quantity: number }[] // Lista de items de stock a descontar
+  clinic_id: string
   created_at?: string
 }
 
@@ -47,6 +50,7 @@ export interface Guardian {
   phone: string
   email: string
   notes?: string
+  clinic_id: string
   created_at?: string
 }
 
@@ -69,6 +73,7 @@ export interface Patient {
   photo_url?: string
   is_reactive?: boolean
   adopted_since?: string
+  clinic_id: string
   created_at?: string
   updated_at?: string
   // Relación cargada con join
@@ -86,6 +91,7 @@ export interface Vaccination {
   lot_number: string
   next_due_date: string  // Calculada automáticamente
   reminder_sent: boolean
+  clinic_id: string
   created_at?: string
   // Relación cargada
   patient?: Patient
@@ -123,6 +129,7 @@ export interface Appointment {
   google_event_id?: string
   meet_link?: string
   source: AppointmentSource
+  clinic_id?: string
   created_at?: string
   notes?: string
   // Campos del portal público
@@ -216,6 +223,7 @@ export interface Consultation {
   applied_vaccine_name?: string
   applied_vaccine_date?: string
   applied_vaccine_lot?: string
+  clinic_id: string
   created_at?: string
 }
 
@@ -247,6 +255,7 @@ export interface ClinicConfig {
   email_subject_reminder: string
   email_body_reminder: string
   schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
+  clinic_id: string
   created_at?: string
   updated_at?: string
 }
