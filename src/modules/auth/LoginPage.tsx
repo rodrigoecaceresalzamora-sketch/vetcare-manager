@@ -162,12 +162,10 @@ export function LoginPage() {
               Google
             </button>
 
-            {!isLogin && (
-               <div className="flex justify-center py-2">
-                  {/* Contenedor para Turnstile */}
-                  <div id="turnstile-container" className="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
-               </div>
-            )}
+            <div className="flex justify-center py-2">
+               {/* Contenedor para Turnstile */}
+               <div id="turnstile-container" className="cf-turnstile" data-sitekey="1x00000000000000000000AA"></div>
+            </div>
 
           </form>
         </div>

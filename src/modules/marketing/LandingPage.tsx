@@ -34,19 +34,16 @@ export function LandingPage() {
               ✨ La nueva era de la gestión veterinaria
             </div>
             <h1 className="text-5xl md:text-7xl font-black leading-[1.1] tracking-tighter text-gray-900">
-              Escala tu clínica <br/> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-vet-rose to-pink-400">sin límites.</span>
+              Tu Clínica Veterinaria <br/> 
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-vet-rose to-pink-400">en la palma de tu mano.</span>
             </h1>
             <p className="text-xl text-gray-500 leading-relaxed max-w-lg">
-              Agenda, fichas clínicas, control de stock y recordatorios automáticos en una sola plataforma SaaS diseñada para veterinarios modernos.
+              Gestiona pacientes, vacunas y citas de forma sencilla. Accede a tu portal de tutor o administrador hoy mismo.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <Link to={dashboardLink} className="px-10 py-5 bg-vet-rose text-white rounded-2xl font-black text-lg shadow-2xl shadow-vet-rose/40 hover:scale-105 transition-all text-center">
-                {user ? 'Volver al Panel' : 'Comenzar ahora'}
+                {user ? 'Volver al Panel' : 'Registrarse / Entrar'}
               </Link>
-              <a href="#pricing" className="px-10 py-5 bg-white border-2 border-gray-100 text-gray-900 rounded-2xl font-black text-lg hover:bg-gray-50 transition-all text-center">
-                Ver planes
-              </a>
             </div>
           </div>
           <div className="relative">

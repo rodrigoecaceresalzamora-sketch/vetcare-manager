@@ -343,6 +343,33 @@ export function TutorView() {
             ))}
           </div>
         )}
+
+        {/* CTA: Comprar Servicio (SaaS Promo) */}
+        {!loading && (
+          <div className="mt-16 bg-gradient-to-br from-gray-900 to-vet-dark rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl border-4 border-white">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-vet-rose/10 rounded-full blur-3xl -mr-20 -mt-20"></div>
+            <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-8">
+              <div className="space-y-4 text-center lg:text-left">
+                <div className="inline-block px-4 py-1.5 bg-vet-rose text-[10px] font-black uppercase tracking-[0.2em] rounded-full">
+                  VetCare Manager para Veterinarios
+                </div>
+                <h2 className="text-3xl lg:text-4xl font-black tracking-tighter leading-none">
+                  ¿ERES VETERINARIO? <br/>
+                  <span className="text-vet-rose">ESCALA TU CLÍNICA SIN LÍMITES</span>
+                </h2>
+                <p className="text-gray-400 text-sm max-w-xl">
+                  Agenda, fichas clínicas, control de stock y recordatorios automáticos en una sola plataforma SaaS diseñada para veterinarios modernos.
+                </p>
+              </div>
+              <Link 
+                to="/facturacion"
+                className="px-10 py-5 bg-white text-gray-900 rounded-2xl font-black text-lg hover:bg-vet-rose hover:text-white transition-all shadow-xl whitespace-nowrap"
+              >
+                Comprar Servicio ahora
+              </Link>
+            </div>
+          </div>
+        )}
       </main>
 
       <footer className="max-w-6xl mx-auto px-4 py-20 text-center">
