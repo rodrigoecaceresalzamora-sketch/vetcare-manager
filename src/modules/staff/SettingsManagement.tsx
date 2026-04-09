@@ -46,14 +46,47 @@ export function SettingsManagement() {
   if (loading) return <div className="p-10 text-center animate-pulse text-gray-400 font-medium whitespace-pre">Cargando...</div>
   
   if (!config) return (
-    <div className="p-10 text-center">
-      <p className="text-gray-500 font-medium">No se encontró una configuración para esta clínica.</p>
-      <p className="text-xs text-gray-400 mt-2">Asegúrate de haber completado el onboarding.</p>
+    <div className="p-10 text-center flex flex-col items-center justify-center min-h-[400px]">
+      <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 border border-gray-100 italic text-2xl">⚙️</div>
+      <p className="text-gray-900 font-black uppercase tracking-tight">No se encontró una configuración</p>
+      <p className="text-xs text-gray-400 mt-2 max-w-xs leading-relaxed font-medium">
+        Tu clínica no tiene un perfil configurado. Estamos intentando generarlo automáticamente... si el problema persiste, contacta a soporte.
+      </p>
     </div>
   )
 
+  const bookingLink = `${window.location.origin}/reserva/${config.clinic_id}`
+
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-6">
+    <div className="p-6 max-w-5xl mx-auto space-y-8 animate-fade-in">
+      {/* Link de Agendamiento Section */}
+      <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
+         <div className="absolute top-0 right-0 w-64 h-64 bg-vet-rose/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+         <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
+            <div>
+              <span className="inline-block px-3 py-1 bg-vet-rose text-[10px] font-black uppercase tracking-widest rounded-full mb-4">Link de tu Clínica</span>
+              <h2 className="text-2xl font-black mb-2 uppercase leading-tight tracking-tighter">Comparte tu Portal <br/> para Agendar</h2>
+              <p className="text-gray-400 text-sm font-medium">Envía este link a tus clientes para que agenden sus consultas directamente.</p>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl">
+               <p className="text-[10px] font-black text-vet-rose uppercase tracking-widest mb-3">Tu URL Personalizada</p>
+               <input 
+                 readOnly 
+                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white mb-4 outline-none focus:border-vet-rose transition-all"
+                 value={bookingLink} 
+               />
+               <button 
+                 onClick={() => {
+                   navigator.clipboard.writeText(bookingLink)
+                   alert('Link copiado al portapapeles')
+                 }}
+                 className="w-full py-4 bg-white text-gray-900 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-vet-rose hover:text-white transition-all active:scale-95"
+               >
+                 Copiar Link de Agendamiento
+               </button>
+            </div>
+         </div>
+      </div>
       {toast && (
         <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-xl animate-fade-in border border-white/10">
           {toast}

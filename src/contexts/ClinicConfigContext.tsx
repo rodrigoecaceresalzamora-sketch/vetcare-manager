@@ -56,6 +56,18 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
         setConfig(configWithDefaults as ClinicConfig)
         applyColors(data.primary_color, data.secondary_color)
+      } else {
+        // AUTO-CREAR CONFIGURACIÓN SI NO EXISTE
+        const { data: newConfig } = await supabase
+          .from('clinic_config')
+          .insert({ clinic_id: currentClinicId, clinic_name: 'Mi Clínica Veterinaria' })
+          .select()
+          .single()
+        
+        if (newConfig) {
+          setConfig(newConfig as ClinicConfig)
+          applyColors(newConfig.primary_color, newConfig.secondary_color)
+        }
       }
     } catch (err) {
       console.error('Error fetching clinic config:', err)
