@@ -56,8 +56,10 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     duration_minutes: editingAppointment?.duration_minutes ?? 30,
     notes:            (editingAppointment as any)?.notes ?? '',
     status:           editingAppointment?.status ?? 'confirmada',
-    is_home_visit:    false,
     address:          '',
+    pet_species:      editingAppointment?.pet_species ?? 'Perro',
+    pet_breed:        editingAppointment?.pet_breed ?? '',
+    pet_sex:          editingAppointment?.pet_sex ?? 'No determinado',
   })
   
   const { patients, savePatient } = usePatients()
@@ -106,6 +108,9 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
       guardian_phone: p.guardian?.phone || '',
       guardian_email: p.guardian?.email || '',
       guardian_rut: p.guardian?.rut || '',
+      pet_species: p.species,
+      pet_breed: p.breed,
+      pet_sex: p.sex,
     }))
     setSearchTerm(p.name)
     setShowSuggestions(false)
@@ -148,6 +153,9 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
       source:           editingAppointment?.source ?? 'interno',
       is_home_visit:    false,
       address:          '',
+      pet_species:      form.pet_species,
+      pet_breed:        form.pet_breed,
+      pet_sex:          form.pet_sex,
     }
 
     let id = editingAppointment?.id
@@ -293,16 +301,43 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                       </div>
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowPatientForm(true)}
-                    className="flex-shrink-0 w-9 h-9 flex items-center justify-center bg-vet-rose text-white rounded-lg hover:bg-vet-dark transition-colors disabled:opacity-50"
-                    title="Registrar nueva mascota"
-                    disabled={isReadOnly}
                   >
                     +
                   </button>
                 </div>
+              </Field>
+              <Field label="Especie">
+                <select
+                  className={inputCls}
+                  value={form.pet_species}
+                  onChange={(e) => set('pet_species', e.target.value as any)}
+                  disabled={isReadOnly}
+                >
+                  <option value="Perro">🐶 Perro</option>
+                  <option value="Gato">🐱 Gato</option>
+                  <option value="Otro">✨ Otro</option>
+                </select>
+              </Field>
+              <Field label="Raza">
+                <input
+                  className={inputCls}
+                  value={form.pet_breed}
+                  onChange={(e) => set('pet_breed', e.target.value)}
+                  placeholder="Ej: Poodle..."
+                  disabled={isReadOnly}
+                />
+              </Field>
+              <Field label="Sexo">
+                <select
+                  className={inputCls}
+                  value={form.pet_sex}
+                  onChange={(e) => set('pet_sex', e.target.value as any)}
+                  disabled={isReadOnly}
+                >
+                  <option value="Macho">Macho</option>
+                  <option value="Hembra">Hembra</option>
+                  <option value="No determinado">No determinado</option>
+                </select>
               </Field>
               <Field label="Servicio">
                 <select
@@ -443,9 +478,9 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                         .insert({
                           guardian_id: gId,
                           name: form.pet_name,
-                          species: editingAppointment.pet_species || 'Otro',
-                          sex: editingAppointment.pet_sex || 'No determinado',
-                          breed: editingAppointment.pet_breed || 'Desconocida',
+                          species: form.pet_species || 'Otro',
+                          sex: form.pet_sex || 'No determinado',
+                          breed: form.pet_breed || 'Desconocida',
                           date_of_birth: editingAppointment.pet_date_of_birth || null,
                           adopted_since: editingAppointment.pet_adopted_since || null,
                           is_reactive: editingAppointment.pet_is_reactive || false,

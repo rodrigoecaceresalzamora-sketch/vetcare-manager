@@ -194,6 +194,13 @@ export function PublicBooking() {
       source:           'portal',
       is_home_visit:    false,
       address:          '',
+      // Pet profile details
+      pet_species:      form.pet_species,
+      pet_breed:        form.pet_breed,
+      pet_sex:          form.pet_sex,
+      pet_date_of_birth: form.pet_date_of_birth || null,
+      pet_adopted_since: form.pet_adopted_since || null,
+      pet_is_reactive:  form.pet_is_reactive || false,
     }
 
     // guardian_rut optional — add only if column exists (silently skip on error)

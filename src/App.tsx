@@ -121,7 +121,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal',  adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
-    { to: '/stock',     icon: icons.stock,    label: 'Stock',     adminOnly: true },
+    { to: '/stock',     icon: icons.stock,    label: 'Stock' },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -249,7 +249,7 @@ function MobileNav() {
     { to: '/agenda',    icon: icons.agenda,   label: 'Agenda' },
     { to: '/personal',  icon: icons.staff,    label: 'Personal', adminOnly: true },
     { to: '/precios',   icon: icons.globe,    label: 'Servicios', adminOnly: true },
-    { to: '/stock',     icon: icons.stock,    label: 'Stock', adminOnly: true },
+    { to: '/stock',     icon: icons.stock,    label: 'Stock' },
   ]
 
   const navItems = allNavItems.filter(item => {
@@ -383,7 +383,7 @@ export default function App() {
           <Route
             path="/stock"
             element={
-              <ProtectedRoute requireAdmin>
+              <ProtectedRoute requireStaff>
                 <AppLayout><StockManagement /></AppLayout>
               </ProtectedRoute>
             }

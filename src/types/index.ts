@@ -148,6 +148,9 @@ export interface AppointmentFormData {
   status: AppointmentStatus
   is_home_visit: boolean
   address?: string
+  pet_species?: Species
+  pet_breed?: string
+  pet_sex?: Sex
 }
 
 // ── FORMULARIO RESERVA PÚBLICA ────────────────────────────────

@@ -4,9 +4,11 @@
 
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 import type { StockItem } from '../../types'
 
 export function StockManagement() {
+  const { role, user } = useAuth()
   const [items, setItems] = useState<StockItem[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -202,9 +204,10 @@ export function StockManagement() {
                     <button onClick={() => {
                       setEditingItemId(item.id)
                       setEditItemName(item.name)
-                      setEditItemLot(item.lot_number || '')
-                    }} className="text-gray-400 hover:text-vet-rose text-xs" title="Editar">✏️</button>
-                    <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 text-xs" title="Eliminar">🗑️</button>
+                    {/* Solo admin puede borrar */}
+                    {(role === 'admin' || user?.email === 'scaceresalzamora@gmail.com') && (
+                      <button onClick={() => handleDelete(item.id)} className="text-gray-400 hover:text-red-500 text-xs" title="Eliminar">🗑️</button>
+                    )}
                   </div>
                 </div>
                 {item.lot_number && (

@@ -25,13 +25,13 @@ CREATE POLICY "Enable all for staff" ON public.vaccinations
     FOR ALL
     USING (
         auth.jwt() ->> 'email' IN (
-            SELECT email FROM public.staff_profiles
+            SELECT email FROM public.staff
         ) OR
         auth.jwt() ->> 'email' = 'scaceresalzamora@gmail.com'
     )
     WITH CHECK (
         auth.jwt() ->> 'email' IN (
-            SELECT email FROM public.staff_profiles
+            SELECT email FROM public.staff
         ) OR
         auth.jwt() ->> 'email' = 'scaceresalzamora@gmail.com'
     );
