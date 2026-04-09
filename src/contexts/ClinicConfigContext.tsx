@@ -31,7 +31,16 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .single()
 
       if (data) {
-        setConfig(data as ClinicConfig)
+        const configWithDefaults = {
+          ...data,
+          wa_template_reminder: data.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
+          wa_template_confirmation: data.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
+          email_subject_booking: data.email_subject_booking || 'Confirmación de Cita - VetCare',
+          email_body_booking: data.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
+          email_subject_reminder: data.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
+          email_body_reminder: data.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.'
+        }
+        setConfig(configWithDefaults as ClinicConfig)
         applyColors(data.primary_color, data.secondary_color)
       }
     } catch (err) {

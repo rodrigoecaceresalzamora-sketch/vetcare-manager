@@ -11,7 +11,15 @@ export function SettingsManagement() {
 
   useEffect(() => {
     if (config) {
-      setLocalConfig(config)
+      setLocalConfig({
+        ...config,
+        wa_template_reminder: config.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
+        wa_template_confirmation: config.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
+        email_subject_booking: config.email_subject_booking || 'Confirmación de Cita - VetCare',
+        email_body_booking: config.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
+        email_subject_reminder: config.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
+        email_body_reminder: config.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.'
+      })
     }
   }, [config])
 
