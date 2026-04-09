@@ -59,6 +59,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
       }
     } catch (err) {
       console.error('Error fetching clinic config:', err)
+      setConfig(null) // Reset config on error
     } finally {
       setLoading(false)
     }

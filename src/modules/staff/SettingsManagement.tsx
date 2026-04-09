@@ -43,7 +43,14 @@ export function SettingsManagement() {
     setLocalConfig(prev => ({ ...prev, [key]: val }))
   }
 
-  if (loading || !config) return <div className="p-10 text-center animate-pulse text-gray-400 font-medium whitespace-pre">Cargando configuración maestra...</div>
+  if (loading) return <div className="p-10 text-center animate-pulse text-gray-400 font-medium whitespace-pre">Cargando...</div>
+  
+  if (!config) return (
+    <div className="p-10 text-center">
+      <p className="text-gray-500 font-medium">No se encontró una configuración para esta clínica.</p>
+      <p className="text-xs text-gray-400 mt-2">Asegúrate de haber completado el onboarding.</p>
+    </div>
+  )
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">

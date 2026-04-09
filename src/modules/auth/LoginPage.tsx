@@ -56,15 +56,12 @@ export function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-vet-bone flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Logo / Brand */}
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-gray-900 uppercase tracking-tight">
+      <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+        {/* Simple Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-vet-rose rounded-3xl shadow-xl rotate-3 mb-4 p-4 border-2 border-white">
-            <img src="/logo.png" alt="VetCare" className="w-full h-full object-contain" />
-          </div>
-          <h1 className="text-2xl font-black text-gray-900 leading-tight uppercase tracking-tighter">VetCare</h1>
-          <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Gesti&oacute;n Veterinaria</p>
+            <h1 className="text-2xl font-black">Portal VetCare</h1>
+            <p className="text-gray-400 text-[10px] font-bold mt-1">Gestión SaaS Multi-tenant</p>
         </div>
 
         {/* Auth Card */}

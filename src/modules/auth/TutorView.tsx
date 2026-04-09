@@ -134,19 +134,32 @@ export function TutorView() {
 
           <div className="flex items-center gap-3">
             <Link 
-              to="/reserva"
+              to={`/reserva/${clinicId}`}
               className="px-5 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-pink-200 flex items-center gap-2"
             >
               <span className="text-lg leading-none">+</span>
               Agendar Hora
             </Link>
             <div className="h-8 w-px bg-gray-100 mx-2 hidden sm:block"></div>
-            <Link 
-              to="/facturacion"
-              className="px-4 py-2 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-vet-rose transition-all flex items-center gap-2"
-            >
-               Comprar VetCare Manager
-            </Link>
+            <div className="bg-gray-50 px-4 py-2 rounded-xl border border-gray-100">
+               <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-1">Tu Link de Agendamiento</span>
+               <div className="flex items-center gap-2">
+                 <input 
+                   readOnly 
+                   className="text-[10px] font-mono text-vet-rose bg-transparent border-none p-0 outline-none w-48" 
+                   value={`${window.location.origin}/reserva/${clinicId}`} 
+                 />
+                 <button 
+                   onClick={() => {
+                     navigator.clipboard.writeText(`${window.location.origin}/reserva/${clinicId}`)
+                     alert('Copiado al portapapeles')
+                   }}
+                   className="text-[10px] font-bold text-gray-500 hover:text-vet-rose underline"
+                 >
+                   Copiar
+                 </button>
+               </div>
+            </div>
             <div className="h-8 w-px bg-gray-100 mx-2 hidden sm:block"></div>
             <button 
               onClick={() => signOut()}
