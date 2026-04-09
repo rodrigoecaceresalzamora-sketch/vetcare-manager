@@ -93,11 +93,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         // 3. Fallback: Si no está en staff, podría ser el DUEÑO de una clínica
-        const { data: ownedClinic } = await supabase
-          .from('clinics')
-          .select('id, plan_type, is_paid')
-          .eq('owner_id', user.id)
-          .maybeSingle()
 
         if (userEmail === 'scaceresalzamora@gmail.com') {
           setRole('admin')

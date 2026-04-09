@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
+import { useAuth } from '../../contexts/AuthContext'
 import type { ClinicConfig } from '../../types'
 
 export function SettingsManagement() {
   const { config, loading, updateConfig } = useClinicConfig()
+  const { clinicId } = useAuth()
   const [localConfig, setLocalConfig] = useState<Partial<ClinicConfig>>({})
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
