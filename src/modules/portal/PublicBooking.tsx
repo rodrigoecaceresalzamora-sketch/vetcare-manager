@@ -35,7 +35,7 @@ function getAvailableDates(): { label: string; value: string; dow: number }[] {
   const d = new Date()
   d.setDate(d.getDate() + 1) // Mañana en adelante
 
-  const ALLOWED_DAYS = [2, 3, 6, 0] // Mar, Mié, Sáb, Dom
+  const ALLOWED_DAYS = [2, 3, 4, 6] // Mar, Mié, Jue, Sáb
 
   while (dates.length < 14) { // Buscamos en los próximos 14 días
     const dow = d.getDay()
@@ -57,13 +57,18 @@ function getAvailableDates(): { label: string; value: string; dow: number }[] {
 
 // ── Slots de horario dinámicos ─────────────────────────────────
 function getTimeSlots(dow: number): string[] {
-  if (dow === 2 || dow === 3) { // Mar, Mié: 10:00 - 16:00
+  if (dow === 2 || dow === 3) { // Mar, Mié: 10:00 - 14:00 y 15:00 - 16:00
     return [
-      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30',
-      '14:00', '14:30', '15:00', '15:30', '16:00'
+      '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30',
+      '15:00', '15:30'
     ]
   }
-  if (dow === 6 || dow === 0) { // Sáb, Dom: 10:00 - 14:00
+  if (dow === 4) { // Jue: 10:00 - 12:30
+    return [
+      '10:00', '10:30', '11:00', '11:30', '12:00'
+    ]
+  }
+  if (dow === 6) { // Sáb: 10:00 - 14:00
     return [
       '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '13:00', '13:30'
     ]
@@ -259,14 +264,39 @@ export function PublicBooking() {
       <StepIndicator current={step as number} />
       {step === 1 && (
         <section>
-          <SectionTitle step={1} title="Selecciona el servicio" />
-          <div className="bg-vet-rose/10 border-l-4 border-vet-rose p-4 rounded-r-xl mb-6">
+           <div className="bg-vet-rose/10 border-l-4 border-vet-rose p-4 rounded-r-xl mb-6">
+            <h3 className="font-black text-vet-dark text-sm mb-2 flex items-center gap-2">
+              📍 Atención en Tienda: Santa Fe Mascota
+            </h3>
+            <p className="text-xs text-gray-700 leading-relaxed mb-3">
+              <strong>Dirección:</strong> San Enrique 1380, Retiro, Quilpué.<br/>
+              <em>* Atención presencial solo en horarios establecidos.</em>
+            </p>
+            
+            {/* Mapa Interactivo */}
+            <div className="w-full h-40 rounded-xl overflow-hidden mb-4 border border-pink-100 shadow-sm bg-gray-50">
+              <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1672.41!2d-71.435!3d-33.05!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689e13!2sSan+Enrique+1380%2C+Quilpu%C3%A9!5e0!3m2!1ses-419!2scl!4v1" 
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }} 
+                allowFullScreen={true} 
+                loading="lazy" 
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+
+            <h3 className="font-bold text-vet-rose text-xs mb-1">🏠 Consultas a Domicilio</h3>
+            <p className="text-[10px] text-gray-600 mb-4 px-2 py-1 bg-white/50 rounded-lg">
+              Para atención a domicilio, por favor contactar directamente por WhatsApp al <strong className="text-green-600">+56 9 5104 5611</strong>. No agendar por este medio.
+            </p>
+
             <h3 className="font-bold text-vet-rose text-sm mb-1">Pago y Transferencia 💸</h3>
             <p className="text-xs text-gray-700 leading-relaxed">
               Para confirmar tu reserva, se requiere un <strong>abono del 20%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
             </p>
             <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
-              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: JUAN PEREZ\nBANCO: BANCO DE CHILE\nCTA CORRIENTE: 123456789\nCORREO: PAGOS@VETCARE.CL\nRUT: 76.123.456-7\nASUNTO: NOMBRE DE LA MASCOTA'}
+              {dbServices.find(s => s.name === 'DATOS_TRANSFERENCIA')?.description || 'DATOS PARA TRANSFERENCIA\n\nNOMBRE: DRA. SOFIA CACERES\nBANCO: BANCO FALABELLA\nCTA CORRIENTE: 10452336214\nCORREO: SCACERESALZAMORA@GMAIL.COM\nRUT: 18.249.722-1\nASUNTO: NOMBRE DE LA MASCOTA'}
             </div>
             <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-pink-100 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.

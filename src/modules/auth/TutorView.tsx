@@ -153,6 +153,66 @@ export function TutorView() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
+        {/* Información de Atención y Ubicación */}
+        <div className="mb-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white border border-pink-100 rounded-[32px] p-6 shadow-sm">
+            <h3 className="text-sm font-black text-vet-dark uppercase tracking-widest mb-4 flex items-center gap-2">
+              📍 Nuestra Ubicación
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-6">
+              <div className="flex-1">
+                <p className="text-lg font-bold text-gray-900 mb-1">Santa Fe Mascota</p>
+                <p className="text-sm text-gray-600 mb-4">San Enrique 1380, Retiro, Quilpué</p>
+                
+                <div className="space-y-3">
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs">⏰</span>
+                    <div>
+                      <p className="text-xs font-bold text-gray-800">Horarios en Tienda:</p>
+                      <p className="text-[11px] text-gray-600">Martes y Miércoles: 10:00 - 14:00 y 15:00 - 16:00</p>
+                      <p className="text-[11px] text-gray-600">Jueves: 10:00 - 12:30</p>
+                      <p className="text-[11px] text-gray-600">Sábado: 10:00 - 14:00</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="text-xs">🏠</span>
+                    <div>
+                      <p className="text-xs font-bold text-gray-800">Consultas a Domicilio:</p>
+                      <p className="text-[11px] text-gray-600">Contactar vía WhatsApp al <strong>+56 9 5104 5611</strong></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full sm:w-48 h-32 sm:h-auto rounded-2xl overflow-hidden shadow-inner border border-pink-50">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1672.41!2d-71.435!3d-33.05!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x9689e13!2sSan+Enrique+1380%2C+Quilpu%C3%A9!5e0!3m2!1ses-419!2scl!4v1" 
+                  width="100%" 
+                  height="100%" 
+                  style={{ border: 0 }} 
+                  allowFullScreen={true} 
+                  loading="lazy" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="bg-vet-rose text-white rounded-[32px] p-8 shadow-lg shadow-pink-100 relative overflow-hidden flex flex-col justify-center">
+            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
+            <h3 className="text-2xl font-black mb-2 leading-none italic">¿NECESITAS ATENCIÓN A DOMICILIO?</h3>
+            <p className="text-sm font-medium opacity-90 mb-6 max-w-xs">
+              Para visitas fuera de la tienda en Quilpué, agenda directamente por WhatsApp para coordinar factibilidad técnica y horarios especiales.
+            </p>
+            <a 
+              href="https://wa.me/56951045611" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-white text-vet-rose px-6 py-3 rounded-2xl font-black text-sm hover:bg-vet-dark hover:text-white transition-all w-fit shadow-xl"
+            >
+              <span>💬</span> Agendar por WhatsApp
+            </a>
+          </div>
+        </div>
+
         {/* Bienvenida */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="flex items-center gap-4">

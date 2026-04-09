@@ -116,9 +116,14 @@ Vacuna: *${vaccineName}*
 Fecha sugerida: *${formattedDate}*
 ----------------------------
 
-*Horario de atencion:*
-Martes y Miercoles de 10:00 a 16:00 hrs
-Sabado y Domingo de 10:00 a 14:00 hrs
+*📍 Lugar de Atencion:*
+San Enrique 1380, Retiro, Quilpué
+(Tienda Santa Fe Mascota)
+
+*⏰ Horario de atencion:*
+Martes y Miércoles de 10:00 a 14:00 y 15:00 a 16:00
+Jueves de 10:00 a 12:30
+Sábado de 10:00 a 14:00
 
 Para agendar o reprogramar tu cita puedes responder este mensaje o llamarnos al *+56951045611*
 
