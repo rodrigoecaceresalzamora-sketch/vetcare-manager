@@ -175,69 +175,6 @@ export function TutorView() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Información de Atención y Ubicación */}
-        <div className="mb-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white border border-pink-100 rounded-[32px] p-6 shadow-sm">
-            <h3 className="text-sm font-black text-vet-dark uppercase tracking-widest mb-4 flex items-center gap-2">
-              📍 Nuestra Ubicación
-            </h3>
-            <div className="flex flex-col sm:flex-row gap-6">
-              <div className="flex-1">
-                <p className="text-lg font-bold text-gray-900 mb-1">{config?.clinic_name || 'Veterinaria'}</p>
-                <p className="text-sm text-gray-600 mb-4">{config?.address}</p>
-                
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <span className="text-xs">⏰</span>
-                    <div>
-                      <p className="text-xs font-bold text-gray-800">Horarios en Tienda:</p>
-                      {Object.keys(config?.schedule || {}).map(day => {
-                        const dayName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][Number(day)]
-                        return (
-                          <p key={day} className="text-[11px] text-gray-600">{dayName}: {config?.schedule[day].slice(0, 1) + ' - ' + config?.schedule[day].slice(-1)}</p>
-                        )
-                      })}
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <span className="text-xs">🏠</span>
-                    <div>
-                      <p className="text-xs font-bold text-gray-800">Consultas a Domicilio:</p>
-                      <p className="text-[11px] text-gray-600">Contactar vía WhatsApp al <strong>{config?.contact_phone}</strong></p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="w-full sm:w-48 h-32 sm:h-auto rounded-2xl overflow-hidden shadow-inner border border-pink-50">
-                <iframe 
-                  src={config?.google_maps_embed_url} 
-                  width="100%" 
-                  height="100%" 
-                  style={{ border: 0 }} 
-                  allowFullScreen={true} 
-                  loading="lazy" 
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-vet-rose text-white rounded-[32px] p-8 shadow-lg shadow-pink-100 relative overflow-hidden flex flex-col justify-center">
-            <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/10 rounded-full blur-2xl" />
-            <h3 className="text-2xl font-black mb-2 leading-none italic">¿NECESITAS ATENCIÓN A DOMICILIO?</h3>
-            <p className="text-sm font-medium opacity-90 mb-6 max-w-xs">
-              Para visitas fuera de la tienda en Quilpué, agenda directamente por WhatsApp para coordinar factibilidad técnica y horarios especiales.
-            </p>
-            <a 
-              href={`https://wa.me/${config?.contact_phone?.replace(/[^\d]/g, '')}`} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="inline-flex items-center justify-center gap-2 bg-white text-vet-rose px-6 py-3 rounded-2xl font-black text-sm hover:bg-vet-dark hover:text-white transition-all w-fit shadow-xl"
-            >
-              <span>💬</span> Agendar por WhatsApp
-            </a>
-          </div>
-        </div>
-
         {/* Bienvenida */}
         <div className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="flex items-center gap-4">
@@ -247,8 +184,8 @@ export function TutorView() {
               className="w-16 h-16 rounded-2xl object-cover ring-4 ring-white shadow-lg"
             />
             <div>
-              <h2 className="text-2xl font-black text-gray-900">¡Hola de nuevo! 👋</h2>
-              <p className="text-gray-500 text-sm">Gestiona la salud de tus mascotas favoritas.</p>
+              <h2 className="text-2xl font-black text-gray-900 uppercase tracking-tight">Portal de Pacientes</h2>
+              <p className="text-gray-500 text-sm font-medium">Gestiona la salud de tus mascotas en {config?.clinic_name || 'la veterinaria'}.</p>
             </div>
           </div>
         </div>
@@ -264,16 +201,15 @@ export function TutorView() {
           </div>
         ) : pets.length === 0 ? (
           <div className="bg-white border border-pink-100 p-12 rounded-[40px] text-center shadow-xl shadow-pink-50/50">
-            <div className="w-20 h-20 bg-vet-bone rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">🐕</div>
-            <h3 className="text-xl font-bold text-gray-900 mb-2">Aún no tienes mascotas registradas</h3>
-            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto">
-              Cuando agendes tu primera hora, tus mascotas aparecerán aquí automáticamente para que puedas seguir su historial.
+            <h3 className="text-xl font-bold text-gray-900 mb-2 uppercase tracking-tight">Sin Registro Clínico</h3>
+            <p className="text-gray-500 text-sm mb-8 max-w-sm mx-auto font-medium leading-relaxed">
+              No tienes mascotas registradas en esta clínica. Para agendar una cita o ver tu historial, usa el portal de reservas.
             </p>
             <Link 
-              to="/reserva"
-              className="inline-block px-8 py-4 bg-vet-rose text-white font-bold rounded-2xl hover:bg-vet-dark transition-all shadow-xl shadow-pink-200"
+              to={clinicId ? `/reserva/${clinicId}` : '/'}
+              className="inline-block px-10 py-5 bg-vet-rose text-white font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-vet-dark transition-all shadow-xl shadow-pink-200"
             >
-              Agendar mi primera consulta
+              Agendar Primera Consulta
             </Link>
           </div>
         ) : (
@@ -353,7 +289,7 @@ export function TutorView() {
                   </div>
 
                   <Link 
-                    to="/reserva"
+                    to={clinicId ? `/reserva/${clinicId}` : '/'}
                     className="mt-8 w-full py-3.5 bg-vet-bone text-vet-dark text-sm font-bold rounded-2xl hover:bg-vet-rose hover:text-white transition-all flex items-center justify-center gap-2 group-hover:shadow-lg"
                   >
                     Agendar para {pet.name}
