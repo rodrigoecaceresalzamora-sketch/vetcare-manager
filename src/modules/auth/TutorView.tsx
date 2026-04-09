@@ -133,6 +133,12 @@ export function TutorView() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link 
+              to="/reserva"
+              className="px-5 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-pink-200 flex items-center gap-2"
+            >
+              <span className="text-lg leading-none">+</span>
+              Agendar Hora
             </Link>
             <div className="h-8 w-px bg-gray-100 mx-2 hidden sm:block"></div>
             <Link 
