@@ -90,14 +90,6 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }
 
-      if (_error) throw _error
-      await fetchConfig()
-      return true
-    } catch (err) {
-      console.error('Error updating clinic config:', err)
-      return false
-    }
-  }
 
   const setPublicClinicId = (id: string) => {
     setCurrentClinicId(id)
