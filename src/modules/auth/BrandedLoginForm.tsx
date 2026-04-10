@@ -62,8 +62,8 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          // Intentamos redirigir de vuelta al portal de la clínica
-          redirectTo: window.location.href
+          // Usamos el origin del sitio para evitar errores de path
+          redirectTo: window.location.origin
         }
       })
       if (error) throw error

@@ -38,16 +38,8 @@ export function LoginPage() {
         })
         if (err) throw err
         
-        // Redireccionar al destino original o al dashboard inteligente
-        const from = (location.state as any)?.from?.pathname || '/dashboard'
-        
-        // Si el "from" es una ruta de tutor o la raíz, mandamos al dashboard para que el componente
-        // DashboardRedirect decida según el rol (tutor vs admin).
-        if (from.startsWith('/c/') || from === '/' || from === '/login') {
-           navigate('/dashboard', { replace: true })
-        } else {
-           navigate(from, { replace: true })
-        }
+        // Forzamos navegación al dashboard
+        window.location.href = '/dashboard'
       } else {
         // --- REGISTRARSE ---
         const { error: err } = await supabase.auth.signUp({
@@ -78,7 +70,8 @@ export function LoginPage() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: window.location.origin + '/dashboard'
+          // Usamos el origin del sitio para evitar errores de path
+          redirectTo: window.location.origin
         }
       })
       if (error) throw error
