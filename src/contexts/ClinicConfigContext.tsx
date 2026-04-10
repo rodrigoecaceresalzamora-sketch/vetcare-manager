@@ -58,9 +58,14 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       if (data) {
         let finalData = { ...data };
-        // Si es Sofia y los datos están vacíos, usar los por defecto
-        if (user?.email === 'scaceresalzamora@gmail.com' && (data.clinic_name === 'VetCare Manager' || !data.contact_phone)) {
+        // AUTO-CURACIÓN AGRESIVA: Si los datos parecen basura o están vacíos y es la clínica de Sofia
+        const isTrash = (data.transfer_details?.includes('sefeds') || !data.contact_phone || data.clinic_name === 'VetCare Manager');
+        const isSofiaClinic = currentClinicId === '332ada4e-5a26-4010-985b-fb72be386d09';
+
+        if (isSofiaClinic && isTrash) {
            finalData = { ...finalData, ...SOFIA_DEFAULTS };
+           // Corregir en DB silenciosamente
+           supabase.from('clinic_config').upsert({ clinic_id: currentClinicId, ...SOFIA_DEFAULTS }).then(() => {});
         }
         setConfig(finalData as ClinicConfig)
         applyColors(finalData.primary_color, finalData.secondary_color)
