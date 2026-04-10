@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
 export function LoginPage() {
@@ -11,8 +10,7 @@ export function LoginPage() {
   const [error, setError]       = useState<string | null>(null)
   const [showConfirmationNotice, setShowConfirmationNotice] = useState(false)
   
-  const navigate = useNavigate()
-  const location = useLocation()
+  // El login usa window.location.href para asegurar redirección total
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
