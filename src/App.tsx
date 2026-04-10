@@ -55,6 +55,13 @@ function DashboardRedirect() {
   return <Navigate to="/login" replace />
 }
 
+function AuthConditionalLogin() {
+  const { user, loading } = useAuth()
+  if (loading) return null
+  if (user) return <Navigate to="/dashboard" replace />
+  return <LoginPage />
+}
+
 // ── Íconos SVG inline ─────────────────────────────────────────
 const icons = {
   patients: (
@@ -389,7 +396,7 @@ export default function App() {
           <Routes>
           {/* Rutas Públicas */}
           <Route path="/" element={<DashboardRedirect />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<AuthConditionalLogin />} />
           <Route path="/reserva/:clinicId" element={<PublicBooking />} />
           <Route path="/c/:clinicId" element={<TutorView />} />
           <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
