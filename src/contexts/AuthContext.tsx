@@ -109,6 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           
           if (existingClinic) {
             setClinicId(existingClinic.id)
+            // ASEGURAR STAFF: Si existe clínica pero no staff para el admin, crearlo
+            await supabase.from('staff').upsert({
+              email: userEmail,
+              role: 'admin',
+              clinic_id: existingClinic.id
+            }, { onConflict: 'email' })
           } else {
             // Intentar crearla una vez más
             const { data: newClinic } = await supabase
@@ -116,7 +122,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               .insert({ name: 'VetCare Principal', owner_id: user.id, plan_type: 'pro', is_paid: true })
               .select()
               .single()
-            if (newClinic) setClinicId(newClinic.id)
+            
+            if (newClinic) {
+              setClinicId(newClinic.id)
+              await supabase.from('staff').upsert({
+                email: userEmail,
+                role: 'admin',
+                clinic_id: newClinic.id
+              }, { onConflict: 'email' })
+            }
           }
         } else {
           setRole('tutor')
