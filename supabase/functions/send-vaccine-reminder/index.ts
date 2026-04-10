@@ -39,6 +39,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
+    // Cargamos la vacuna, los datos del tutor y la configuración de la clínica (SMTP)
     const { data: vacc, error: vaccErr } = await supabase
       .from('vaccinations')
       .select(`
@@ -49,7 +50,8 @@ Deno.serve(async (req) => {
           guardian:guardians (
             name,
             email
-          )
+          ),
+          clinic:clinic_config (*)
         )
       `)
       .eq('id', vaccination_id)
@@ -62,11 +64,16 @@ Deno.serve(async (req) => {
       })
     }
 
-    const petName      = vacc.patient?.name            ?? 'tu mascota'
-    const guardianName = vacc.patient?.guardian?.name  ?? 'Estimado/a tutor/a'
+    const clinicConfig = vacc.patient?.clinic
+    const smtpEmail    = clinicConfig?.smtp_email || Deno.env.get('GMAIL_USER')
+    const smtpPass     = clinicConfig?.smtp_password || Deno.env.get('GMAIL_PASS')
+    const clinicName   = clinicConfig?.clinic_name || 'VetCare Manager'
+
+    const petName       = vacc.patient?.name            ?? 'tu mascota'
+    const guardianName  = vacc.patient?.guardian?.name  ?? 'Estimado/a tutor/a'
     const guardianEmail = vacc.patient?.guardian?.email
-    const vaccineName  = vacc.vaccine_name             ?? 'refuerzo de vacuna'
-    const dueDate      = vacc.next_due_date
+    const vaccineName   = vacc.vaccine_name             ?? 'refuerzo de vacuna'
+    const dueDate       = vacc.next_due_date
 
     // Formatear fecha en español
     const formattedDate = new Date(dueDate + 'T12:00:00').toLocaleDateString('es-CL', {
@@ -84,7 +91,9 @@ Deno.serve(async (req) => {
     }
 
     // ── 2. Construir el correo ─────────────────────────────────
-    const subject = `Recordatorio: Próxima vacunación de ${petName} 🐾`
+    const subject = clinicConfig?.email_subject_reminder
+        ? clinicConfig.email_subject_reminder.replace(/{mascota}/g, petName).replace(/{tutor}/g, guardianName).replace(/{vacuna}/g, vaccineName).replace(/{fecha}/g, formattedDate)
+        : `Recordatorio: Próxima vacunación de ${petName} 🐾`
 
     const htmlBody = `
 <!DOCTYPE html>
@@ -110,14 +119,12 @@ Deno.serve(async (req) => {
   <div class="container">
     <div class="header">
       <div class="logo">🐾</div>
-      <h1>VetCare Manager — Recordatorio de Vacunación</h1>
+      <h1>${clinicName} — Recordatorio</h1>
     </div>
 
     <p>Estimado/a <strong>${guardianName}</strong>,</p>
 
-    <p>Esperamos que tú y <strong>${petName}</strong> se encuentren muy bien.</p>
-
-    <p>Te escribimos para recordarte que próximamente corresponde aplicar el refuerzo de la vacuna de tu compañero/a. Cumplir con los plazos de vacunación es fundamental para garantizar que su sistema inmunológico esté totalmente protegido.</p>
+    <p>Te escribimos de parte de <strong>${clinicName}</strong> para recordarte que próximamente corresponde aplicar el refuerzo de la vacuna de tu compañero/a.</p>
 
     <div class="detail-box">
       <strong style="color:#c8799f">Detalles de la cita:</strong>
@@ -125,36 +132,34 @@ Deno.serve(async (req) => {
         <li>🐶 <span>Mascota:</span> ${petName}</li>
         <li>💉 <span>Vacuna:</span> ${vaccineName}</li>
         <li>📅 <span>Fecha sugerida:</span> ${formattedDate}</li>
-        <li>🕐 <span>Horario de atención:</span> Martes y Miércoles de 10:00 a 16:00 hrs — Sábado y Domingo de 10:00 a 14:00 hrs</li>
       </ul>
     </div>
 
-    <p>Si deseas agendar tu cita o necesitas reprogramar, puedes responder a este correo o escribirnos vía <strong>WhatsApp al +56951045611</strong></p>
+    <p>Si deseas agendar tu cita, contáctanos respondiendo a este correo o vía WhatsApp.</p>
 
     <div class="footer">
       <p>Atentamente,<br>
-      <strong>Sofía Cáceres Alzamora</strong><br>
-      Médica Veterinaria<br>
-      📧 Scaceresalzamora@gmail.com | 📱 +56951045611</p>
+      <strong>${clinicName}</strong><br>
+      Email: ${smtpEmail}</p>
     </div>
   </div>
 </body>
 </html>
 `
 
-    // ── 3. Enviar por Gmail SMTP ───────────────────────────────
+    // ── 3. Enviar por SMTP configurado ────────────────────────
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
       port: 587,
-      secure: false,
+      secure: false, // Gmail usa STARTTLS
       auth: {
-        user: Deno.env.get('GMAIL_USER'),
-        pass: Deno.env.get('GMAIL_PASS'),
+        user: smtpEmail,
+        pass: smtpPass,
       },
     })
 
     await transporter.sendMail({
-      from: `"Sofía Cáceres — VetCare" <${Deno.env.get('GMAIL_USER')}>`,
+      from: `"${clinicName} — VetCare" <${smtpEmail}>`,
       to: guardianEmail,
       subject,
       html: htmlBody,

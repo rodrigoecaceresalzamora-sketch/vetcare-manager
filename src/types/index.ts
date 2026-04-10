@@ -262,6 +262,8 @@ export interface ClinicConfig {
   schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
   slug: string | null
   clinic_id: string
+  smtp_email?: string
+  smtp_password?: string
   created_at?: string
   updated_at?: string
 }

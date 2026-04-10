@@ -396,7 +396,53 @@ export function SettingsManagement() {
         )}
 
         {activeTab === 'email' && (
-          <div className="p-8 space-y-8 animate-fade-in">
+          <div className="p-8 space-y-10 animate-fade-in">
+            {/* Sección SMTP */}
+            <div className="bg-indigo-50/50 rounded-3xl p-8 border border-indigo-100/50">
+              <div className="flex items-center gap-4 mb-8">
+                <div className="w-12 h-12 bg-indigo-600/10 text-indigo-600 rounded-2xl flex items-center justify-center text-xl">🚀</div>
+                <div>
+                  <h3 className="text-lg font-black text-gray-900 leading-tight">Configuración de Envío (Gmail SMTP)</h3>
+                  <p className="text-xs text-gray-500 font-medium">Configura tu propia cuenta para que los correos salgan a tu nombre.</p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Correo de Salida (Gmail)</label>
+                  <input
+                    type="email"
+                    value={localConfig.smtp_email || ''}
+                    onChange={(e) => set('smtp_email', e.target.value)}
+                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none font-medium text-gray-700"
+                    placeholder="ejemplo@gmail.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contraseña de Aplicación (16 dígitos)</label>
+                  <input
+                    type="password"
+                    value={localConfig.smtp_password || ''}
+                    onChange={(e) => set('smtp_password', e.target.value)}
+                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none font-medium text-gray-700"
+                    placeholder="•••• •••• •••• ••••"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 bg-white/80 p-6 rounded-2xl border border-indigo-100 shadow-sm">
+                <p className="text-xs text-indigo-800 leading-relaxed">
+                  <strong className="block mb-2 text-[10px] uppercase font-black">💡 Instrucciones Críticas:</strong>
+                  1. Activa la <strong>Verificación en 2 Pasos</strong> en tu Cuenta de Google.<br/>
+                  2. Busca <strong>"Contraseñas de aplicación"</strong> en la configuración de seguridad.<br/>
+                  3. Crea una para "Correo" y copia el código de 16 letras aquí.<br/>
+                  4. ¡Listo! Tus correos saldrán desde tu propia cuenta.
+                </p>
+              </div>
+            </div>
+
+            <hr className="border-gray-100" />
+
              <section className="space-y-8">
                 <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-blue-800 text-xs">
                    <span className="text-lg">✉️</span>

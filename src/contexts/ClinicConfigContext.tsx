@@ -28,7 +28,9 @@ const SOFIA_DEFAULTS = {
   email_body_cancellation: 'Hola {tutor}, tu cita para {mascota} programada para el día {fecha} ha sido cancelada. Si tienes dudas, contáctanos.',
   wa_template_rescheduled: 'Hola {tutor}, tu cita para {mascota} ha sido reprogramada para el día {fecha} a las {hora}.',
   email_subject_rescheduled: 'Cita Reprogramada - VetCare',
-  email_body_rescheduled: 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.'
+  email_body_rescheduled: 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.',
+  smtp_email: 'scaceresalzamora@gmail.com',
+  smtp_password: '' // El usuario debe llenar esto con su contraseña de aplicación
 };
 
 export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
