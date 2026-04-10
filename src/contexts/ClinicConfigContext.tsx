@@ -110,11 +110,14 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
           updated_at: new Date().toISOString() 
         }, { onConflict: 'clinic_id' })
 
-      if (_error) throw _error
+      if (_error) {
+        console.error('Supabase error updating config:', _error)
+        throw _error
+      }
       await fetchConfig()
       return true
     } catch (err) {
-      console.error('Error updating config:', err)
+      console.error('Error updating config (Full Error):', err)
       return false
     }
   }
