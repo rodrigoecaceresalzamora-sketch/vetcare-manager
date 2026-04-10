@@ -50,47 +50,51 @@ export function SettingsManagement() {
   if (!config && !clinicId) return (
     <div className="p-10 text-center flex flex-col items-center justify-center min-h-[400px]">
       <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4 border border-gray-100 italic text-2xl">⚙️</div>
-      <p className="text-gray-900 font-black uppercase tracking-tight">No se encontró una clínica vinculada</p>
-      <p className="text-xs text-gray-400 mt-2 max-w-xs leading-relaxed font-medium">
-        Asegúrate de haber completado el onboarding o que tu cuenta tenga una clínica asignada.
-      </p>
+      <h2 className="text-xl font-black text-gray-900 mb-2">Configuración Inicial</h2>
+      <p className="text-gray-500 text-sm max-w-xs mb-8">Parece que tu clínica aún no tiene un perfil configurado. Dale al botón de abajo para empezar.</p>
+      <button 
+        onClick={() => handleSave()}
+        className="px-8 py-4 bg-vet-rose text-white font-black rounded-2xl shadow-xl shadow-vet-rose/20 hover:scale-[1.02] transition-all"
+      >
+        Crear Perfil de Clínica ✨
+      </button>
     </div>
   )
 
-  const bookingLink = clinicId ? `${window.location.origin}/reserva/${clinicId}` : `${window.location.origin}/reserva`
+  const bookingUrl = `${window.location.origin}/c/${clinicId || config?.clinic_id}`
 
   return (
-    <div className="p-6 max-w-5xl mx-auto space-y-8 animate-fade-in">
-      {/* Link de Agendamiento Section */}
-      <div className="bg-gray-900 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-2xl">
-         <div className="absolute top-0 right-0 w-64 h-64 bg-vet-rose/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-         <div className="relative z-10 grid md:grid-cols-2 gap-8 items-center">
-            <div>
-              <span className="inline-block px-3 py-1 bg-vet-rose text-[10px] font-black uppercase tracking-widest rounded-full mb-4">Link de tu Clínica</span>
-              <h2 className="text-2xl font-black mb-2 uppercase leading-tight tracking-tighter">Comparte tu Portal <br/> para Agendar</h2>
-              <p className="text-gray-400 text-sm font-medium">Envía este link a tus clientes para que agenden sus consultas directamente.</p>
+    <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in font-sans">
+      {/* Header y Link de Agendamiento */}
+      <div className="bg-gray-900 rounded-[2.5rem] p-8 md:p-12 text-white relative overflow-hidden shadow-2xl shadow-gray-900/20">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-vet-rose/10 rounded-full blur-3xl -mr-48 -mt-48"></div>
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
+          <div className="max-w-md">
+            <h2 className="text-3xl font-black mb-3 leading-tight tracking-tight">Comparte tu portal<br/>para agendar</h2>
+            <p className="text-gray-400 text-sm font-medium leading-relaxed">Envía este link corto a tus clientes para que agenden sus consultas directamente sin complicaciones.</p>
+          </div>
+          
+          <div className="flex-1 max-w-xl">
+            <div className="bg-white/10 backdrop-blur-md rounded-[2.5rem] p-6 border border-white/10">
+              <div className="bg-gray-800/50 rounded-2xl px-5 py-4 border border-white/5 mb-4 font-mono text-xs text-pink-300 break-all select-all">
+                {bookingUrl}
+              </div>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(bookingUrl)
+                  showToast('📋 Link copiado al portapapeles')
+                }}
+                className="w-full py-4 bg-white text-gray-900 font-black rounded-2xl hover:bg-vet-pink transition-all flex items-center justify-center gap-2 group shadow-xl shadow-white/5 active:scale-95"
+              >
+                Copiar Link de Agendamiento ✨
+              </button>
             </div>
-            <div className="bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl">
-               <p className="text-[10px] font-black text-vet-rose uppercase tracking-widest mb-3">Tu URL Personalizada</p>
-               <input 
-                 readOnly 
-                 className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs font-mono text-white mb-4 outline-none focus:border-vet-rose transition-all"
-                 value={bookingLink} 
-               />
-               <button 
-                 onClick={() => {
-                   navigator.clipboard.writeText(bookingLink)
-                   alert('Link copiado al portapapeles')
-                 }}
-                 className="w-full py-4 bg-white text-gray-900 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-vet-rose hover:text-white transition-all active:scale-95"
-               >
-                 Copiar Link de Agendamiento
-               </button>
-            </div>
-         </div>
+          </div>
+        </div>
       </div>
+
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-xl animate-fade-in border border-white/10">
+        <div className="fixed top-4 right-4 z-[9999] bg-gray-900 text-white text-sm px-6 py-3 rounded-2xl shadow-2xl animate-fade-in border border-white/10 flex items-center gap-2 font-bold">
           {toast}
         </div>
       )}

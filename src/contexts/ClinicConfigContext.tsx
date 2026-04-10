@@ -42,75 +42,29 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .from('clinic_config')
         .select('*')
         .eq('clinic_id', currentClinicId)
-        .single()
-
-      // --- CONFIGURACIÓN DE EMERGENCIA PARA SOFIA ---
-      const isSofia = currentClinicId && authClinicId && (authClinicId === '332ada4e-5a26-4010-985b-fb72be386d09' || authClinicId.startsWith('332ada'));
-      const sofiaDefaults = {
-        clinic_name: 'VetCare Principal',
-        primary_color: '#e11d48',
-        secondary_color: '#fdf2f8',
-        contact_phone: '+56951045611',
-        contact_email: 'scaceresalzamora@gmail.com',
-        address: 'San Enrique 1380, Retiro, Quilpué',
-        transfer_details: 'NOMBRE: SOFIA CACERES\nBANCO: BANCO ESTADO\nCTA RUT: 12345678',
-        clinic_logo_url: 'https://raw.githubusercontent.com/rodrigoecaceresalzamora-sketch/vetcare-manager/main/public/logo.png',
-        schedule: {"1": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "2": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "3": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "4": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "5": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "6": ["10:00", "11:00", "12:00", "13:00"]}
-      };
+        .maybeSingle()
 
       if (data) {
-        let finalData = { ...data };
-        // Si los datos están notablemente vacíos y es Sofia, rescatarlos del código
-        if (isSofia && (data.clinic_name === 'VetCare Manager' || !data.contact_phone)) {
-           finalData = { ...finalData, ...sofiaDefaults };
-           // Persistir para no tener que hacerlo de nuevo
-           supabase.from('clinic_config').update(sofiaDefaults).eq('clinic_id', currentClinicId).then(() => {});
-        }
-
-        const configWithDefaults = {
-          ...finalData,
-          wa_template_reminder: finalData.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
-          wa_template_confirmation: finalData.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
-          email_subject_booking: finalData.email_subject_booking || 'Confirmación de Cita - VetCare',
-          email_body_booking: finalData.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
-          email_subject_reminder: finalData.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
-          email_body_reminder: finalData.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.'
-        }
-        setConfig(configWithDefaults as ClinicConfig)
-        applyColors(finalData.primary_color, finalData.secondary_color)
+        setConfig(data as ClinicConfig)
+        applyColors(data.primary_color, data.secondary_color)
       } else {
-        // AUTO-CREAR CONFIGURACIÓN SI NO EXISTE
-        const insertPayload = isSofia 
-          ? { clinic_id: currentClinicId, ...sofiaDefaults }
-          : { clinic_id: currentClinicId, clinic_name: 'VetCare Manager' };
-
-        const { data: newConfig } = await supabase
+        // Si no hay config, se creará al guardar o podemos crear una base aquí
+        const { data: newC } = await supabase
           .from('clinic_config')
-          .insert(insertPayload)
+          .upsert({ clinic_id: currentClinicId, clinic_name: 'VetCare Manager' })
           .select()
           .single()
-        
-        if (newConfig) {
-          const configWithDefaults = {
-            ...newConfig,
-            wa_template_reminder: newConfig.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
-            wa_template_confirmation: newConfig.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
-            email_subject_booking: newConfig.email_subject_booking || 'Confirmación de Cita - VetCare',
-            email_body_booking: newConfig.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
-            email_subject_reminder: newConfig.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
-            email_body_reminder: newConfig.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.'
-          }
-          setConfig(configWithDefaults as ClinicConfig)
-          applyColors(newConfig.primary_color, newConfig.secondary_color)
+        if (newC) {
+          setConfig(newC as ClinicConfig)
+          applyColors(newC.primary_color, newC.secondary_color)
         }
       }
     } catch (err) {
       console.error('Error fetching clinic config:', err)
-      setConfig(null)
     } finally {
       setLoading(false)
     }
-  }, [applyColors])
+  }, [currentClinicId, applyColors])
 
   useEffect(() => {
     fetchConfig()
@@ -121,8 +75,20 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     try {
       const { error: _error } = await supabase
         .from('clinic_config')
-        .update({ ...newConfig, updated_at: new Date().toISOString() })
-        .eq('clinic_id', currentClinicId)
+        .upsert({ 
+          ...newConfig, 
+          clinic_id: currentClinicId,
+          updated_at: new Date().toISOString() 
+        }, { onConflict: 'clinic_id' })
+
+      if (_error) throw _error
+      await fetchConfig()
+      return true
+    } catch (err) {
+      console.error('Error updating config:', err)
+      return false
+    }
+  }
 
       if (_error) throw _error
       await fetchConfig()

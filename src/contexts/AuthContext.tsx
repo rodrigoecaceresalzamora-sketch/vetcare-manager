@@ -65,80 +65,55 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const userEmail = user.email?.toLowerCase()
 
     try {
-      // 1. Buscar en la tabla staff para obtener el rol y la clínica
-      const { data: staffData, error: staffErr } = await supabase
+      // 1. Detección Maestro (Sofia)
+      if (userEmail === 'scaceresalzamora@gmail.com') {
+        setRole('admin')
+        setPlanType('pro')
+        setIsPaid(true)
+        
+        // Buscar o crear clínica
+        const { data: c } = await supabase.from('clinics').select('id').eq('owner_id', user.id).maybeSingle()
+        if (c) {
+          setClinicId(c.id)
+          // Asegurar staff para RLS
+          await supabase.from('staff').upsert({ email: userEmail, role: 'admin', clinic_id: c.id }, { onConflict: 'email' })
+        }
+        return
+      }
+
+      // 2. Jugadores normales (médicos, ayudantes)
+      const { data: staffData } = await supabase
         .from('staff')
         .select('role, clinic_id')
         .eq('email', userEmail)
         .maybeSingle()
 
-      if (staffErr) throw staffErr
-
       if (staffData) {
         setRole(staffData.role as Role)
         setClinicId(staffData.clinic_id)
         
-        // 2. Obtener información del plan de la clínica
         if (staffData.clinic_id) {
-          const { data: clinicData } = await supabase
-            .from('clinics')
-            .select('plan_type, is_paid')
-            .eq('id', staffData.clinic_id)
-            .single()
-          
-          if (clinicData) {
-            setPlanType(clinicData.plan_type as 'basic' | 'pro')
-            setIsPaid(!!clinicData.is_paid)
+          const { data: cData } = await supabase.from('clinics').select('plan_type, is_paid').eq('id', staffData.clinic_id).single()
+          if (cData) {
+            setPlanType(cData.plan_type as 'basic' | 'pro')
+            setIsPaid(!!cData.is_paid)
           }
         }
       } else {
-        // 3. Fallback: Si no está en staff, podría ser el DUEÑO de una clínica
-
-        if (userEmail === 'scaceresalzamora@gmail.com') {
+        // 3. Dueños que no son Sofia o Tutores (por defecto tutor)
+        const { data: owned } = await supabase.from('clinics').select('id, plan_type, is_paid').eq('owner_id', user.id).maybeSingle()
+        if (owned) {
           setRole('admin')
-          setPlanType('pro')
-          setIsPaid(true)
-          
-          // REFUERZO EXTREMO: Buscar cualquier clínica donde el nombre sea 'VetCare Principal' 
-          // o el dueño sea este usuario. No importa si el insert falló antes.
-          const { data: existingClinic } = await supabase
-            .from('clinics')
-            .select('id')
-            .or(`owner_id.eq.${user.id},name.eq.VetCare Principal`)
-            .maybeSingle()
-          
-          if (existingClinic) {
-            setClinicId(existingClinic.id)
-            // ASEGURAR STAFF: Si existe clínica pero no staff para el admin, crearlo
-            await supabase.from('staff').upsert({
-              email: userEmail,
-              role: 'admin',
-              clinic_id: existingClinic.id
-            }, { onConflict: 'email' })
-          } else {
-            // Intentar crearla una vez más
-            const { data: newClinic } = await supabase
-              .from('clinics')
-              .insert({ name: 'VetCare Principal', owner_id: user.id, plan_type: 'pro', is_paid: true })
-              .select()
-              .single()
-            
-            if (newClinic) {
-              setClinicId(newClinic.id)
-              await supabase.from('staff').upsert({
-                email: userEmail,
-                role: 'admin',
-                clinic_id: newClinic.id
-              }, { onConflict: 'email' })
-            }
-          }
+          setClinicId(owned.id)
+          setPlanType(owned.plan_type as 'basic' | 'pro')
+          setIsPaid(!!owned.is_paid)
         } else {
           setRole('tutor')
         }
       }
     } catch (err) {
       console.error('Error in updateRole:', err)
-      setRole('tutor') // Default safe role
+      setRole('tutor') 
     } finally {
       setClinicLoading(false)
     }
