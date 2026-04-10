@@ -12,7 +12,7 @@ import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 import { BrandedLoginForm } from './BrandedLoginForm'
 
 export function TutorView() {
-  const { user, signOut, clinicId: authClinicId } = useAuth()
+  const { user, signOut } = useAuth()
   const { clinicId: urlClinicId } = useParams()
   // El config se encarga de resolver el ID real
   const { config, setPublicClinicId } = useClinicConfig()
