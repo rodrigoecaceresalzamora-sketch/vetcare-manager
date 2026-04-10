@@ -51,8 +51,12 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/tutor" replace />
   }
 
-  // 6. Si es tutor y está en una ruta protegida (no /tutor ni /reserva)
-  if (role === 'tutor' && !location.pathname.startsWith('/tutor') && !location.pathname.startsWith('/reserva')) {
+  // 6. Si es tutor y está en una ruta protegida O en una ruta de clínica específica
+  const isTutorRoute = location.pathname.startsWith('/tutor') || 
+                       location.pathname.startsWith('/c/') || 
+                       location.pathname.startsWith('/reserva/');
+
+  if (role === 'tutor' && !isTutorRoute) {
     return <Navigate to="/tutor" replace />
   }
 
