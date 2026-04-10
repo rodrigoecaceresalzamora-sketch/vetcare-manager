@@ -50,25 +50,9 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
         setIsLogin(true)
       }
     } catch (err: any) {
-      if ((window as any).turnstile) (window as any).turnstile.reset()
       setError(err.message || 'Error en la autenticación')
     } finally {
       setLoading(false)
-    }
-  }
-
-  const handleGoogleLogin = async () => {
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          // Usamos el origin del sitio para evitar errores de path
-          redirectTo: window.location.origin
-        }
-      })
-      if (error) throw error
-    } catch (err: any) {
-      setError(err.message)
     }
   }
 
