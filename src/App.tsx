@@ -42,7 +42,11 @@ function DashboardRedirect() {
 
   if (!user) return <Navigate to="/" replace />
   
-  if (role === 'tutor') return <Navigate to="/tutor" replace />
+  // Si es tutor, ya no existe /tutor genérico. 
+  // Intentamos redirigir a su última sesión o a la home si no hay contexto.
+  if (role === 'tutor') {
+    return <Navigate to="/" replace />
+  }
   
   if (!clinicId) return <Navigate to="/onboarding" replace />
   
@@ -480,14 +484,6 @@ export default function App() {
             }
           />
           
-          <Route
-            path="/tutor"
-            element={
-              <ProtectedRoute>
-                <TutorView />
-              </ProtectedRoute>
-            }
-          />
 
           {/* Redirección por defecto inteligente */}
           <Route path="/dashboard" element={<DashboardRedirect />} />

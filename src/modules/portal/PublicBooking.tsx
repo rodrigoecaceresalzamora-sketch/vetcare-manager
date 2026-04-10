@@ -167,6 +167,11 @@ export function PublicBooking() {
       setFieldError('Debes iniciar sesión para confirmar tu reserva.')
       return
     }
+    if (!clinicId) {
+      setFieldError('Error: ID de clínica no encontrado.')
+      return
+    }
+
     setFieldError('')
     if (!form.guardian_name)  return setFieldError('Ingresa tu nombre')
     if (!form.guardian_email) return setFieldError('Ingresa tu correo')
@@ -179,82 +184,136 @@ export function PublicBooking() {
     if (!form.pet_name)       return setFieldError('Ingresa el nombre de tu mascota')
     if (form.is_home_visit && !form.address) return setFieldError('Ingresa tu dirección')
 
-    const scheduledAt = (() => {
-      if (!date || !time) return '';
-      const [year, month, day] = date.split('-').map(Number);
-      const [hour, minute] = time.split(':').map(Number);
-      const d = new Date(year, month - 1, day, hour, minute);
-      return d.toISOString();
-    })();
-    const id = generateId()
-
-    const insertPayload: Record<string, any> = {
-      id,
-      guardian_name:    form.guardian_name,
-      guardian_email:   form.guardian_email,
-      guardian_phone:   form.guardian_phone || '',
-      pet_name:         form.pet_name,
-      service:          service.name,
-      scheduled_at:     scheduledAt,
-      duration_minutes: service.duration_minutes || 30,
-      notes:            consultationReason || '',
-      status:           'pendiente',
-      source:           'portal',
-      is_home_visit:    false,
-      address:          '',
-      // Pet profile details
-      pet_species:      form.pet_species,
-      pet_breed:        form.pet_breed,
-      pet_sex:          form.pet_sex,
-      pet_date_of_birth: form.pet_date_of_birth || null,
-      pet_adopted_since: form.pet_adopted_since || null,
-      pet_is_reactive:  form.pet_is_reactive || false,
-      clinic_id: clinicId
-    }
-
-    // guardian_rut optional — add only if column exists (silently skip on error)
-    if (form.guardian_rut) insertPayload.guardian_rut = form.guardian_rut
-    
-    // Vincular IDs si existen
-    if (form.patient_id)   insertPayload.patient_id   = form.patient_id
-    if (form.guardian_id)  insertPayload.guardian_id  = form.guardian_id
-
     setSaving(true)
-    const { error: dbErr } = await supabase.from('appointments').insert(insertPayload)
-
-    if (dbErr) {
-      setSaving(false)
-      setFieldError('Error: ' + dbErr.message)
-      return
-    }
 
     try {
-      // Reemplazar placeholders en el email de booking
-      let emailSubject = config?.email_subject_booking || 'Confirmación de Cita'
-      let emailBody = config?.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida.'
-      
-      const formattedDateForEmail = availableDates.find(d => d.value === date)?.label || date || ''
-      
-      const replaceAll = (str: string) => str
-        .replace(/{tutor}/g, form.guardian_name)
-        .replace(/{mascota}/g, form.pet_name)
-        .replace(/{fecha}/g, formattedDateForEmail)
-        .replace(/{hora}/g, time || '')
+      // 1. AUTO-PROVISIÓN: Asegurar que el GUARDIAN existe en esta clínica
+      let finalGuardianId = form.guardian_id
+      if (!finalGuardianId) {
+        const { data: existingG } = await supabase
+          .from('guardians')
+          .select('id')
+          .eq('email', form.guardian_email.toLowerCase())
+          .eq('clinic_id', clinicId)
+          .maybeSingle()
+        
+        if (existingG) {
+          finalGuardianId = existingG.id
+        } else {
+          const { data: newG, error: gErr } = await supabase
+            .from('guardians')
+            .insert({
+              full_name: form.guardian_name,
+              email: form.guardian_email.toLowerCase(),
+              phone: form.guardian_phone,
+              rut: form.guardian_rut,
+              clinic_id: clinicId
+            })
+            .select()
+            .single()
+          
+          if (gErr) throw gErr
+          finalGuardianId = newG.id
+        }
+      }
 
-      await supabase.functions.invoke('confirm-booking', {
-        body: { 
-          appointment_id: id,
-          custom_subject: replaceAll(emailSubject),
-          custom_body: replaceAll(emailBody)
-        },
+      // 2. AUTO-PROVISIÓN: Asegurar que el PACIENTE existe en esta clínica
+      let finalPatientId = form.patient_id
+      if (!finalPatientId) {
+        const { data: existingP } = await supabase
+          .from('patients')
+          .select('id')
+          .eq('guardian_id', finalGuardianId)
+          .eq('name', form.pet_name)
+          .eq('clinic_id', clinicId)
+          .maybeSingle()
+        
+        if (existingP) {
+          finalPatientId = existingP.id
+        } else {
+          const { data: newP, error: pErr } = await supabase
+            .from('patients')
+            .insert({
+              name: form.pet_name,
+              species: form.pet_species,
+              breed: form.pet_breed,
+              sex: form.pet_sex,
+              date_of_birth: form.pet_date_of_birth || null,
+              guardian_id: finalGuardianId,
+              clinic_id: clinicId,
+              status: 'activo'
+            })
+            .select()
+            .single()
+          
+          if (pErr) throw pErr
+          finalPatientId = newP.id
+        }
+      }
+
+      // 3. AGENDAR CITA
+      const scheduledAt = (() => {
+        if (!date || !time) return '';
+        const [year, month, day] = date.split('-').map(Number);
+        const [hour, minute] = time.split(':').map(Number);
+        const d = new Date(year, month - 1, day, hour, minute);
+        return d.toISOString();
+      })();
+      const appointmentId = generateId()
+
+      const { error: dbErr } = await supabase.from('appointments').insert({
+        id: appointmentId,
+        clinic_id:        clinicId,
+        guardian_id:      finalGuardianId,
+        patient_id:       finalPatientId,
+        guardian_name:    form.guardian_name,
+        guardian_email:   form.guardian_email.toLowerCase(),
+        guardian_phone:   form.guardian_phone,
+        guardian_rut:     form.guardian_rut,
+        pet_name:         form.pet_name,
+        pet_species:      form.pet_species,
+        pet_breed:        form.pet_breed,
+        pet_sex:          form.pet_sex,
+        service:          service.name,
+        scheduled_at:     scheduledAt,
+        duration_minutes: service.duration_minutes || 30,
+        notes:            consultationReason || '',
+        status:           'pendiente',
+        source:           'portal'
       })
-    } catch {
-      console.warn('Email de confirmación no pudo enviarse')
-    }
 
-    setBookingId(id)
-    setSaving(false)
-    setStep('confirmed')
+      if (dbErr) throw dbErr
+
+      // 4. NOTIFICACIÓN (Opcional)
+      try {
+        let emailSubject = config?.email_subject_booking || 'Confirmación de Cita'
+        let emailBody = config?.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida.'
+        const formattedDateForEmail = (availableDates.find(d => d.value === date)?.label || date) || ''
+        const replaceAll = (str: string) => str
+          .replace(/{tutor}/g, form.guardian_name)
+          .replace(/{mascota}/g, form.pet_name)
+          .replace(/{fecha}/g, formattedDateForEmail)
+          .replace(/{hora}/g, time || '')
+
+        await supabase.functions.invoke('confirm-booking', {
+          body: { 
+            appointment_id: appointmentId,
+            custom_subject: replaceAll(emailSubject),
+            custom_body: replaceAll(emailBody)
+          },
+        })
+      } catch (e) {
+        console.warn('Email notification failed', e)
+      }
+
+      setBookingId(appointmentId)
+      setStep('confirmed')
+    } catch (err: any) {
+      console.error('Error in handleConfirm:', err)
+      setFieldError('Error al procesar la reserva: ' + (err.message || err))
+    } finally {
+      setSaving(false)
+    }
   }
 
   if (step === 'confirmed') {
@@ -266,26 +325,26 @@ export function PublicBooking() {
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Solicitud recibida</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-3 uppercase tracking-tight">¡RESERVA SOLICITADA! ✨</h2>
           <p className="text-sm text-gray-500 leading-relaxed mb-8">
             Tu hora para <strong className="text-gray-800">{form.pet_name}</strong> ha sido enviada correctamente.
-            Quedara registrada como <strong className="text-amber-600">pendiente</strong> hasta ser
-            revisada y confirmada. Te avisaremos cuando este lista.
+            Quedará registrada como <strong className="text-amber-600">pendiente</strong> hasta ser
+            confirmada por la veterinaria.
           </p>
-          <div className="bg-white border border-pink-100 rounded-2xl p-5 text-left space-y-3 mb-8 shadow-sm">
-            <p className="text-[10px] font-bold text-vet-rose uppercase tracking-widest mb-3">Resumen de tu solicitud</p>
+          <div className="bg-white border border-pink-100 rounded-3xl p-6 text-left space-y-3 mb-8 shadow-sm">
+            <p className="text-[10px] font-black text-vet-rose uppercase tracking-[0.2em] mb-3">Resumen de tu solicitud</p>
             <Row label="Servicio"  value={service?.name || ''} />
             <Row label="Fecha"     value={availableDates.find(d => d.value === date)?.label ?? date ?? ''} />
             <Row label="Hora"      value={time ?? ''} />
             {consultationReason && <Row label="Motivo" value={consultationReason} />}
           </div>
           
-          <button
-            onClick={() => navigate('/tutor')}
-            className="w-full px-6 py-3 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-colors"
+          <Link
+            to={`/c/${clinicId}`}
+            className="inline-block w-full px-6 py-4 bg-vet-rose text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-vet-dark transition-all transform active:scale-95 shadow-xl shadow-pink-100"
           >
-            Volver a mis mascotas
-          </button>
+            Volver a mi Panel de Mascotas
+          </Link>
         </div>
       </PortalShell>
     )
