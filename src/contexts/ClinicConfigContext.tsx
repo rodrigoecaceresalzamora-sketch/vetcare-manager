@@ -99,10 +99,13 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const updateConfig = async (newConfig: Partial<ClinicConfig>): Promise<boolean> => {
     if (!currentClinicId) return false
     try {
+      // Sanitizar para evitar enviar 'id' si viene en el objeto
+      const { id: _, ...cleanConfig } = newConfig as any;
+
       const { error: _error } = await supabase
         .from('clinic_config')
         .upsert({ 
-          ...newConfig, 
+          ...cleanConfig, 
           clinic_id: currentClinicId,
           updated_at: new Date().toISOString() 
         }, { onConflict: 'clinic_id' })
