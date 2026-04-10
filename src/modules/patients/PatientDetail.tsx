@@ -3,7 +3,7 @@
 // Ficha Clínica del paciente: Header, Histórico, Archivos
 // ============================================================
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { usePatientDetail } from './usePatientDetail'
 import { ConsultationForm } from './ConsultationForm'
