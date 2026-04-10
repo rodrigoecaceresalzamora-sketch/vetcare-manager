@@ -29,7 +29,6 @@ import { StaffManagement }   from './modules/staff/StaffManagement'
 import { PricingManagement } from './modules/staff/PricingManagement'
 import { StockManagement }   from './modules/stock/StockManagement'
 import { SettingsManagement } from './modules/staff/SettingsManagement'
-import { LandingPage } from './modules/marketing/LandingPage'
 import { Onboarding } from './modules/auth/Onboarding'
 import { Billing } from './modules/staff/Billing'
 
@@ -386,7 +385,7 @@ export default function App() {
         <ClinicConfigProvider>
           <Routes>
           {/* Rutas Públicas */}
-          <Route path="/" element={<LandingPage />} />
+          <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reserva/:clinicId" element={<PublicBooking />} />
           <Route 
@@ -397,7 +396,6 @@ export default function App() {
               </ProtectedRoute>
             } 
           />
-          <Route path="/reserva" element={<LandingPage />} />
           <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
             <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100">
                <h1 className="text-2xl font-black mb-4">📧 Verifica tu Email</h1>
