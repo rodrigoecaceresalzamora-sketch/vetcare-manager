@@ -55,19 +55,6 @@ function DashboardRedirect() {
   return <Navigate to="/login" replace />
 }
 
-function AuthConditionalLogin() {
-  const { user, loading } = useAuth()
-  if (loading) return (
-    <div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center">
-      <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100 animate-pulse">
-        <h1 className="text-xl font-black mb-2 uppercase">Iniciando VetCare...</h1>
-        <p className="text-gray-400 text-xs font-bold uppercase tracking-widest">Verificando sesión segura</p>
-      </div>
-    </div>
-  )
-  if (user) return <Navigate to="/dashboard" replace />
-  return <LoginPage />
-}
 
 // ── Íconos SVG inline ─────────────────────────────────────────
 const icons = {
