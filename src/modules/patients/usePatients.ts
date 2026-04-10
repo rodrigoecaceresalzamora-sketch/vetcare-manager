@@ -56,20 +56,31 @@ export function usePatients() {
 
   const savePatient = async (input: NewPatientInput) => {
     try {
-      // 1. Insertamos o buscamos el Tutor. 
-      // Por simplicidad, aquí como es un manager veterinario insertamos un nuevo registro
-      // o podrías hacer un select por rut. Para este prototipo, insertemos.
-      const guardianId = generateId()
-      const { error: gErr } = await supabase.from('guardians').insert({
-        id: guardianId,
-        name: input.guardian_name,
-        rut: input.guardian_rut,
-        phone: input.guardian_phone,
-        email: input.guardian_email || '',
-        clinic_id: clinicId
-      })
-
-      if (gErr) throw new Error("Error creando tutor: " + gErr.message)
+      // 1. Buscamos si ya existe un tutor con ese email O con ese RUT en esta clínica
+      let guardianId = ''
+      
+      const { data: existingGuardian } = await supabase
+        .from('guardians')
+        .select('id')
+        .eq('clinic_id', clinicId)
+        .or(`email.eq."${input.guardian_email || 'no-email-provided'}",rut.eq."${input.guardian_rut}"`)
+        .maybeSingle()
+        
+      if (existingGuardian) {
+        guardianId = existingGuardian.id
+      } else {
+        // No existe: creamos uno nuevo
+        guardianId = generateId()
+        const { error: gErr } = await supabase.from('guardians').insert({
+          id: guardianId,
+          name: input.guardian_name,
+          rut: input.guardian_rut,
+          phone: input.guardian_phone,
+          email: input.guardian_email || '',
+          clinic_id: clinicId
+        })
+        if (gErr) throw new Error("Error creando tutor: " + gErr.message)
+      }
 
       // 2. Insertamos el Paciente
       const patientId = generateId()
