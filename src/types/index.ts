@@ -260,6 +260,7 @@ export interface ClinicConfig {
   email_subject_rescheduled: string
   email_body_rescheduled: string
   schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
+  slug: string | null
   clinic_id: string
   created_at?: string
   updated_at?: string

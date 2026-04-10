@@ -1,0 +1,123 @@
+import React, { useState } from 'react'
+import { supabase } from '../../lib/supabase'
+
+interface BrandedLoginFormProps {
+  clinicName: string
+  logoUrl: string | null
+  primaryColor: string
+  onSuccess: () => void
+}
+
+export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess }: BrandedLoginFormProps) {
+  const [isLogin, setIsLogin] = useState(true)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [fullName, setFullName] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    try {
+      if (isLogin) {
+        const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+        if (err) throw err
+        onSuccess()
+      } else {
+        const { error: err } = await supabase.auth.signUp({
+          email,
+          password,
+          options: { data: { full_name: fullName } }
+        })
+        if (err) throw err
+        alert('¡Cuenta creada! Revisa tu email para confirmar.')
+        setIsLogin(true)
+      }
+    } catch (err: any) {
+      setError(err.message || 'Error en la autenticación')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden max-w-md w-full mx-auto animate-fade-in" style={{ borderColor: `${primaryColor}20` }}>
+      <div className="p-8 pb-4 text-center">
+        <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg" style={{ backgroundColor: primaryColor }}>
+          <img src={logoUrl || "/logo.png"} alt="Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+        </div>
+        <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">{clinicName}</h2>
+        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Acceso para Clientes</p>
+      </div>
+
+      <div className="flex border-b border-gray-50">
+        <button
+          onClick={() => setIsLogin(true)}
+          className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${isLogin ? 'text-gray-900 border-b-2' : 'text-gray-400 bg-gray-50/50'}`}
+          style={{ borderBottomColor: isLogin ? primaryColor : 'transparent' }}
+        >
+          Entrar
+        </button>
+        <button
+          onClick={() => setIsLogin(false)}
+          className={`flex-1 py-4 text-xs font-black uppercase tracking-widest transition-all ${!isLogin ? 'text-gray-900 border-b-2' : 'text-gray-400 bg-gray-50/50'}`}
+          style={{ borderBottomColor: !isLogin ? primaryColor : 'transparent' }}
+        >
+          Registrarme
+        </button>
+      </div>
+
+      <form onSubmit={handleAuth} className="p-8 space-y-4">
+        {error && <div className="bg-red-50 text-red-600 text-[10px] font-bold p-3 rounded-xl border border-red-100 uppercase">{error}</div>}
+        
+        {!isLogin && (
+          <div className="space-y-1">
+            <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Nombre Completo</label>
+            <input
+              type="text"
+              required
+              className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-2 transition-all"
+              style={{ paddingLeft: '1rem', paddingRight: '1rem' }}
+              value={fullName}
+              onChange={e => setFullName(e.target.value)}
+            />
+          </div>
+        )}
+
+        <div className="space-y-1">
+          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Email</label>
+          <input
+            type="email"
+            required
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-2 transition-all"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+          />
+        </div>
+
+        <div className="space-y-1">
+          <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest ml-1">Contraseña</label>
+          <input
+            type="password"
+            required
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none focus:ring-2 transition-all"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-4 text-white text-xs font-black uppercase tracking-widest rounded-2xl shadow-xl transition-all active:scale-[0.98] disabled:opacity-50 mt-4"
+          style={{ backgroundColor: primaryColor }}
+        >
+          {loading ? 'Cargando...' : isLogin ? 'Entrar Ahora ✨' : 'Crear Cuenta 🐾'}
+        </button>
+      </form>
+    </div>
+  )
+}

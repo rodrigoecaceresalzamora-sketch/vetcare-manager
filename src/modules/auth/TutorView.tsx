@@ -9,6 +9,7 @@ import {
 } from '../../lib/utils'
 import type { Patient, Appointment, Vaccination } from '../../types'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
+import { BrandedLoginForm } from './BrandedLoginForm'
 
 export function TutorView() {
   const { user, signOut, clinicId: authClinicId } = useAuth()
@@ -136,6 +137,23 @@ export function TutorView() {
 
   // Evitar el error /reserva/null
   const bookingUrl = currentClinicId ? `/reserva/${currentClinicId}` : '/';
+
+  if (loading || !config) return (
+    <div className="min-h-screen bg-vet-bone flex items-center justify-center p-8">
+      <div className="animate-spin w-8 h-8 border-4 border-vet-rose border-t-transparent rounded-full" />
+    </div>
+  )
+
+  if (!user) return (
+    <div className="min-h-screen bg-vet-bone flex items-center justify-center p-4">
+      <BrandedLoginForm 
+        clinicName={config.clinic_name}
+        logoUrl={config.clinic_logo_url}
+        primaryColor={config.primary_color}
+        onSuccess={() => fetchData()}
+      />
+    </div>
+  )
 
   return (
     <div className="min-h-screen bg-vet-bone font-sans">

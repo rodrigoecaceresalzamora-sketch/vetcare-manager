@@ -390,14 +390,7 @@ export default function App() {
           <Route path="/" element={<LoginPage />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reserva/:clinicId" element={<PublicBooking />} />
-          <Route 
-            path="/c/:clinicId" 
-            element={
-              <ProtectedRoute>
-                <TutorView />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/c/:clinicId" element={<TutorView />} />
           <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
             <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100">
                <h1 className="text-2xl font-black mb-4">📧 Verifica tu Email</h1>

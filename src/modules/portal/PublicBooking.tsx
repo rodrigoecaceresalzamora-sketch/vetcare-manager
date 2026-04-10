@@ -5,7 +5,7 @@
 // Se accede desde: https://tudominio.cl/reserva
 // ============================================================
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
@@ -17,7 +17,8 @@ import {
   isValidEmail,
   formatRUT 
 } from '../../lib/utils'
-import type { PublicBookingFormData } from '../../types'
+import { TimeSlot, Service, Species, Sex, Patient, PublicBookingFormData } from '../../types'
+import { BrandedLoginForm } from '../auth/BrandedLoginForm'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
 // ── Cargar servicios dinámicos ──────────────────────────────────
@@ -106,35 +107,38 @@ export function PublicBooking() {
     pet_adopted_since: '',
   })
   const [saving, setSaving]       = useState(false)
+  const [loading, setLoading]     = useState(true)
+  const [showLogin, setShowLogin] = useState(false)
   const [fieldError, setFieldError] = useState('')
   const [, setBookingId]   = useState<string | null>(null)
   
   // ── Cargar mascotas del tutor logueado ───────────────────────
   const [myPets, setMyPets] = useState<any[]>([])
 
-  useEffect(() => {
+  const fetchMyPets = useCallback(async () => {
     if (!user?.email || !clinicId) return
-    const fetchMyPets = async () => {
-      const { data: g } = await supabase
-        .from('guardians')
-        .select('id')
-        .eq('email', user.email)
+    const { data: g } = await supabase
+      .from('guardians')
+      .select('id')
+      .eq('email', user.email)
+      .eq('clinic_id', clinicId)
+      .maybeSingle()
+    
+    if (g) {
+      setForm(f => ({ ...f, guardian_id: g.id }))
+      const { data: p } = await supabase
+        .from('patients')
+        .select('*')
+        .eq('guardian_id', g.id)
         .eq('clinic_id', clinicId)
-        .maybeSingle()
-      
-      if (g) {
-        setForm(f => ({ ...f, guardian_id: g.id }))
-        const { data: p } = await supabase
-          .from('patients')
-          .select('*')
-          .eq('guardian_id', g.id)
-          .eq('clinic_id', clinicId)
-          .eq('status', 'activo')
-        if (p) setMyPets(p)
-      }
+        .eq('status', 'activo')
+      if (p) setMyPets(p)
     }
-    fetchMyPets()
   }, [user?.email, clinicId])
+
+  useEffect(() => {
+    fetchMyPets()
+  }, [fetchMyPets])
 
   const availableDates = getAvailableDates(config?.schedule || {})
 
@@ -526,12 +530,29 @@ export function PublicBooking() {
           )}
 
           {!user ? (
-            <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-8 text-center">
-              <h3 className="text-sm font-bold text-gray-900 mb-2">Identifícate para agendar</h3>
-              <Link to="/login" state={{ from: { pathname: '/reserva/' + clinicId } }}
-                    className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all">
-                Ir al inicio de sesión
-              </Link>
+            <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-6 text-center">
+              {showLogin ? (
+                <BrandedLoginForm 
+                  clinicName={config?.clinic_name || 'Veterinaria'}
+                  logoUrl={config?.clinic_logo_url || null}
+                  primaryColor={config?.primary_color || '#a65d80'}
+                  onSuccess={() => {
+                    setShowLogin(false)
+                    fetchMyPets()
+                  }}
+                />
+              ) : (
+                <>
+                  <h3 className="text-sm font-bold text-gray-900 mb-2">Identifícate para agendar</h3>
+                  <p className="text-[10px] text-gray-500 mb-6">Para continuar con la reserva, necesitamos saber quién eres.</p>
+                  <button 
+                    onClick={() => setShowLogin(true)}
+                    className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-vet-rose/20"
+                  >
+                    Entrar o Crear Cuenta ✨
+                  </button>
+                </>
+              )}
             </div>
           ) : (
             <form onSubmit={handleConfirm} className="space-y-4">

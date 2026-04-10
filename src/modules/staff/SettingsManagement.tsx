@@ -76,7 +76,7 @@ export function SettingsManagement() {
     </div>
   )
 
-  const bookingUrl = `${window.location.origin}/c/${clinicId || config?.clinic_id}`
+  const bookingUrl = `${window.location.origin}/c/${localConfig.slug || clinicId || config?.clinic_id}`
 
   return (
     <div className="p-4 md:p-8 max-w-6xl mx-auto space-y-8 animate-fade-in font-sans">
@@ -178,6 +178,21 @@ export function SettingsManagement() {
                 <p className="text-xs text-gray-500 mb-4">Estos ajustes afectan al portal que ven los tutores al reservar y ver sus mascotas.</p>
                 
                 <Input label="Logo de la Clínica (URL)" value={localConfig.clinic_logo_url || ''} onChange={v => set('clinic_logo_url', v)} placeholder="https://..." />
+                
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-gray-500 mb-1.5 block">URL Personalizada (Slug)</label>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 font-mono">vetcare.app/c/</span>
+                    <input 
+                      type="text" 
+                      className="flex-1 px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm font-mono outline-none focus:ring-2 focus:ring-vet-rose/20"
+                      value={localConfig.slug || ''}
+                      onChange={e => set('slug', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                      placeholder="ej: clinica-flores"
+                    />
+                  </div>
+                  <p className="text-[9px] text-gray-400 mt-1 uppercase font-bold tracking-tight">Crea un link corto y fácil de recordar para tus clientes.</p>
+                </div>
                 
                 <div className="grid grid-cols-2 gap-4">
                    <div>

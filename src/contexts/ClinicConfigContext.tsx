@@ -56,40 +56,49 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return
     }
     try {
+      // Intentamos buscar por ID o por SLUG
       const { data } = await supabase
         .from('clinic_config')
         .select('*')
-        .eq('clinic_id', currentClinicId)
+        .or(`clinic_id.eq.${currentClinicId},slug.eq.${currentClinicId}`)
         .maybeSingle()
 
       if (data) {
         let finalData = { ...data };
-        // AUTO-CURACIÓN AGRESIVA: Si los datos parecen basura o están vacíos y es la clínica de Sofia
-        // AUTO-CURACIÓN AGRESIVA: Solo si detectamos datos de prueba "trash" muy específicos
+        // AUTO-CURACIÓN AGRESIVA
         const isTrash = (data.transfer_details?.includes('sefeds'));
-        const isSofiaClinic = currentClinicId === '332ada4e-5a26-4010-985b-fb72be386d09';
+        const isSofiaClinic = data.clinic_id === '332ada4e-5a26-4010-985b-fb72be386d09';
 
         if (isSofiaClinic && isTrash) {
            finalData = { ...finalData, ...SOFIA_DEFAULTS };
-           // Corregir en DB silenciosamente
-           supabase.from('clinic_config').upsert({ clinic_id: currentClinicId, ...SOFIA_DEFAULTS }).then(() => {});
+           supabase.from('clinic_config').upsert({ clinic_id: data.clinic_id, ...SOFIA_DEFAULTS }).then(() => {});
         }
+        
+        // Si entramos por slug, actualizamos el clinicId interno para consistencia
+        if (currentClinicId !== data.clinic_id) {
+           // No cambiamos currentClinicId inmediatamente para evitar loops, 
+           // pero el config tendrá el ID real.
+        }
+
         setConfig(finalData as ClinicConfig)
         applyColors(finalData.primary_color, finalData.secondary_color)
       } else {
-        // AUTO-CREAR SI NO EXISTE
-        const insertData = user?.email === 'scaceresalzamora@gmail.com' 
-          ? { clinic_id: currentClinicId, ...SOFIA_DEFAULTS }
-          : { clinic_id: currentClinicId, clinic_name: 'VetCare Manager' };
+        // Solo intentamos auto-crear si parece un UUID válido (no un slug)
+        const isUUID = /^[0-9a-fA-F-]{36}$/.test(currentClinicId);
+        if (isUUID) {
+          const insertData = user?.email === 'scaceresalzamora@gmail.com' 
+            ? { clinic_id: currentClinicId, ...SOFIA_DEFAULTS }
+            : { clinic_id: currentClinicId, clinic_name: 'VetCare Manager' };
 
-        const { data: newC } = await supabase
-          .from('clinic_config')
-          .upsert(insertData)
-          .select()
-          .single()
-        if (newC) {
-          setConfig(newC as ClinicConfig)
-          applyColors(newC.primary_color, newC.secondary_color)
+          const { data: newC } = await supabase
+            .from('clinic_config')
+            .upsert(insertData)
+            .select()
+            .single()
+          if (newC) {
+            setConfig(newC as ClinicConfig)
+            applyColors(newC.primary_color, newC.secondary_color)
+          }
         }
       }
     } catch (err) {
