@@ -19,8 +19,13 @@ export function LoginPage() {
     setError(null)
 
     try {
-      // Intentar obtener el token de Turnstile (Cloudflare)
-      const captchaToken = (window as any).turnstile?.getResponse()
+      // Intentar obtener el token de Turnstile (Cloudflare) con seguridad
+      let captchaToken = null
+      try {
+        captchaToken = (window as any).turnstile?.getResponse()
+      } catch (e) {
+        console.warn("Turnstile not ready yet", e)
+      }
       
       if (!captchaToken) {
         throw new Error('Por favor, completa la verificación de seguridad (CAPTCHA).')

@@ -31,12 +31,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     // 1. Obtener sesión inicial
     const handleAuthChange = async (session: Session | null) => {
-      setLoading(true) // Aseguramos que cargamos mientras validamos rol
-      setSession(session)
-      const user = session?.user ?? null
-      setUser(user)
-      await updateRole(user)
-      setLoading(false)
+      setLoading(true) 
+      try {
+        setSession(session)
+        const user = session?.user ?? null
+        setUser(user)
+        await updateRole(user)
+      } catch (err) {
+        console.error("Auth initialization error:", err)
+      } finally {
+        setLoading(false)
+      }
     }
 
     // 1. Cargar sesión inicial
