@@ -56,12 +56,17 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
       return
     }
     try {
-      // Intentamos buscar por ID o por SLUG
-      const { data } = await supabase
-        .from('clinic_config')
-        .select('*')
-        .or(`clinic_id.eq.${currentClinicId},slug.eq.${currentClinicId}`)
-        .maybeSingle()
+      // Intentamos buscar por ID o por SLUG de forma segura
+      const isUUID = /^[0-9a-fA-F-]{36}$/.test(currentClinicId);
+      let query = supabase.from('clinic_config').select('*')
+      
+      if (isUUID) {
+        query = query.eq('clinic_id', currentClinicId)
+      } else {
+        query = query.eq('slug', currentClinicId)
+      }
+
+      const { data } = await query.maybeSingle()
 
       if (data) {
         let finalData = { ...data };

@@ -16,9 +16,8 @@ export function TutorView() {
   const { clinicId: urlClinicId } = useParams()
   const { config, setPublicClinicId } = useClinicConfig()
   
-  // El clinicId prioritario es el de la URL (si es un link corto /c/:id)
-  // sino usamos el del AuthContext
-  const currentClinicId = urlClinicId || authClinicId
+  // Los IDs originales (pueden ser slugs)
+  const idFromContextOrUrl = urlClinicId || authClinicId
 
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
@@ -31,10 +30,13 @@ export function TutorView() {
   }, [urlClinicId, setPublicClinicId])
 
   const fetchData = useCallback(async () => {
-    if (!user?.email || !currentClinicId) {
-      setLoading(false)
+    // Si no tenemos email o el config no ha cargado el clinic_id real, esperamos
+    if (!user?.email || !config?.clinic_id) {
+      if (!user?.email) setLoading(false)
       return
     }
+    
+    const realClinicId = config.clinic_id
     setLoading(true)
     setError(null)
 
@@ -44,7 +46,7 @@ export function TutorView() {
         .from('appointments')
         .select('*')
         .eq('guardian_email', user.email)
-        .eq('clinic_id', currentClinicId)
+        .eq('clinic_id', realClinicId)
         .gte('scheduled_at', new Date().toISOString())
         .neq('status', 'cancelada')
         .order('scheduled_at', { ascending: true })
@@ -56,7 +58,7 @@ export function TutorView() {
         .from('guardians')
         .select('id')
         .eq('email', user.email)
-        .eq('clinic_id', currentClinicId)
+        .eq('clinic_id', realClinicId)
         .maybeSingle()
 
       let officialPatients: Patient[] = []
@@ -67,7 +69,7 @@ export function TutorView() {
           .from('patients')
           .select('*')
           .eq('guardian_id', guardian.id)
-          .eq('clinic_id', currentClinicId)
+          .eq('clinic_id', realClinicId)
           .eq('status', 'activo')
         
         officialPatients = pData || []
@@ -79,7 +81,7 @@ export function TutorView() {
             .from('vaccinations')
             .select('*')
             .in('patient_id', pIds)
-            .eq('clinic_id', currentClinicId)
+            .eq('clinic_id', realClinicId)
             .order('next_due_date', { ascending: true })
           
           const vaccinesByPet = new Map<string, Vaccination>()
@@ -129,14 +131,14 @@ export function TutorView() {
     } finally {
       setLoading(false)
     }
-  }, [user?.email, currentClinicId])
+  }, [user?.email, config?.clinic_id])
 
   useEffect(() => {
     fetchData()
   }, [fetchData])
 
-  // Evitar el error /reserva/null
-  const bookingUrl = currentClinicId ? `/reserva/${currentClinicId}` : '/';
+  // Evitar el error /reserva/null. Preservamos el slug en la URL si es posible.
+  const bookingUrl = (config?.slug || config?.clinic_id) ? `/reserva/${config.slug || config.clinic_id}` : '/';
 
   if (loading || !config) return (
     <div className="min-h-screen bg-vet-bone flex items-center justify-center p-8">

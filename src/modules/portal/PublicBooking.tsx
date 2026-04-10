@@ -115,12 +115,13 @@ export function PublicBooking() {
   const [myPets, setMyPets] = useState<any[]>([])
 
   const fetchMyPets = useCallback(async () => {
-    if (!user?.email || !clinicId) return
+    if (!user?.email || !config?.clinic_id) return
+    const realClinicId = config.clinic_id
     const { data: g } = await supabase
       .from('guardians')
       .select('id')
       .eq('email', user.email)
-      .eq('clinic_id', clinicId)
+      .eq('clinic_id', realClinicId)
       .maybeSingle()
     
     if (g) {
@@ -129,11 +130,11 @@ export function PublicBooking() {
         .from('patients')
         .select('*')
         .eq('guardian_id', g.id)
-        .eq('clinic_id', clinicId)
+        .eq('clinic_id', realClinicId)
         .eq('status', 'activo')
       if (p) setMyPets(p)
     }
-  }, [user?.email, clinicId])
+  }, [user?.email, config?.clinic_id])
 
   useEffect(() => {
     fetchMyPets()
@@ -142,18 +143,19 @@ export function PublicBooking() {
   const availableDates = getAvailableDates(config?.schedule || {})
 
   useEffect(() => {
-    if (clinicId) fetchPublicServices(clinicId).then(setDbServices)
-  }, [clinicId])
+    if (config?.clinic_id) fetchPublicServices(config.clinic_id).then(setDbServices)
+  }, [config?.clinic_id])
 
   useEffect(() => {
-    if (!date || !clinicId) return
+    if (!date || !config?.clinic_id) return
+    const realClinicId = config.clinic_id
     const start = new Date(date + 'T00:00:00').toISOString()
     const end   = new Date(date + 'T23:59:59').toISOString()
 
     supabase
       .from('appointments')
       .select('scheduled_at')
-      .eq('clinic_id', clinicId)
+      .eq('clinic_id', realClinicId)
       .gte('scheduled_at', start)
       .lt('scheduled_at',  end)
       .neq('status', 'cancelada')
@@ -163,7 +165,7 @@ export function PublicBooking() {
         )
         setTakenSlots(taken)
       })
-  }, [date, clinicId])
+  }, [date, config?.clinic_id])
 
   function setField<K extends keyof PublicBookingFormData>(
     key: K, value: PublicBookingFormData[K]
@@ -178,10 +180,11 @@ export function PublicBooking() {
       setFieldError('Debes iniciar sesión para confirmar tu reserva.')
       return
     }
-    if (!clinicId) {
-      setFieldError('Error: ID de clínica no encontrado.')
+    if (!config?.clinic_id) {
+      setFieldError('Error: No se pudo verificar la clínica. Por favor, recarga la página.')
       return
     }
+    const realClinicId = config.clinic_id
 
     setFieldError('')
     if (!form.guardian_name)  return setFieldError('Ingresa tu nombre')
@@ -206,7 +209,7 @@ export function PublicBooking() {
           .from('guardians')
           .select('id')
           .or(`email.eq.${form.guardian_email.toLowerCase()},rut.eq.${form.guardian_rut}`)
-          .eq('clinic_id', clinicId)
+          .eq('clinic_id', realClinicId)
           .maybeSingle()
         
         if (existingG) {
@@ -224,7 +227,7 @@ export function PublicBooking() {
               email: form.guardian_email.toLowerCase(),
               phone: form.guardian_phone,
               rut: form.guardian_rut,
-              clinic_id: clinicId
+              clinic_id: realClinicId
             })
             .select()
             .single()
@@ -242,7 +245,7 @@ export function PublicBooking() {
           .select('id')
           .eq('guardian_id', finalGuardianId)
           .eq('name', form.pet_name)
-          .eq('clinic_id', clinicId)
+          .eq('clinic_id', realClinicId)
           .maybeSingle()
         
         if (existingP) {
@@ -257,7 +260,7 @@ export function PublicBooking() {
               sex: form.pet_sex,
               date_of_birth: form.pet_date_of_birth || new Date().toISOString().split('T')[0],
               guardian_id: finalGuardianId,
-              clinic_id: clinicId,
+              clinic_id: realClinicId,
               status: 'activo'
             })
             .select()
@@ -280,7 +283,7 @@ export function PublicBooking() {
 
       const { error: dbErr } = await supabase.from('appointments').insert({
         id: appointmentId,
-        clinic_id:        clinicId,
+        clinic_id:        realClinicId,
         guardian_id:      finalGuardianId,
         patient_id:       finalPatientId,
         guardian_name:    form.guardian_name,
@@ -358,7 +361,7 @@ export function PublicBooking() {
           </div>
           
           <Link
-            to={`/c/${clinicId}`}
+            to={`/c/${config?.slug || config?.clinic_id}`}
             className="inline-block w-full px-6 py-4 bg-vet-rose text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-vet-dark transition-all transform active:scale-95 shadow-xl shadow-vet-rose/10"
           >
             Volver a mi Panel de Mascotas
