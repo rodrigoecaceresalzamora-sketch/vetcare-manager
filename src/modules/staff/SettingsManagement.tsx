@@ -17,10 +17,16 @@ export function SettingsManagement() {
         ...config,
         wa_template_reminder: config.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
         wa_template_confirmation: config.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
+        wa_template_cancellation: config.wa_template_cancellation || 'Hola {tutor}, lamentamos informarte que tu cita para {mascota} el día {fecha} ha sido cancelada.',
+        wa_template_rescheduled: config.wa_template_rescheduled || 'Hola {tutor}, tu cita para {mascota} ha sido reprogramada para el día {fecha} a las {hora}.',
         email_subject_booking: config.email_subject_booking || 'Confirmación de Cita - VetCare',
         email_body_booking: config.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
         email_subject_reminder: config.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
-        email_body_reminder: config.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.'
+        email_body_reminder: config.email_body_reminder || 'Hola {tutor}, te recordamos que se acerca el refuerzo de la vacuna {vacuna} para {mascota}. Fecha sugerida: {fecha}.',
+        email_subject_cancellation: config.email_subject_cancellation || 'Cita Cancelada - VetCare',
+        email_body_cancellation: config.email_body_cancellation || 'Hola {tutor}, tu cita para {mascota} programada para el día {fecha} ha sido cancelada. Si tienes dudas, contáctanos.',
+        email_subject_rescheduled: config.email_subject_rescheduled || 'Cita Reprogramada - VetCare',
+        email_body_rescheduled: config.email_body_rescheduled || 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.'
       })
     }
   }, [config])
@@ -284,16 +290,38 @@ export function SettingsManagement() {
                    />
                 </div>
 
-                <div>
-                   <label className="text-sm font-black text-gray-900 mb-1 block">✅ Confirmación de Cita (WhatsApp)</label>
-                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
-                   <textarea 
-                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
-                     rows={4}
-                     value={localConfig.wa_template_confirmation}
-                     onChange={e => set('wa_template_confirmation', e.target.value)}
-                   />
-                </div>
+                 <div>
+                    <label className="text-sm font-black text-gray-900 mb-1 block">✅ Confirmación de Cita (WhatsApp)</label>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
+                    <textarea 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                      rows={4}
+                      value={localConfig.wa_template_confirmation}
+                      onChange={e => set('wa_template_confirmation', e.target.value)}
+                    />
+                 </div>
+
+                 <div className="pt-6 border-t border-gray-100">
+                    <label className="text-sm font-black text-gray-900 mb-1 block">❌ Cancelación de Cita (WhatsApp)</label>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}</p>
+                    <textarea 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                      rows={4}
+                      value={localConfig.wa_template_cancellation}
+                      onChange={e => set('wa_template_cancellation', e.target.value)}
+                    />
+                 </div>
+
+                 <div className="pt-6 border-t border-gray-100">
+                    <label className="text-sm font-black text-gray-900 mb-1 block">🕒 Reprogramación de Cita (WhatsApp)</label>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
+                    <textarea 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                      rows={4}
+                      value={localConfig.wa_template_rescheduled}
+                      onChange={e => set('wa_template_rescheduled', e.target.value)}
+                    />
+                 </div>
              </section>
           </div>
         )}
@@ -322,18 +350,44 @@ export function SettingsManagement() {
                    />
                 </div>
 
-                <div className="space-y-4 pt-6 border-t border-gray-100">
-                   <h3 className="text-sm font-black text-gray-900 border-l-4 border-amber-400 pl-3">Recordatorio de Vacuna</h3>
-                   <Input label="Asunto del Email" value={localConfig.email_subject_reminder} onChange={v => set('email_subject_reminder', v)} />
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
-                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{vacuna}"}, {"{fecha}"}</p>
-                   <textarea 
-                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
-                     rows={5}
-                     value={localConfig.email_body_reminder}
-                     onChange={e => set('email_body_reminder', e.target.value)}
-                   />
-                </div>
+                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-amber-400 pl-3">Recordatorio de Vacuna</h3>
+                    <Input label="Asunto del Email" value={localConfig.email_subject_reminder} onChange={v => set('email_subject_reminder', v)} />
+                    <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{vacuna}"}, {"{fecha}"}</p>
+                    <textarea 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                      rows={5}
+                      value={localConfig.email_body_reminder}
+                      onChange={e => set('email_body_reminder', e.target.value)}
+                    />
+                 </div>
+
+                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-red-400 pl-3">Cancelación de Cita</h3>
+                    <Input label="Asunto del Email" value={localConfig.email_subject_cancellation} onChange={v => set('email_subject_cancellation', v)} />
+                    <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}</p>
+                    <textarea 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                      rows={5}
+                      value={localConfig.email_body_cancellation}
+                      onChange={e => set('email_body_cancellation', e.target.value)}
+                    />
+                 </div>
+
+                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-purple-400 pl-3">Reprogramación de Cita</h3>
+                    <Input label="Asunto del Email" value={localConfig.email_subject_rescheduled} onChange={v => set('email_subject_rescheduled', v)} />
+                    <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
+                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
+                    <textarea 
+                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
+                      rows={5}
+                      value={localConfig.email_body_rescheduled}
+                      onChange={e => set('email_body_rescheduled', e.target.value)}
+                    />
+                 </div>
              </section>
           </div>
         )}

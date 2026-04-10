@@ -46,13 +46,19 @@ function getAvailableDates(schedule: Record<string, string[]>): { label: string;
     attempts++
     const dow = d.getDay()
     if (allowedDows.includes(dow)) {
+      // Usar formato local YYYY-MM-DD para evitar desfases de zona horaria
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      const localValue = `${year}-${month}-${day}`;
+
       dates.push({
         label: d.toLocaleDateString('es-CL', {
           weekday: 'short',
           day: 'numeric',
           month: 'short',
         }),
-        value: d.toISOString().split('T')[0],
+        value: localValue,
         dow
       })
     }
@@ -138,16 +144,19 @@ export function PublicBooking() {
 
   useEffect(() => {
     if (!date || !clinicId) return
+    const start = new Date(date + 'T00:00:00').toISOString()
+    const end   = new Date(date + 'T23:59:59').toISOString()
+
     supabase
       .from('appointments')
       .select('scheduled_at')
       .eq('clinic_id', clinicId)
-      .gte('scheduled_at', date + 'T00:00:00')
-      .lt('scheduled_at',  date + 'T23:59:59')
+      .gte('scheduled_at', start)
+      .lt('scheduled_at',  end)
       .neq('status', 'cancelada')
       .then(({ data }) => {
         const taken = (data ?? []).map((a) =>
-          new Date(a.scheduled_at).toTimeString().slice(0, 5)
+          new Date(a.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })
         )
         setTakenSlots(taken)
       })
@@ -304,7 +313,8 @@ export function PublicBooking() {
           body: { 
             appointment_id: appointmentId,
             custom_subject: replaceAll(emailSubject),
-            custom_body: replaceAll(emailBody)
+            custom_body: replaceAll(emailBody),
+            wa_message: replaceAll(config?.wa_template_confirmation || '')
           },
         })
       } catch (e) {

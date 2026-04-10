@@ -22,7 +22,13 @@ const SOFIA_DEFAULTS = {
   address: 'San Enrique 1380, Retiro, Quilpué',
   transfer_details: 'NOMBRE: SOFIA CACERES\nBANCO: BANCO ESTADO\nCTA RUT: 12345678\nCORREO: scaceresalzamora@gmail.com',
   clinic_logo_url: 'https://raw.githubusercontent.com/rodrigoecaceresalzamora-sketch/vetcare-manager/main/public/logo.png',
-  schedule: {"1": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "2": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "3": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "4": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "5": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "6": ["10:00", "11:00", "12:00", "13:00"]}
+  schedule: {"1": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "2": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "3": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "4": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "5": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "6": ["10:00", "11:00", "12:00", "13:00"]},
+  wa_template_cancellation: 'Hola {tutor}, lamentamos informarte que tu cita para {mascota} el día {fecha} ha sido cancelada.',
+  email_subject_cancellation: 'Cita Cancelada - VetCare',
+  email_body_cancellation: 'Hola {tutor}, tu cita para {mascota} programada para el día {fecha} ha sido cancelada. Si tienes dudas, contáctanos.',
+  wa_template_rescheduled: 'Hola {tutor}, tu cita para {mascota} ha sido reprogramada para el día {fecha} a las {hora}.',
+  email_subject_rescheduled: 'Cita Reprogramada - VetCare',
+  email_body_rescheduled: 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.'
 };
 
 export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -59,7 +65,8 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
       if (data) {
         let finalData = { ...data };
         // AUTO-CURACIÓN AGRESIVA: Si los datos parecen basura o están vacíos y es la clínica de Sofia
-        const isTrash = (data.transfer_details?.includes('sefeds') || !data.contact_phone || data.clinic_name === 'VetCare Manager');
+        // AUTO-CURACIÓN AGRESIVA: Solo si detectamos datos de prueba "trash" muy específicos
+        const isTrash = (data.transfer_details?.includes('sefeds'));
         const isSofiaClinic = currentClinicId === '332ada4e-5a26-4010-985b-fb72be386d09';
 
         if (isSofiaClinic && isTrash) {

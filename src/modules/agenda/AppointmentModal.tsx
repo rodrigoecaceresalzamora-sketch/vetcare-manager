@@ -427,6 +427,18 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   if (window.confirm('¿Estás segura de ELIMINAR esta cita?')) {
                     setSaving(true)
                     
+                    // Mostrar opción de notificar por WhatsApp
+                    const phone = form.guardian_phone?.replace(/[^\d]/g, '')
+                    if (phone && window.confirm('¿Deseas enviar un mensaje de cancelación por WhatsApp?')) {
+                        try {
+                          // Obtenemos la config actual desde el local config que ya tenemos o context
+                          // (En este componente ya tenemos acceso a ClinicConfigContext indirectamente o podemos usar el hook)
+                          // Sin embargo, para mayor simplicidad usamos un mensaje rápido o las variables del form.
+                          const msg = `Hola ${form.guardian_name}, lamentamos informarte que tu cita para ${form.pet_name} ha sido cancelada. Saludos.`
+                          window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank')
+                        } catch (e) { console.error(e) }
+                    }
+
                     const { error: delErr } = await supabase.from('appointments').delete().eq('id', editingAppointment.id)
                     if (delErr) {
                       setFieldError('Error al borrar: ' + delErr.message)
