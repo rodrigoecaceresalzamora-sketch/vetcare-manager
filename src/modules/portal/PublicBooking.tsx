@@ -6,7 +6,7 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { 
@@ -71,7 +71,6 @@ type Step = 1 | 2 | 3 | 4 | 'confirmed'
 export function PublicBooking() {
   const { clinicId } = useParams()
   const { user } = useAuth()
-  const navigate = useNavigate()
   const { config, setPublicClinicId } = useClinicConfig()
   const [step, setStep]             = useState<Step>(1)
 
