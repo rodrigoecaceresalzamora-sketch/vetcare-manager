@@ -358,7 +358,7 @@ export function PatientDetail() {
             ) : (
               <div className="space-y-4">
                 {consultations.map(c => (
-                  <div key={c.id} className="border border-pink-100 rounded-xl p-5 hover:border-vet-rose transition-colors">
+                  <div key={c.id} className="border border-vet-rose/10 rounded-xl p-5 hover:border-vet-rose transition-colors">
                     <div className="flex justify-between items-start">
                       <div>
                         {c.created_at && <span className="text-xs text-gray-400 font-mono block mb-1">{new Date(c.created_at).toLocaleString()}</span>}
@@ -372,7 +372,7 @@ export function PatientDetail() {
                             setFormConsultation(c)
                             setIsConsultationReadOnly(true)
                           }} 
-                          className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
+                          className="w-8 h-8 flex justify-center items-center rounded-lg border border-vet-rose/10 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
                           title="Ver Ficha (Solo Lectura)"
                         >
                           🔍
@@ -384,7 +384,7 @@ export function PatientDetail() {
                                 setFormConsultation(c)
                                 setIsConsultationReadOnly(false)
                               }} 
-                              className="w-8 h-8 flex justify-center items-center rounded-lg border border-pink-100 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
+                              className="w-8 h-8 flex justify-center items-center rounded-lg border border-vet-rose/10 bg-white hover:bg-pink-50 text-vet-dark transition shadow-sm text-sm" 
                               title="Editar Ficha"
                             >
                               ✏️
@@ -431,7 +431,13 @@ export function PatientDetail() {
               
               <label className="bg-vet-rose cursor-pointer text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-vet-dark transition">
                 {uploading ? 'Subiendo...' : '+ Subir Archivo'}
-                <input type="file" className="hidden" disabled={uploading} onChange={handleUpload} />
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  disabled={uploading} 
+                  onChange={handleUpload} 
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                />
               </label>
             </div>
 
@@ -467,7 +473,7 @@ export function PatientDetail() {
                       href={file.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="mt-4 text-xs font-bold text-vet-rose text-center bg-white border border-pink-200 py-1.5 rounded hover:bg-vet-light transition"
+                      className="mt-4 text-xs font-bold text-vet-rose text-center bg-white border border-vet-rose/20 py-1.5 rounded hover:bg-vet-light transition"
                     >
                       Abrir Archivo
                     </a>

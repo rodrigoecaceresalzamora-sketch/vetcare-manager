@@ -9,7 +9,7 @@ export function SettingsManagement() {
   const [localConfig, setLocalConfig] = useState<Partial<ClinicConfig>>({})
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState<'general' | 'horarios' | 'finanzas' | 'mensajes' | 'email'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'horarios' | 'finanzas' | 'mensajes' | 'email' | 'portal'>('general')
   const [scheduleInputs, setScheduleInputs] = useState<Record<string, string>>({})
 
   useEffect(() => {
@@ -134,11 +134,11 @@ export function SettingsManagement() {
 
       {/* Tabs */}
       <div className="flex gap-2 bg-white/50 p-1.5 rounded-2xl border border-gray-100 backdrop-blur-sm sticky top-4 z-30">
-        <TabBtn active={activeTab === 'general'} onClick={() => setActiveTab('general')} label="Identidad & Contacto" icon="🏥" />
+        <TabBtn active={activeTab === 'portal'}   onClick={() => setActiveTab('portal')}   label="Portal Tutor" icon="🎨" />
         <TabBtn active={activeTab === 'horarios'} onClick={() => setActiveTab('horarios')} label="Horarios" icon="⏰" />
         <TabBtn active={activeTab === 'finanzas'} onClick={() => setActiveTab('finanzas')} label="Pagos & Abono" icon="💰" />
         <TabBtn active={activeTab === 'mensajes'} onClick={() => setActiveTab('mensajes')} label="Mensajes WA" icon="📱" />
-        <TabBtn active={activeTab === 'email'} onClick={() => setActiveTab('email')} label="Mensajes Email" icon="✉️" />
+        <TabBtn active={activeTab === 'email'}    onClick={() => setActiveTab('email')}    label="Mensajes Email" icon="✉️" />
       </div>
 
       {/* Content */}
@@ -147,43 +147,14 @@ export function SettingsManagement() {
           <div className="p-8 space-y-8 animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               <section className="space-y-4">
-                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Identidad Visual</h3>
-                <Input label="Nombre de la Clínica" value={localConfig.clinic_name} onChange={v => set('clinic_name', v)} />
-                <Input label="Logo URL (Imagen)" value={localConfig.clinic_logo_url || ''} onChange={v => set('clinic_logo_url', v)} placeholder="https://..." />
-                
-                <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <label className="text-xs font-bold text-gray-500 mb-1.5 block">Color Principal</label>
-                     <div className="flex gap-2 items-center">
-                        <input type="color" className="w-10 h-10 rounded-lg cursor-pointer border-0" value={localConfig.primary_color} onChange={e => set('primary_color', e.target.value)} />
-                        <span className="text-xs font-mono text-gray-400">{localConfig.primary_color}</span>
-                     </div>
-                   </div>
-                   <div>
-                     <label className="text-xs font-bold text-gray-500 mb-1.5 block">Color de Fondo</label>
-                     <div className="flex gap-2 items-center">
-                        <input type="color" className="w-10 h-10 rounded-lg cursor-pointer border-0" value={localConfig.secondary_color} onChange={e => set('secondary_color', e.target.value)} />
-                        <span className="text-xs font-mono text-gray-400">{localConfig.secondary_color}</span>
-                     </div>
-                   </div>
-                </div>
-
-                <div className="p-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200 flex items-center justify-center gap-4 mt-6">
-                   <div className="text-center">
-                      <img src={localConfig.clinic_logo_url || '/logo.png'} alt="Preview" className="w-16 h-16 object-cover rounded-xl mx-auto mb-2 border border-blue-50" />
-                      <p className="text-[10px] font-bold text-gray-400">VISTA PREVIA LOGO</p>
-                   </div>
-                   <div className="flex-1">
-                      <div className="h-4 rounded-full w-full mb-2" style={{ backgroundColor: localConfig.primary_color }}></div>
-                      <div className="h-4 rounded-full w-2/3" style={{ backgroundColor: localConfig.secondary_color, border: '1px solid #eee' }}></div>
-                   </div>
-                </div>
+                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Información de la Clínica</h3>
+                <Input label="Nombre de la Veterinaria" value={localConfig.clinic_name} onChange={v => set('clinic_name', v)} />
+                <Input label="Teléfono de Contacto" value={localConfig.contact_phone} onChange={v => set('contact_phone', v)} />
+                <Input label="Correo Electrónico" value={localConfig.contact_email} onChange={v => set('contact_email', v)} />
               </section>
 
               <section className="space-y-4">
-                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Contacto & Ubicación</h3>
-                <Input label="Teléfono de Contacto" value={localConfig.contact_phone} onChange={v => set('contact_phone', v)} />
-                <Input label="Correo Electrónico" value={localConfig.contact_email} onChange={v => set('contact_email', v)} />
+                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Ubicación</h3>
                 <Input label="Dirección Física" value={localConfig.address} onChange={v => set('address', v)} />
                 <label className="text-xs font-bold text-gray-500 mb-1.5 block">Google Maps Embed URL</label>
                 <textarea 
@@ -193,6 +164,61 @@ export function SettingsManagement() {
                   onChange={e => set('google_maps_embed_url', e.target.value)}
                   placeholder="<iframe ...></iframe>"
                 />
+              </section>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'portal' && (
+          <div className="p-8 space-y-8 animate-fade-in">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <section className="space-y-4">
+                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest border-b pb-2">Identidad del Portal (Personalización)</h3>
+                <p className="text-xs text-gray-500 mb-4">Estos ajustes afectan al portal que ven los tutores al reservar y ver sus mascotas.</p>
+                
+                <Input label="Logo de la Clínica (URL)" value={localConfig.clinic_logo_url || ''} onChange={v => set('clinic_logo_url', v)} placeholder="https://..." />
+                
+                <div className="grid grid-cols-2 gap-4">
+                   <div>
+                     <label className="text-xs font-bold text-gray-500 mb-1.5 block">Color de Marca</label>
+                     <p className="text-[9px] text-gray-400 mb-2 uppercase font-bold tracking-tight">Botones y destacados</p>
+                     <div className="flex gap-2 items-center">
+                        <input type="color" className="w-10 h-10 rounded-lg cursor-pointer border-0 shadow-sm" value={localConfig.primary_color} onChange={e => set('primary_color', e.target.value)} />
+                        <span className="text-xs font-mono text-gray-400">{localConfig.primary_color}</span>
+                     </div>
+                   </div>
+                   <div>
+                     <label className="text-xs font-bold text-gray-500 mb-1.5 block">Color de Fondo Portal</label>
+                     <p className="text-[9px] text-gray-400 mb-2 uppercase font-bold tracking-tight">Fondo del sitio</p>
+                     <div className="flex gap-2 items-center">
+                        <input type="color" className="w-10 h-10 rounded-lg cursor-pointer border-0 shadow-sm" value={localConfig.secondary_color} onChange={e => set('secondary_color', e.target.value)} />
+                        <span className="text-xs font-mono text-gray-400">{localConfig.secondary_color}</span>
+                     </div>
+                   </div>
+                </div>
+
+                <div className="p-6 bg-gray-50 rounded-[2rem] border border-dashed border-gray-200 flex flex-col items-center justify-center gap-4 mt-6">
+                   <div className="text-center">
+                      <div className="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center p-2 mb-3 border border-gray-100 ring-4 ring-white">
+                        <img src={localConfig.clinic_logo_url || '/logo.png'} alt="Preview" className="w-full h-full object-contain rounded-lg" />
+                      </div>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Previsualización Logo</p>
+                   </div>
+                   <div className="w-full space-y-3">
+                      <div className="h-2 rounded-full w-full" style={{ backgroundColor: localConfig.primary_color }}></div>
+                      <div className="h-10 rounded-2xl w-full flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: localConfig.primary_color, color: 'white' }}>BOTÓN DE EJEMPLO</div>
+                      <div className="h-6 rounded-lg w-1/2 mx-auto" style={{ backgroundColor: localConfig.secondary_color, border: '1px solid #ddd' }}></div>
+                   </div>
+                </div>
+              </section>
+
+              <section className="p-6 bg-vet-rose/5 rounded-[2.5rem] border border-vet-rose/10 flex flex-col items-center justify-center text-center">
+                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-4">🎨</div>
+                <h4 className="text-lg font-black text-gray-900 mb-2 uppercase tracking-tight">Marca Blanca</h4>
+                <p className="text-sm text-gray-500 leading-relaxed font-medium">
+                  Configura estos colores para que tus tutores sientan que están en tu propia aplicación personalizada.<br/>
+                  <span className="text-vet-rose font-bold">¡Tu identidad es lo más importante!</span>
+                </p>
               </section>
             </div>
           </div>

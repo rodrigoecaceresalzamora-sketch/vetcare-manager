@@ -346,7 +346,7 @@ export function PublicBooking() {
             Quedará registrada como <strong className="text-amber-600">pendiente</strong> hasta ser
             confirmada por la veterinaria.
           </p>
-          <div className="bg-white border border-pink-100 rounded-3xl p-6 text-left space-y-3 mb-8 shadow-sm">
+          <div className="bg-white border border-vet-rose/10 rounded-3xl p-6 text-left space-y-3 mb-8 shadow-sm">
             <p className="text-[10px] font-black text-vet-rose uppercase tracking-[0.2em] mb-3">Resumen de tu solicitud</p>
             <Row label="Servicio"  value={service?.name || ''} />
             <Row label="Fecha"     value={availableDates.find(d => d.value === date)?.label ?? date ?? ''} />
@@ -356,7 +356,7 @@ export function PublicBooking() {
           
           <Link
             to={`/c/${clinicId}`}
-            className="inline-block w-full px-6 py-4 bg-vet-rose text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-vet-dark transition-all transform active:scale-95 shadow-xl shadow-pink-100"
+            className="inline-block w-full px-6 py-4 bg-vet-rose text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-vet-dark transition-all transform active:scale-95 shadow-xl shadow-vet-rose/10"
           >
             Volver a mi Panel de Mascotas
           </Link>
@@ -380,7 +380,7 @@ export function PublicBooking() {
             </p>
             
             {/* Mapa Interactivo */}
-            <div className="w-full h-40 rounded-xl overflow-hidden mb-4 border border-pink-100 shadow-sm bg-gray-50">
+            <div className="w-full h-40 rounded-xl overflow-hidden mb-4 border border-vet-rose/10 shadow-sm bg-gray-50">
               <iframe 
                 src={config?.google_maps_embed_url} 
                 width="100%" 
@@ -403,12 +403,12 @@ export function PublicBooking() {
                 <p className="text-xs text-gray-700 leading-relaxed">
                   Para confirmar tu reserva, se requiere un <strong>abono del {config?.advance_payment_percentage}%</strong> del valor del servicio. Transfiere el abono a la siguiente cuenta:
                 </p>
-                <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-pink-100">
+                <div className="text-xs mt-3 bg-white rounded-lg p-3 text-gray-800 whitespace-pre-wrap font-mono shadow-sm border border-vet-rose/10">
                   {config?.transfer_details}
                 </div>
               </>
             )}
-            <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-pink-100 italic">
+            <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-vet-rose/10 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
             </p>
           </div>
@@ -501,7 +501,7 @@ export function PublicBooking() {
       {step === 4 && (
         <section className="space-y-4">
           <SectionTitle step={4} title="Tus datos" />
-          <div className="bg-vet-light/50 border border-pink-200 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1 justify-between items-start">
+          <div className="bg-vet-light/50 border border-vet-rose/20 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1 justify-between items-start">
             <div>
               <span className="text-xs text-vet-dark block"><strong>{service?.icon}</strong> {service?.name}</span>
               <span className="text-xs text-gray-500 block mt-1">{availableDates.find(d => d.value === date)?.label} · {time}</span>
@@ -556,7 +556,7 @@ export function PublicBooking() {
                           setField('patient_id', pet.id)
                         }}
                         className={`flex flex-col items-center p-3 rounded-xl border transition-all
-                                    ${form.pet_name === pet.name ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-pink-200'}`}
+                                    ${form.pet_name === pet.name ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-vet-rose/20'}`}
                       >
                         <span className="text-xl mb-1">{speciesEmoji(pet.species)}</span>
                         <span className="text-xs font-bold text-gray-900">{pet.name}</span>
@@ -577,7 +577,7 @@ export function PublicBooking() {
                         }))
                       }}
                       className={`flex flex-col items-center p-3 rounded-xl border transition-all
-                                  ${!myPets.some(p => p.name === form.pet_name) && form.pet_name === '' ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-pink-200'}`}
+                                  ${!myPets.some(p => p.name === form.pet_name) && form.pet_name === '' ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-vet-rose/20'}`}
                     >
                       <span className="text-xl mb-1">✨</span>
                       <span className="text-xs font-bold text-gray-900">Otra</span>
@@ -723,7 +723,7 @@ function PortalShell({ children }: { children: React.ReactNode }) {
   const { config } = useClinicConfig()
   return (
     <div className="min-h-screen bg-vet-bone font-sans">
-      <header className="bg-vet-pink py-4 px-4 shadow-lg border-b border-pink-200/20">
+      <header className="bg-vet-pink py-4 px-4 shadow-lg border-b border-white/10">
         <div className="max-w-2xl mx-auto flex items-center gap-3 text-white">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
             <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-7 h-7 object-contain rounded-lg" />

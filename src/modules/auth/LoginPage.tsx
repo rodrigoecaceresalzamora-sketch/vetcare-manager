@@ -67,8 +67,8 @@ export function LoginPage() {
       <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
         {/* Simple Brand */}
         <div className="text-center mb-8">
-            <h1 className="text-2xl font-black">Portal VetCare</h1>
-            <p className="text-gray-400 text-[10px] font-bold mt-1">Gestion de veterinarias</p>
+            <h1 className="text-2xl font-black text-indigo-900">VetCare Manager</h1>
+            <p className="text-gray-400 text-[10px] font-bold mt-1 uppercase tracking-widest">SaaS de Gesti&oacute;n Veterinaria</p>
         </div>
 
         {/* Auth Card */}
@@ -78,14 +78,14 @@ export function LoginPage() {
             <button
               onClick={() => { setIsLogin(true); setError(null); }}
               className={`flex-1 py-4 text-sm font-bold transition-all
-                          ${isLogin ? 'text-black bg-white border-b-2 border-vet-rose' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
+                          ${isLogin ? 'text-indigo-900 bg-white border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
             >
               Iniciar Sesi&oacute;n
             </button>
             <button
               onClick={() => { setIsLogin(false); setError(null); }}
               className={`flex-1 py-4 text-sm font-bold transition-all
-                          ${!isLogin ? 'text-black bg-white border-b-2 border-vet-rose' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
+                          ${!isLogin ? 'text-indigo-900 bg-white border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
             >
               Crear Cuenta
             </button>
@@ -141,7 +141,7 @@ export function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-vet-rose hover:bg-vet-dark text-white font-bold rounded-2xl shadow-lg shadow-vet-rose/25 transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 mt-4"
+              className="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-2xl shadow-lg shadow-indigo-200 transform active:scale-[0.98] transition-all disabled:opacity-50 flex items-center justify-center gap-3 mt-4"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
