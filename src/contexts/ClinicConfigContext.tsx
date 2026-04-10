@@ -11,10 +11,20 @@ interface ClinicConfigContextType {
   setPublicClinicId: (id: string) => void
 }
 
-const ClinicConfigContext = createContext<ClinicConfigContextType | undefined>(undefined)
+const SOFIA_DEFAULTS = {
+  clinic_name: 'VetCare Principal',
+  primary_color: '#e11d48',
+  secondary_color: '#fdf2f8',
+  contact_phone: '+56951045611',
+  contact_email: 'scaceresalzamora@gmail.com',
+  address: 'San Enrique 1380, Retiro, Quilpué',
+  transfer_details: 'NOMBRE: SOFIA CACERES\nBANCO: BANCO ESTADO\nCTA RUT: 12345678\nCORREO: scaceresalzamora@gmail.com',
+  clinic_logo_url: 'https://raw.githubusercontent.com/rodrigoecaceresalzamora-sketch/vetcare-manager/main/public/logo.png',
+  schedule: {"1": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "2": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "3": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "4": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "5": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "6": ["10:00", "11:00", "12:00", "13:00"]}
+};
 
 export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { clinicId: authClinicId } = useAuth()
+  const { clinicId: authClinicId, user } = useAuth()
   const [config, setConfig] = useState<ClinicConfig | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -45,13 +55,22 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         .maybeSingle()
 
       if (data) {
-        setConfig(data as ClinicConfig)
-        applyColors(data.primary_color, data.secondary_color)
+        let finalData = { ...data };
+        // Si es Sofia y los datos están vacíos, usar los por defecto
+        if (user?.email === 'scaceresalzamora@gmail.com' && (data.clinic_name === 'VetCare Manager' || !data.contact_phone)) {
+           finalData = { ...finalData, ...SOFIA_DEFAULTS };
+        }
+        setConfig(finalData as ClinicConfig)
+        applyColors(finalData.primary_color, finalData.secondary_color)
       } else {
-        // Si no hay config, se creará al guardar o podemos crear una base aquí
+        // AUTO-CREAR SI NO EXISTE
+        const insertData = user?.email === 'scaceresalzamora@gmail.com' 
+          ? { clinic_id: currentClinicId, ...SOFIA_DEFAULTS }
+          : { clinic_id: currentClinicId, clinic_name: 'VetCare Manager' };
+
         const { data: newC } = await supabase
           .from('clinic_config')
-          .upsert({ clinic_id: currentClinicId, clinic_name: 'VetCare Manager' })
+          .upsert(insertData)
           .select()
           .single()
         if (newC) {
@@ -64,7 +83,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } finally {
       setLoading(false)
     }
-  }, [currentClinicId, applyColors])
+  }, [currentClinicId, applyColors, user?.email])
 
   useEffect(() => {
     fetchConfig()

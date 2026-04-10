@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
-import { Link } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { 
   speciesEmoji, 
   getGravatarUrl,
@@ -11,45 +11,62 @@ import type { Patient, Appointment, Vaccination } from '../../types'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
 export function TutorView() {
-  const { user, signOut, clinicId } = useAuth()
-  const { config } = useClinicConfig()
+  const { user, signOut, clinicId: authClinicId } = useAuth()
+  const { clinicId: urlClinicId } = useParams()
+  const { config, setPublicClinicId } = useClinicConfig()
+  
+  // El clinicId prioritario es el de la URL (si es un link corto /c/:id)
+  // sino usamos el del AuthContext
+  const currentClinicId = urlClinicId || authClinicId
+
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
   const [error, setError] = useState<string | null>(null)
 
+  useEffect(() => {
+    if (urlClinicId) {
+      setPublicClinicId(urlClinicId)
+    }
+  }, [urlClinicId, setPublicClinicId])
+
   const fetchData = useCallback(async () => {
-    if (!user?.email) return
+    if (!user?.email || !currentClinicId) {
+      setLoading(false)
+      return
+    }
     setLoading(true)
     setError(null)
 
     try {
-      // 1. Buscar Citas de este tutor (por email)
-      // Esto nos sirve para identificar mascotas incluso si no tienen ficha clínica aún
+      // 1. Buscar Citas de este tutor en ESTA clínica
       const { data: appointments, error: aErr } = await supabase
         .from('appointments')
         .select('*')
         .eq('guardian_email', user.email)
+        .eq('clinic_id', currentClinicId)
         .gte('scheduled_at', new Date().toISOString())
         .neq('status', 'cancelada')
         .order('scheduled_at', { ascending: true })
 
       if (aErr) throw aErr
 
-      // 2. Buscar Guardian oficial
+      // 2. Buscar Guardian oficial en ESTA clínica
       const { data: guardian } = await supabase
         .from('guardians')
         .select('id')
         .eq('email', user.email)
+        .eq('clinic_id', currentClinicId)
         .maybeSingle()
 
       let officialPatients: Patient[] = []
 
       if (guardian) {
-        // 3. Buscar Mascotas oficiales
+        // 3. Buscar Mascotas oficiales en ESTA clínica
         const { data: pData } = await supabase
           .from('patients')
           .select('*')
           .eq('guardian_id', guardian.id)
+          .eq('clinic_id', currentClinicId)
           .eq('status', 'activo')
         
         officialPatients = pData || []
@@ -61,6 +78,7 @@ export function TutorView() {
             .from('vaccinations')
             .select('*')
             .in('patient_id', pIds)
+            .eq('clinic_id', currentClinicId)
             .order('next_due_date', { ascending: true })
           
           const vaccinesByPet = new Map<string, Vaccination>()
@@ -77,10 +95,9 @@ export function TutorView() {
         }
       }
 
-      // 5. Consolidar lista de mascotas (oficiales + de citas)
+      // 5. Consolidar lista de mascotas
       const petMap = new Map<string, any>()
 
-      // Agregar pacientes oficiales
       officialPatients.forEach(p => {
         petMap.set(p.name.toLowerCase(), {
           ...p,
@@ -111,11 +128,13 @@ export function TutorView() {
     } finally {
       setLoading(false)
     }
-  }, [user?.email])
+  }, [user?.email, currentClinicId])
 
   useEffect(() => {
     fetchData()
   }, [fetchData])
+
+  const bookingUrl = `/reserva/${currentClinicId}`
 
   return (
     <div className="min-h-screen bg-vet-bone font-sans">
@@ -127,14 +146,14 @@ export function TutorView() {
               <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-8 h-8 object-contain rounded-md" />
             </div>
             <div>
-              <h1 className="text-lg font-black text-gray-900 leading-none">{config?.clinic_name || 'VETCARE'}</h1>
+              <h1 className="text-lg font-black text-gray-900 leading-none uppercase tracking-tight">{config?.clinic_name || 'VETCARE'}</h1>
               <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Portal del Tutor</p>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
             <Link 
-              to={`/reserva/${clinicId}`}
+              to={bookingUrl}
               className="px-5 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-pink-200 flex items-center gap-2"
             >
               <span className="text-lg leading-none">+</span>
@@ -289,7 +308,7 @@ export function TutorView() {
                   </div>
 
                   <Link 
-                    to={clinicId ? `/reserva/${clinicId}` : '/'}
+                    to={bookingUrl}
                     className="mt-8 w-full py-3.5 bg-vet-bone text-vet-dark text-sm font-bold rounded-2xl hover:bg-vet-rose hover:text-white transition-all flex items-center justify-center gap-2 group-hover:shadow-lg"
                   >
                     Agendar para {pet.name}

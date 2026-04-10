@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 
 export function LoginPage() {
@@ -11,6 +11,7 @@ export function LoginPage() {
   const [error, setError]       = useState<string | null>(null)
   
   const navigate = useNavigate()
+  const location = useLocation()
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,10 +27,9 @@ export function LoginPage() {
         })
         if (err) throw err
         
-        if (err) throw err
-        
-        // Redireccionar al dashboard inteligente
-        navigate('/dashboard')
+        // Redireccionar al destino original o al dashboard inteligente
+        const from = (location.state as any)?.from?.pathname || '/dashboard'
+        navigate(from, { replace: true })
       } else {
         // --- REGISTRARSE ---
         const { error: err } = await supabase.auth.signUp({
