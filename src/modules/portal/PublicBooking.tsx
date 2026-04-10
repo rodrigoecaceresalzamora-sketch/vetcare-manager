@@ -189,15 +189,21 @@ export function PublicBooking() {
       // 1. AUTO-PROVISIÓN: Asegurar que el GUARDIAN existe en esta clínica
       let finalGuardianId = form.guardian_id
       if (!finalGuardianId) {
+        // Buscar por EMAIL o por RUT dentro de ESTA clínica
         const { data: existingG } = await supabase
           .from('guardians')
           .select('id')
-          .eq('email', form.guardian_email.toLowerCase())
+          .or(`email.eq.${form.guardian_email.toLowerCase()},rut.eq.${form.guardian_rut}`)
           .eq('clinic_id', clinicId)
           .maybeSingle()
         
         if (existingG) {
           finalGuardianId = existingG.id
+          // OPCIONAL: Actualizar datos si han cambiado parcialmente
+          await supabase.from('guardians').update({
+            name: form.guardian_name,
+            phone: form.guardian_phone
+          }).eq('id', finalGuardianId)
         } else {
           const { data: newG, error: gErr } = await supabase
             .from('guardians')
