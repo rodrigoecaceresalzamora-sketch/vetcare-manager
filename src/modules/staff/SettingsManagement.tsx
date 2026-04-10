@@ -134,6 +134,7 @@ export function SettingsManagement() {
 
       {/* Tabs */}
       <div className="flex gap-2 bg-white/50 p-1.5 rounded-2xl border border-gray-100 backdrop-blur-sm sticky top-4 z-30">
+        <TabBtn active={activeTab === 'general'}  onClick={() => setActiveTab('general')}  label="General" icon="🏥" />
         <TabBtn active={activeTab === 'portal'}   onClick={() => setActiveTab('portal')}   label="Portal Tutor" icon="🎨" />
         <TabBtn active={activeTab === 'horarios'} onClick={() => setActiveTab('horarios')} label="Horarios" icon="⏰" />
         <TabBtn active={activeTab === 'finanzas'} onClick={() => setActiveTab('finanzas')} label="Pagos & Abono" icon="💰" />
@@ -202,23 +203,39 @@ export function SettingsManagement() {
                       <div className="w-20 h-20 rounded-2xl bg-white shadow-xl flex items-center justify-center p-2 mb-3 border border-gray-100 ring-4 ring-white">
                         <img src={localConfig.clinic_logo_url || '/logo.png'} alt="Preview" className="w-full h-full object-contain rounded-lg" />
                       </div>
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Previsualización Logo</p>
+                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Logo Portal</p>
                    </div>
                    <div className="w-full space-y-3">
                       <div className="h-2 rounded-full w-full" style={{ backgroundColor: localConfig.primary_color }}></div>
                       <div className="h-10 rounded-2xl w-full flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: localConfig.primary_color, color: 'white' }}>BOTÓN DE EJEMPLO</div>
-                      <div className="h-6 rounded-lg w-1/2 mx-auto" style={{ backgroundColor: localConfig.secondary_color, border: '1px solid #ddd' }}></div>
                    </div>
                 </div>
               </section>
 
-              <section className="p-6 bg-vet-rose/5 rounded-[2.5rem] border border-vet-rose/10 flex flex-col items-center justify-center text-center">
-                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center text-3xl shadow-lg mb-4">🎨</div>
-                <h4 className="text-lg font-black text-gray-900 mb-2 uppercase tracking-tight">Marca Blanca</h4>
-                <p className="text-sm text-gray-500 leading-relaxed font-medium">
-                  Configura estos colores para que tus tutores sientan que están en tu propia aplicación personalizada.<br/>
-                  <span className="text-vet-rose font-bold">¡Tu identidad es lo más importante!</span>
+              <section className="p-8 bg-gray-900 rounded-[2.5rem] text-white flex flex-col items-center justify-center text-center relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-vet-rose/20 rounded-full blur-2xl -mr-16 -mt-16"></div>
+                
+                <h4 className="text-sm font-black uppercase tracking-widest text-pink-400 mb-6">Tu QR de Agendamiento</h4>
+                
+                <div className="bg-white p-4 rounded-3xl shadow-2xl mb-6 ring-4 ring-white/10">
+                   {/* QR Placeholder using a simple service */}
+                   <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(bookingUrl)}`} 
+                    alt="QR Code" 
+                    className="w-32 h-32"
+                   />
+                </div>
+
+                <p className="text-xs text-gray-400 leading-relaxed font-medium mb-6">
+                  Descarga o imprime este código QR y colócalo en tu clínica para que tus clientes agenden escaneándolo con su celular.
                 </p>
+                
+                <button 
+                  onClick={() => window.open(`https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=${encodeURIComponent(bookingUrl)}`, '_blank')}
+                  className="px-6 py-3 bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all"
+                >
+                  Descargar QR Grande 📥
+                </button>
               </section>
             </div>
           </div>
