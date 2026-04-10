@@ -11,6 +11,8 @@ interface ClinicConfigContextType {
   setPublicClinicId: (id: string) => void
 }
 
+const ClinicConfigContext = createContext<ClinicConfigContextType | undefined>(undefined)
+
 const SOFIA_DEFAULTS = {
   clinic_name: 'VetCare Principal',
   primary_color: '#e11d48',

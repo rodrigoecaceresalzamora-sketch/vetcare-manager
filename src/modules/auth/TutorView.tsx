@@ -166,11 +166,11 @@ export function TutorView() {
                  <input 
                    readOnly 
                    className="text-[10px] font-mono text-vet-rose bg-transparent border-none p-0 outline-none w-48" 
-                   value={`${window.location.origin}/reserva/${clinicId}`} 
+                   value={`${window.location.origin}/reserva/${currentClinicId}`} 
                  />
                  <button 
                    onClick={() => {
-                     navigator.clipboard.writeText(`${window.location.origin}/reserva/${clinicId}`)
+                     navigator.clipboard.writeText(`${window.location.origin}/reserva/${currentClinicId}`)
                      alert('Copiado al portapapeles')
                    }}
                    className="text-[10px] font-bold text-gray-500 hover:text-vet-rose underline"
@@ -225,7 +225,7 @@ export function TutorView() {
               No tienes mascotas registradas en esta clínica. Para agendar una cita o ver tu historial, usa el portal de reservas.
             </p>
             <Link 
-              to={clinicId ? `/reserva/${clinicId}` : '/'}
+              to={currentClinicId ? `/reserva/${currentClinicId}` : '/'}
               className="inline-block px-10 py-5 bg-vet-rose text-white font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-vet-dark transition-all shadow-xl shadow-pink-200"
             >
               Agendar Primera Consulta
