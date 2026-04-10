@@ -46,8 +46,12 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
   return (
     <div className="bg-white rounded-[2.5rem] shadow-2xl border border-gray-100 overflow-hidden max-w-md w-full mx-auto animate-fade-in" style={{ borderColor: `${primaryColor}20` }}>
       <div className="p-8 pb-4 text-center">
-        <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg" style={{ backgroundColor: primaryColor }}>
-          <img src={logoUrl || "/logo.png"} alt="Logo" className="w-10 h-10 object-contain brightness-0 invert" />
+        <div className={`w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center ${!logoUrl ? 'shadow-lg' : ''}`} style={!logoUrl ? { backgroundColor: primaryColor } : {}}>
+          {logoUrl ? (
+            <img src={logoUrl} alt={clinicName} className="w-14 h-14 object-contain rounded-xl" />
+          ) : (
+            <div className="w-10 h-10 border-4 border-white rounded-lg opacity-50" />
+          )}
         </div>
         <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">{clinicName}</h2>
         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1">Acceso para Clientes</p>
