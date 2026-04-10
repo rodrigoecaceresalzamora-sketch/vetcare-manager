@@ -34,12 +34,16 @@ async function fetchPublicServices(clinicId: string) {
 // ── Próximos días permitidos (dinámicos) ──────────────────────
 function getAvailableDates(schedule: Record<string, string[]>): { label: string; value: string; dow: number }[] {
   const dates: { label: string; value: string; dow: number }[] = []
+  const allowedDows = Object.keys(schedule).map(Number)
+  
+  if (allowedDows.length === 0) return []
+
   const d = new Date()
   d.setDate(d.getDate() + 1) // Mañana en adelante
 
-  const allowedDows = Object.keys(schedule).map(Number)
-
-  while (dates.length < 14) { 
+  let attempts = 0
+  while (dates.length < 14 && attempts < 60) { 
+    attempts++
     const dow = d.getDay()
     if (allowedDows.includes(dow)) {
       dates.push({
