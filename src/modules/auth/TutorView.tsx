@@ -14,11 +14,8 @@ import { BrandedLoginForm } from './BrandedLoginForm'
 export function TutorView() {
   const { user, signOut, clinicId: authClinicId } = useAuth()
   const { clinicId: urlClinicId } = useParams()
+  // El config se encarga de resolver el ID real
   const { config, setPublicClinicId } = useClinicConfig()
-  
-  // Los IDs originales (pueden ser slugs)
-  const idFromContextOrUrl = urlClinicId || authClinicId
-
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -175,7 +172,7 @@ export function TutorView() {
           </div>
 
           <div className="flex items-center gap-3">
-            {currentClinicId && (
+            {config?.clinic_id && (
               <Link 
                 to={bookingUrl}
                 className="px-5 py-2.5 bg-vet-rose text-white text-sm font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-vet-rose/20 flex items-center gap-2"
