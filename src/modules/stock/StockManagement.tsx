@@ -2,7 +2,7 @@
 // VetCare Manager — StockManagement.tsx
 // ============================================================
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import type { StockItem } from '../../types'

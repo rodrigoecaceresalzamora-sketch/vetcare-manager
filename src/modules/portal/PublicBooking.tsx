@@ -17,7 +17,7 @@ import {
   isValidEmail,
   formatRUT 
 } from '../../lib/utils'
-import { TimeSlot, Service, Species, Sex, Patient, PublicBookingFormData } from '../../types'
+import type { PublicBookingFormData } from '../../types'
 import { BrandedLoginForm } from '../auth/BrandedLoginForm'
 import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 
@@ -107,7 +107,6 @@ export function PublicBooking() {
     pet_adopted_since: '',
   })
   const [saving, setSaving]       = useState(false)
-  const [loading, setLoading]     = useState(true)
   const [showLogin, setShowLogin] = useState(false)
   const [fieldError, setFieldError] = useState('')
   const [, setBookingId]   = useState<string | null>(null)
