@@ -50,8 +50,9 @@ function DashboardRedirect() {
     return <Navigate to="/onboarding" replace />
   }
 
-  // Por defecto (tutor o sin rol claro) -> Home
-  return <Navigate to="/" replace />
+  // Por defecto (tutor o sin rol claro) -> Redirigir según el caso
+  // Si llegamos aquí y no es staff ni onboarding esperado, lo mandamos a la raíz pública o login
+  return <Navigate to="/login" replace />
 }
 
 // ── Íconos SVG inline ─────────────────────────────────────────
@@ -387,7 +388,7 @@ export default function App() {
         <ClinicConfigProvider>
           <Routes>
           {/* Rutas Públicas */}
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={<DashboardRedirect />} />
           <Route path="/login" element={<LoginPage />} />
           <Route path="/reserva/:clinicId" element={<PublicBooking />} />
           <Route path="/c/:clinicId" element={<TutorView />} />

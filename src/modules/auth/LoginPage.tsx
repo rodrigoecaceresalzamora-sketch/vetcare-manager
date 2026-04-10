@@ -10,6 +10,12 @@ export function LoginPage() {
   const [error, setError]       = useState<string | null>(null)
   const [showConfirmationNotice, setShowConfirmationNotice] = useState(false)
   
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) window.location.href = '/dashboard'
+    })
+  }, [])
+
   // El login usa window.location.href para asegurar redirección total
 
   const handleAuth = async (e: React.FormEvent) => {
