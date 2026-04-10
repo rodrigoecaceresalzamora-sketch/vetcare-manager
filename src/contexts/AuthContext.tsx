@@ -129,6 +129,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setSession(null)
     setUser(null)
     setRole(null)
+    setClinicId(null)
+    setPlanType(null)
+    setIsPaid(false)
     setLoading(false)
   }
 

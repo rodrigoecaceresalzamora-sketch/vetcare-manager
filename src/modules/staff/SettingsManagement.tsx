@@ -10,6 +10,7 @@ export function SettingsManagement() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'general' | 'horarios' | 'finanzas' | 'mensajes' | 'email'>('general')
+  const [scheduleInputs, setScheduleInputs] = useState<Record<string, string>>({})
 
   useEffect(() => {
     if (config) {
@@ -28,6 +29,14 @@ export function SettingsManagement() {
         email_subject_rescheduled: config.email_subject_rescheduled || 'Cita Reprogramada - VetCare',
         email_body_rescheduled: config.email_body_rescheduled || 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.'
       })
+      
+      const initialInputs: Record<string, string> = {}
+      if (config.schedule) {
+        Object.keys(config.schedule).forEach(day => {
+          initialInputs[day] = (config.schedule as any)[day].join(', ')
+        })
+      }
+      setScheduleInputs(initialInputs)
     }
   }, [config])
 
@@ -223,10 +232,12 @@ export function SettingsManagement() {
                          <div className="space-y-2">
                            <textarea 
                              className="w-full px-3 py-2 text-xs bg-white border border-gray-200 rounded-xl font-mono"
-                             placeholder="Separados por coma: 10:00, 10:30, ..."
-                             value={slots.join(', ')}
+                             placeholder="Ej: 10:00, 11:00, 15:00"
+                             value={scheduleInputs[String(day)] || ''}
                              onChange={(e) => {
-                               const newSlots = e.target.value.split(',').map(s => s.trim()).filter(s => s.length > 0)
+                               const val = e.target.value
+                               setScheduleInputs(prev => ({ ...prev, [String(day)]: val }))
+                               const newSlots = val.split(',').map(s => s.trim()).filter(s => s.length > 0)
                                const newSchedule = { ...(localConfig.schedule || {}), [String(day)]: newSlots }
                                set('schedule', newSchedule)
                              }}
@@ -400,11 +411,11 @@ function TabBtn({ active, onClick, label, icon }: { active: boolean; onClick: ()
   return (
     <button
       onClick={onClick}
-      className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl transition-all font-bold text-sm
+      className={`flex-1 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 px-1 sm:px-4 py-2 sm:py-3 rounded-xl transition-all font-bold text-[10px] sm:text-sm
                  ${active ? 'bg-white text-vet-rose shadow-md ring-1 ring-gray-100' : 'text-gray-400 hover:text-gray-600'}`}
     >
       <span className="text-base">{icon}</span>
-      <span className="hidden sm:inline">{label}</span>
+      <span className="leading-tight text-center">{label}</span>
     </button>
   )
 }

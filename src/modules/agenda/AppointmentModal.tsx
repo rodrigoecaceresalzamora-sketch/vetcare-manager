@@ -209,9 +209,9 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
         )}
 
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-pink-100">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-pink-100">
           <div>
-            <h2 className="text-base font-medium text-gray-900">
+            <h2 className="text-xs font-bold text-gray-900 uppercase tracking-tight">
               {editingAppointment ? 'Editar cita' : 'Nueva cita'}
             </h2>
           </div>
@@ -224,7 +224,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleSubmit} className="p-4 space-y-3">
 
           {/* Sección tutor */}
           <Section title="Datos del tutor">
@@ -616,15 +616,15 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
 
 // ── Helpers locales ───────────────────────────────────────────
 const inputCls =
-  'w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-white ' +
+  'w-full px-2 py-1.5 text-xs border border-gray-200 rounded-lg bg-white ' +
   'focus:outline-none focus:ring-2 focus:ring-vet-rose/20 focus:border-vet-rose ' +
   'transition-colors text-gray-900'
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <p className="text-[10px] font-medium uppercase tracking-widest
-                    text-vet-rose mb-3 pb-1.5 border-b border-pink-100">
+      <p className="text-[9px] font-bold uppercase tracking-widest
+                    text-vet-rose mb-2 pb-1 border-b border-pink-50">
         {title}
       </p>
       {children}

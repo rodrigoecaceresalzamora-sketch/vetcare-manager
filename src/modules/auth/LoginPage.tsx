@@ -29,7 +29,14 @@ export function LoginPage() {
         
         // Redireccionar al destino original o al dashboard inteligente
         const from = (location.state as any)?.from?.pathname || '/dashboard'
-        navigate(from, { replace: true })
+        
+        // Si el "from" es una ruta de tutor o la raíz, mandamos al dashboard para que el componente
+        // DashboardRedirect decida según el rol (tutor vs admin).
+        if (from.startsWith('/c/') || from === '/' || from === '/login') {
+           navigate('/dashboard', { replace: true })
+        } else {
+           navigate(from, { replace: true })
+        }
       } else {
         // --- REGISTRARSE ---
         const { error: err } = await supabase.auth.signUp({
@@ -61,7 +68,7 @@ export function LoginPage() {
         {/* Simple Brand */}
         <div className="text-center mb-8">
             <h1 className="text-2xl font-black">Portal VetCare</h1>
-            <p className="text-gray-400 text-[10px] font-bold mt-1">Gestión SaaS Multi-tenant</p>
+            <p className="text-gray-400 text-[10px] font-bold mt-1">Gestion de veterinarias</p>
         </div>
 
         {/* Auth Card */}

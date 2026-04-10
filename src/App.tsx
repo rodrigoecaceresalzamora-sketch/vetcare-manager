@@ -37,19 +37,21 @@ import { getGravatarUrl }    from './lib/utils'
 function DashboardRedirect() {
   const { user, role, loading, clinicId } = useAuth()
   
-  if (loading) return null
-
-  if (!user) return <Navigate to="/" replace />
+  if (loading) return <div className="p-10 text-center animate-pulse text-gray-400 font-medium whitespace-pre">Cargando dashboard...</div>
+  if (!user) return <Navigate to="/login" replace />
   
-  // Si es tutor, ya no existe /tutor genérico. 
-  // Intentamos redirigir a su última sesión o a la home si no hay contexto.
-  if (role === 'tutor') {
-    return <Navigate to="/" replace />
+  // Si es staff (admin o ayudante) y tiene clínica -> Agenda
+  if ((role === 'admin' || role === 'ayudante') && clinicId) {
+    return <Navigate to="/agenda" replace />
   }
-  
-  if (!clinicId) return <Navigate to="/onboarding" replace />
-  
-  return <Navigate to="/agenda" replace />
+
+  // Si es admin pero no tiene clínica -> Onboarding
+  if (role === 'admin' && !clinicId) {
+    return <Navigate to="/onboarding" replace />
+  }
+
+  // Por defecto (tutor o sin rol claro) -> Home
+  return <Navigate to="/" replace />
 }
 
 // ── Íconos SVG inline ─────────────────────────────────────────
