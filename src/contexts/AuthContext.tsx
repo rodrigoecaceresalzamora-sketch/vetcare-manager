@@ -54,7 +54,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       handleAuthChange(session)
     })
 
-    return () => subscription.unsubscribe()
+    // SEGURIDAD: Temporizador para evitar pantalla blanca infinita
+    const timer = setTimeout(() => {
+      setLoading(false)
+    }, 3000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timer)
+    }
   }, [])
 
   const updateRole = async (user: User | null) => {
