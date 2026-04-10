@@ -23,21 +23,34 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
     setError(null)
 
     try {
+      const captchaToken = (window as any).turnstile?.getResponse()
+      if (!captchaToken) {
+        throw new Error('Por favor, completa la verificación de seguridad.')
+      }
+
       if (isLogin) {
-        const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+        const { error: err } = await supabase.auth.signInWithPassword({ 
+          email, 
+          password,
+          options: { captchaToken }
+        })
         if (err) throw err
         onSuccess()
       } else {
         const { error: err } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } }
+          options: { 
+            data: { full_name: fullName },
+            captchaToken
+          }
         })
         if (err) throw err
         setShowConfirmationNotice(true)
         setIsLogin(true)
       }
     } catch (err: any) {
+      if ((window as any).turnstile) (window as any).turnstile.reset()
       setError(err.message || 'Error en la autenticación')
     } finally {
       setLoading(false)

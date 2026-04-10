@@ -20,11 +20,21 @@ export function LoginPage() {
     setError(null)
 
     try {
+      // Intentar obtener el token de Turnstile (Cloudflare)
+      const captchaToken = (window as any).turnstile?.getResponse()
+      
+      if (!captchaToken) {
+        throw new Error('Por favor, completa la verificación de seguridad (CAPTCHA).')
+      }
+      
       if (isLogin) {
         // --- INICIAR SESIÓN ---
         const { error: err } = await supabase.auth.signInWithPassword({
           email,
-          password
+          password,
+          options: {
+            captchaToken
+          }
         })
         if (err) throw err
         
@@ -46,7 +56,8 @@ export function LoginPage() {
           options: {
             data: {
               full_name: fullName
-            }
+            },
+            captchaToken
           }
         })
         if (err) throw err
@@ -54,6 +65,8 @@ export function LoginPage() {
         setIsLogin(true)
       }
     } catch (err: any) {
+      // Si falla el captcha, resetearlo para que el usuario pueda intentar de nuevo
+      if ((window as any).turnstile) (window as any).turnstile.reset()
       setError(err.message || 'Ocurrió un error en la autenticación')
     } finally {
       setLoading(false)
