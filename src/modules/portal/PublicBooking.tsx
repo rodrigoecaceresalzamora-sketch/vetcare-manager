@@ -202,7 +202,7 @@ export function PublicBooking() {
           const { data: newG, error: gErr } = await supabase
             .from('guardians')
             .insert({
-              full_name: form.guardian_name,
+              name: form.guardian_name,
               email: form.guardian_email.toLowerCase(),
               phone: form.guardian_phone,
               rut: form.guardian_rut,
@@ -237,7 +237,7 @@ export function PublicBooking() {
               species: form.pet_species,
               breed: form.pet_breed,
               sex: form.pet_sex,
-              date_of_birth: form.pet_date_of_birth || null,
+              date_of_birth: form.pet_date_of_birth || new Date().toISOString().split('T')[0],
               guardian_id: finalGuardianId,
               clinic_id: clinicId,
               status: 'activo'
