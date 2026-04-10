@@ -23,16 +23,10 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
     setError(null)
 
     try {
-      const captchaToken = (window as any).turnstile?.getResponse()
-      if (!captchaToken) {
-        throw new Error('Por favor, completa la verificación de seguridad.')
-      }
-
       if (isLogin) {
         const { error: err } = await supabase.auth.signInWithPassword({ 
           email, 
-          password,
-          options: { captchaToken }
+          password
         })
         if (err) throw err
         onSuccess()
@@ -41,8 +35,7 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
           email,
           password,
           options: { 
-            data: { full_name: fullName },
-            captchaToken
+            data: { full_name: fullName }
           }
         })
         if (err) throw err

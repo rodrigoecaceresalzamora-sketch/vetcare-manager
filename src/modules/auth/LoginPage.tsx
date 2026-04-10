@@ -19,26 +19,11 @@ export function LoginPage() {
     setError(null)
 
     try {
-      // Intentar obtener el token de Turnstile (Cloudflare) con seguridad
-      let captchaToken = null
-      try {
-        captchaToken = (window as any).turnstile?.getResponse()
-      } catch (e) {
-        console.warn("Turnstile not ready yet", e)
-      }
-      
-      if (!captchaToken) {
-        throw new Error('Por favor, completa la verificación de seguridad (CAPTCHA).')
-      }
-      
       if (isLogin) {
         // --- INICIAR SESIÓN ---
         const { error: err } = await supabase.auth.signInWithPassword({
           email,
-          password,
-          options: {
-            captchaToken
-          }
+          password
         })
         if (err) throw err
         
@@ -52,8 +37,7 @@ export function LoginPage() {
           options: {
             data: {
               full_name: fullName
-            },
-            captchaToken
+            }
           }
         })
         if (err) throw err
