@@ -5,6 +5,15 @@
 
 DO $$ 
 BEGIN
+    -- 0. Asegurar que todas las columnas necesarias existen (corrección de caché de esquema)
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS email_subject_booking text;
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS email_body_booking text;
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS email_subject_reminder text;
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS email_body_reminder text;
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS wa_template_reminder text;
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS wa_template_confirmation text;
+    ALTER TABLE public.clinic_config ADD COLUMN IF NOT EXISTS advance_payment_percentage integer DEFAULT 0;
+
     -- 1. Eliminar restricciones y llaves previas que causan conflictos
     ALTER TABLE IF EXISTS public.clinic_config DROP CONSTRAINT IF EXISTS only_one_row;
     ALTER TABLE IF EXISTS public.clinic_config DROP CONSTRAINT IF EXISTS clinic_config_pkey;
