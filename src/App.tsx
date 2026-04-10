@@ -18,7 +18,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './contexts/ProtectedRoute'
 import { LoginPage } from './modules/auth/LoginPage'
 import { TutorView } from './modules/auth/TutorView'
-import { ClinicConfigProvider, useClinicConfig } from './contexts/ClinicConfigContext'
+import { ClinicConfigProvider } from './contexts/ClinicConfigContext'
 
 import { WeekView }          from './modules/agenda/WeekView'
 import { VaccineDashboard }  from './modules/vaccines/VaccineDashboard'
