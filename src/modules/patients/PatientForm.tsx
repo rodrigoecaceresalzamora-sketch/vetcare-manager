@@ -110,7 +110,30 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
                 <input required className={inputCls} placeholder="Ej: Pedro Pérez" value={gName} onChange={e => setGName(e.target.value)} />
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">RUT
-                <input className={`${inputCls} ${!rutValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`} placeholder="12.345.678-9" value={gRut} onChange={handleRutChange} />
+                <div className="flex gap-1">
+                  <input className={`${inputCls} flex-1 ${!rutValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`} placeholder="12.345.678-9" value={gRut} onChange={handleRutChange} />
+                  <button 
+                    type="button"
+                    onClick={async () => {
+                      if (!gRut || !isValidRUT(gRut)) return
+                      setSaving(true)
+                      const { data } = await (window as any).supabase
+                        .from('guardians')
+                        .select('*')
+                        .eq('rut', gRut)
+                        .maybeSingle()
+                      setSaving(false)
+                      if (data) {
+                        setGName(data.name)
+                        setGPhone(data.phone)
+                        setGEmail(data.email || '')
+                      }
+                    }}
+                    className="px-2 bg-gray-100 border border-gray-200 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition-colors"
+                  >
+                    🔍
+                  </button>
+                </div>
               </label>
               <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium">Teléfono
                 <input required className={`${inputCls} ${!phoneValid ? 'border-red-500 bg-red-50 text-red-900 focus:ring-red-200' : ''}`} placeholder="+56 9 1234 5678" value={gPhone} onChange={e => setGPhone(e.target.value)} />
