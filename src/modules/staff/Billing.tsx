@@ -42,9 +42,7 @@ export function Billing() {
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-black text-gray-900 tracking-tight">Planes y Facturación</h1>
-          <p className="text-gray-500 mt-1 uppercase text-[10px] font-bold tracking-widest">
-            Gestiona tu suscripción a VetCare SaaS
-          </p>
+            Gestiona tu suscripción a VetCare Manager
         </div>
         <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-2xl border border-pink-100 shadow-sm">
           <span className="text-xs text-gray-500 font-medium">Estado actual:</span>

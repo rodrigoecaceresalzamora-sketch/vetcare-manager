@@ -35,9 +35,7 @@ export function LandingPage() {
               Para Veterinarios
            </div>
            <h2 className="text-3xl font-black mb-4 leading-tight">Obtén VetCare Manager</h2>
-           <p className="text-gray-400 text-sm mb-10 leading-relaxed font-medium">
-             Agenda, fichas clínicas e historial en una sola plataforma SaaS profesional.
-           </p>
+             Agenda, fichas clínicas e historial en una sola plataforma profesional.
            
            <Link 
             to="/facturacion"
@@ -49,7 +47,7 @@ export function LandingPage() {
       </div>
 
       <footer className="mt-10 text-center">
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">&copy; 2026 VetCare Manager SaaS. Todos los derechos reservados.</p>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">&copy; 2026 VetCare Manager. Todos los derechos reservados.</p>
       </footer>
     </div>
   )

@@ -86,7 +86,7 @@ export function LoginPage() {
         {/* Simple Brand */}
         <div className="text-center mb-8">
             <h1 className="text-2xl font-black text-indigo-900">VetCare Manager</h1>
-            <p className="text-gray-400 text-[10px] font-bold mt-1 uppercase tracking-widest">SaaS de Gesti&oacute;n Veterinaria</p>
+            <p className="text-gray-400 text-[10px] font-bold mt-1 uppercase tracking-widest">Gestión Veterinaria</p>
         </div>
 
         {/* Auth Card */}

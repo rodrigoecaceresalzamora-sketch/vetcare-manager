@@ -199,7 +199,7 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
         {!isCollapsed && (
           <>
             <h1 className="text-black text-sm font-bold leading-tight uppercase tracking-tight">
-              {config?.clinic_name || 'VetCare'}<br/>Manager
+              {config?.clinic_name || 'VetCare Manager'}
             </h1>
           </>
         )}
@@ -395,9 +395,7 @@ export default function App() {
           <Route path="/c/:clinicId" element={<TutorView />} />
           <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
             <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100">
-               <h1 className="text-2xl font-black mb-4">📧 Verifica tu Email</h1>
-               <p className="text-gray-500 text-sm leading-relaxed">Te hemos enviado un enlace de confirmación. Por favor, revisa tu bandeja de entrada para poder activar tu cuenta SaaS.</p>
-               <button onClick={() => window.location.reload()} className="mt-8 w-full py-3 bg-vet-rose text-white font-bold rounded-xl shadow-lg">Ya lo verifiqué</button>
+               <p className="text-gray-500 text-sm leading-relaxed">Te hemos enviado un enlace de confirmación. Por favor, revisa tu bandeja de entrada para poder activar tu cuenta.</p>
             </div>
           </div>} />
 

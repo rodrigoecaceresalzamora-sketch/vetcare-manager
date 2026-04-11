@@ -165,7 +165,18 @@ export function usePatientDetail(patientId: string) {
   const uploadFile = async (file: File) => {
     const uniqueName = `${Date.now()}_${file.name.replace(/\s+/g, '_')}`
     const filePath = `${patientId}/${uniqueName}`
-    const { error: uploadErr } = await supabase.storage.from('patient_files').upload(filePath, file)
+    
+    let mimeType = file.type
+    if (!mimeType) {
+      if (file.name.endsWith('.docx')) mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      else if (file.name.endsWith('.doc')) mimeType = 'application/msword'
+      else mimeType = 'application/octet-stream'
+    }
+
+    const { error: uploadErr } = await supabase.storage.from('patient_files').upload(filePath, file, {
+      upsert: true,
+      contentType: mimeType
+    })
     if (uploadErr) return { error: uploadErr.message }
     await fetchFiles()
     return { error: null }

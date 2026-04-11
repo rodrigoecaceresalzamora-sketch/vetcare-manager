@@ -68,8 +68,13 @@ export function PatientDetail() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return
     setUploading(true)
-    await uploadFile(e.target.files[0])
+    const { error: err } = await uploadFile(e.target.files[0])
     setUploading(false)
+    if (err) {
+      showToast(`❌ Error al subir: ${err}`)
+    } else {
+      showToast('✅ Archivo subido')
+    }
     e.target.value = '' // reset
   }
 
@@ -436,7 +441,7 @@ export function PatientDetail() {
                   className="hidden" 
                   disabled={uploading} 
                   onChange={handleUpload} 
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 />
               </label>
             </div>
