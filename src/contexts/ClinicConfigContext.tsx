@@ -119,6 +119,15 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     fetchConfig()
   }, [fetchConfig])
 
+  // Actualizar el título de la pestaña dinámicamente
+  useEffect(() => {
+    if (config?.clinic_name) {
+      document.title = config.clinic_name
+    } else {
+      document.title = 'VetCare Manager'
+    }
+  }, [config?.clinic_name])
+
   const updateConfig = async (newConfig: Partial<ClinicConfig>): Promise<boolean> => {
     if (!currentClinicId) return false
     try {
