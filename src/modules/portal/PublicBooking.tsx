@@ -628,15 +628,54 @@ export function PublicBooking() {
                     required 
                   />
                 </Field>
-                <Field label="RUT">
-                  <input 
-                    className={`${inputCls} ${!isValidRUT(form.guardian_rut || '') && form.guardian_rut ? 'border-red-500 bg-red-50' : ''}`} 
-                    value={form.guardian_rut || ''} 
-                    onChange={(e) => setField('guardian_rut', formatRUT(e.target.value))} 
-                    placeholder="12.345.678-9" 
-                    required 
-                  />
-                </Field>
+                <div className="sm:col-span-2 space-y-2 mb-4">
+                   <label className="text-[10px] font-bold text-vet-dark uppercase tracking-widest block">RUT (Busca tus datos 🔍)</label>
+                   <div className="flex gap-2">
+                    <input 
+                      className={`${inputCls} flex-1 ${!isValidRUT(form.guardian_rut || '') && form.guardian_rut ? 'border-red-500 bg-red-50' : ''}`} 
+                      value={form.guardian_rut || ''} 
+                      onChange={(e) => setField('guardian_rut', formatRUT(e.target.value))} 
+                      placeholder="12.345.678-9" 
+                      required 
+                    />
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        if (!form.guardian_rut || !isValidRUT(form.guardian_rut)) return
+                        setSaving(true)
+                        try {
+                          const { data } = await supabase
+                            .from('guardians')
+                            .select('*')
+                            .eq('rut', form.guardian_rut)
+                            .eq('clinic_id', config?.clinic_id)
+                            .maybeSingle()
+                          if (data) {
+                            setForm(f => ({
+                              ...f,
+                              guardian_name: data.name,
+                              guardian_email: data.email,
+                              guardian_phone: data.phone,
+                              guardian_id: data.id
+                            }))
+                            setFieldError('✅ Datos recuperados con éxito')
+                            setTimeout(() => setFieldError(''), 3000)
+                          } else {
+                            setFieldError('ℹ️ No hay registros con este RUT.')
+                            setTimeout(() => setFieldError(''), 3000)
+                          }
+                        } catch (e) {
+                          console.error(e)
+                        } finally {
+                          setSaving(false)
+                        }
+                      }}
+                      className="px-4 py-2 bg-vet-rose text-white rounded-xl text-xs font-bold hover:bg-vet-dark transition-all disabled:opacity-50"
+                    >
+                      {saving ? '...' : 'Cargar'}
+                    </button>
+                   </div>
+                </div>
               </div>
 
               <div className="bg-vet-light/30 p-4 rounded-xl space-y-4 border border-vet-rose/10">

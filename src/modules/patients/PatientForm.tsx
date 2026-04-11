@@ -4,6 +4,7 @@
 // ============================================================
 
 import { useState, useMemo } from 'react'
+import { supabase } from '../../lib/supabase'
 import type { Species, Sex, Patient } from '../../types'
 import { isValidRUT, isValidPhone, formatRUT } from '../../lib/utils'
 
@@ -117,16 +118,21 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
                     onClick={async () => {
                       if (!gRut || !isValidRUT(gRut)) return
                       setSaving(true)
-                      const { data } = await (window as any).supabase
-                        .from('guardians')
-                        .select('*')
-                        .eq('rut', gRut)
-                        .maybeSingle()
-                      setSaving(false)
-                      if (data) {
-                        setGName(data.name)
-                        setGPhone(data.phone)
-                        setGEmail(data.email || '')
+                      try {
+                        const { data } = await supabase
+                          .from('guardians')
+                          .select('*')
+                          .eq('rut', gRut)
+                          .maybeSingle()
+                        if (data) {
+                          setGName(data.name)
+                          setGPhone(data.phone)
+                          setGEmail(data.email || '')
+                        }
+                      } catch (e) {
+                        console.error(e)
+                      } finally {
+                        setSaving(false)
                       }
                     }}
                     className="px-2 bg-gray-100 border border-gray-200 rounded-lg text-[10px] font-bold hover:bg-gray-200 transition-colors"
