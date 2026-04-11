@@ -130,7 +130,7 @@ export function usePatientDetail(patientId: string) {
 
     // 2. Si hay data de vacuna, guardarla también en la otra tabla
     if (vaccineData && vaccineData.vaccine_name) {
-      const next_due_date = calcNextDueDate(vaccineData.applied_date, vaccineData.boost_interval)
+      const next_due_date = calcNextDueDate(vaccineData.applied_date, vaccineData.boost_interval, patient?.date_of_birth)
       const { error: vacErr } = await supabase.from('vaccinations').insert({
         id: generateId(),
         patient_id: patientId,

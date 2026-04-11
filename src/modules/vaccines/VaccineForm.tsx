@@ -16,10 +16,12 @@ import { calcNextDueDate, formatDate } from '../../lib/utils'
 import type { Patient, BoostInterval } from '../../types'
 
 const BOOST_OPTIONS: { value: BoostInterval; label: string }[] = [
-  { value: '2w', label: '2 semanas' },
+  { value: '3w', label: '21 días' },
   { value: '4w', label: '4 semanas' },
   { value: '6m', label: '6 meses' },
   { value: '1y', label: '1 año' },
+  { value: '3y', label: '3 años' },
+  { value: '1yo', label: 'Al año de vida' },
 ]
 
 interface Props {
@@ -46,9 +48,11 @@ export function VaccineForm({ onClose, onSaved, preselectedPatientId }: Props) {
   const [fieldError, setFieldError] = useState('')
   const [showPatientForm, setShowPatientForm] = useState(false)
 
+  const selectedPatient = patients.find((p) => p.id === patientId)
+
   // Fecha calculada del próximo refuerzo
   const previewDate =
-    appliedDate ? calcNextDueDate(appliedDate, boost) : null
+    appliedDate ? calcNextDueDate(appliedDate, boost, selectedPatient?.date_of_birth) : null
 
   // Cargar lista de pacientes para el selector
   function loadPatientsList() {
@@ -82,6 +86,7 @@ export function VaccineForm({ onClose, onSaved, preselectedPatientId }: Props) {
       applied_date:  appliedDate,
       lot_number:    lotNumber,
       boost_interval: boost,
+      patient_date_of_birth: selectedPatient?.date_of_birth,
     })
     setSaving(false)
 

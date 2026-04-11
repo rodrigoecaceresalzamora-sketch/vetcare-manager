@@ -254,10 +254,12 @@ export function ConsultationForm({ initialData, onClose, onSave, readOnly = fals
                 </label>
                 <label className="flex flex-col gap-1 text-xs text-gray-500 font-medium md:col-span-2">Próximo Refuerzo
                   <select disabled={readOnly} className={inputCls} value={vBoost} onChange={e => setVBoost(e.target.value as BoostInterval)}>
-                    <option value="2w">2 semanas</option>
+                    <option value="3w">21 días</option>
                     <option value="4w">4 semanas</option>
                     <option value="6m">6 meses</option>
                     <option value="1y">1 año</option>
+                    <option value="3y">3 años</option>
+                    <option value="1yo">Al año de vida</option>
                   </select>
                 </label>
               </div>

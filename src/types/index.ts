@@ -97,7 +97,7 @@ export interface Vaccination {
   patient?: Patient
 }
 
-export type BoostInterval = '2w' | '4w' | '6m' | '1y'
+export type BoostInterval = '2w' | '3w' | '4w' | '6m' | '1y' | '3y' | '1yo'
 
 // ── CITA / APPOINTMENT ────────────────────────────────────────
 export type AppointmentService =

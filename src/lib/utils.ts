@@ -61,13 +61,28 @@ export function formatTime(isoDatetime: string): string {
 /**
  * Calcula la fecha del próximo refuerzo sumando el intervalo seleccionado.
  */
-export function calcNextDueDate(appliedDate: string, interval: BoostInterval): string {
+export function calcNextDueDate(appliedDate: string, interval: BoostInterval, dateOfBirth?: string | null): string {
+  if (interval === '1yo') {
+    if (dateOfBirth) {
+       const d = new Date(dateOfBirth + 'T00:00:00')
+       d.setFullYear(d.getFullYear() + 1)
+       return d.toISOString().split('T')[0]
+    } else {
+       // Si no hay dob, fallback a 1 año desde aplicada
+       const d = new Date(appliedDate + 'T00:00:00')
+       d.setFullYear(d.getFullYear() + 1)
+       return d.toISOString().split('T')[0]
+    }
+  }
+
   const d = new Date(appliedDate + 'T00:00:00')
   switch (interval) {
     case '2w': d.setDate(d.getDate() + 14);   break
+    case '3w': d.setDate(d.getDate() + 21);   break
     case '4w': d.setDate(d.getDate() + 28);   break
     case '6m': d.setMonth(d.getMonth() + 6);  break
     case '1y': d.setFullYear(d.getFullYear() + 1); break
+    case '3y': d.setFullYear(d.getFullYear() + 3); break
   }
   return d.toISOString().split('T')[0]
 }

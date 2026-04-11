@@ -30,6 +30,7 @@ interface NewVaccineInput {
   applied_date: string
   lot_number: string
   boost_interval: BoostInterval
+  patient_date_of_birth?: string | null
 }
 
 export function useVaccineAlerts() {
@@ -87,7 +88,7 @@ export function useVaccineAlerts() {
   // ── Guardar nueva vacuna ──────────────────────────────────────
   const saveVaccination = useCallback(
     async (input: NewVaccineInput): Promise<{ error: string | null }> => {
-      const next_due_date = calcNextDueDate(input.applied_date, input.boost_interval)
+      const next_due_date = calcNextDueDate(input.applied_date, input.boost_interval, input.patient_date_of_birth)
 
       const record: Omit<Vaccination, 'patient'> = {
         id: generateId(),
