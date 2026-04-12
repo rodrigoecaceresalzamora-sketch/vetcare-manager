@@ -37,6 +37,7 @@ export interface Service {
   color?: string
   bg?: string
   border?: string
+  target_species?: 'Ambos' | 'Perro' | 'Gato'
   stock_usage?: { item_id: string, quantity: number }[] // Lista de items de stock a descontar
   clinic_id: string
   created_at?: string

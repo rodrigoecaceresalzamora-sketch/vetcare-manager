@@ -113,6 +113,9 @@ export function PublicBooking() {
   const [fieldError, setFieldError] = useState('')
   const [, setBookingId]   = useState<string | null>(null)
   
+  const [showUnknownBirth, setShowUnknownBirth] = useState(false)
+  const [showNotAdopted, setShowNotAdopted] = useState(false)
+  
   // ── Cargar mascotas del tutor logueado ───────────────────────
   const [myPets, setMyPets] = useState<any[]>([])
 
@@ -384,6 +387,20 @@ export function PublicBooking() {
             {consultationReason && <Row label="Motivo" value={consultationReason} />}
           </div>
           
+          {config?.contact_phone && (
+            <div className="bg-green-50 border border-green-200 rounded-3xl p-6 mb-8 text-left shadow-sm">
+              <p className="text-xs font-black text-green-800 uppercase mb-2 flex items-center gap-2">
+                <span>📱</span> ¡Importante! Envía tu comprobante
+              </p>
+              <p className="text-xs text-green-700 leading-relaxed mb-4">
+                Por favor envía el comprobante de la transferencia al siguiente número (WhatsApp):
+              </p>
+              <p className="text-xl font-black text-green-900 text-center">
+                {config.contact_phone}
+              </p>
+            </div>
+          )}
+
           <Link
             to={`/c/${config?.slug || config?.clinic_id}`}
             className="inline-block w-full px-6 py-4 bg-vet-rose text-white text-xs font-black uppercase tracking-widest rounded-2xl hover:bg-vet-dark transition-all transform active:scale-95 shadow-xl shadow-vet-rose/10"
@@ -589,10 +606,13 @@ export function PublicBooking() {
                     ¿Agendar para una mascota guardada?
                   </label>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                    {myPets.map(pet => (
+                    {myPets.map(pet => {
+                      const incompatible = (service?.target_species === 'Perro' && pet.species !== 'Perro') || (service?.target_species === 'Gato' && pet.species !== 'Gato');
+                      return (
                       <button
                         key={pet.id}
                         type="button"
+                        disabled={incompatible}
                         onClick={() => {
                           setField('pet_name', pet.name)
                           setField('pet_species', pet.species)
@@ -602,20 +622,20 @@ export function PublicBooking() {
                           setField('pet_is_reactive', pet.is_reactive)
                           setField('patient_id', pet.id)
                         }}
-                        className={`flex flex-col items-center p-3 rounded-xl border transition-all
-                                    ${form.pet_name === pet.name ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-vet-rose/20'}`}
+                        className={`flex flex-col items-center p-3 rounded-xl border transition-all ${incompatible ? 'opacity-30 cursor-not-allowed bg-gray-50 border-gray-100' : form.pet_name === pet.name ? 'border-vet-rose bg-vet-light' : 'border-gray-100 bg-gray-50 hover:border-vet-rose/20'}`}
                       >
                         <span className="text-xl mb-1">{speciesEmoji(pet.species)}</span>
                         <span className="text-xs font-bold text-gray-900">{pet.name}</span>
+                        {incompatible && <span className="text-[9px] text-red-500 font-bold mt-1">No aplica</span>}
                       </button>
-                    ))}
+                    )})}
                     <button
                       type="button"
                       onClick={() => {
                         setForm(f => ({
                           ...f,
                           pet_name: '',
-                          pet_species: 'Perro',
+                          pet_species: service?.target_species === 'Gato' ? 'Gato' : 'Perro',
                           pet_breed: '',
                           pet_sex: 'Macho',
                           pet_date_of_birth: '',
@@ -706,9 +726,14 @@ export function PublicBooking() {
                 <h4 className="text-xs font-bold text-vet-rose uppercase tracking-widest">Ficha de la Mascota</h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-left">
                   <Field label="Especie">
-                    <select className={inputCls} value={form.pet_species} onChange={(e) => setField('pet_species', e.target.value as any)}>
-                      <option value="Perro">Perro</option>
-                      <option value="Gato">Gato</option>
+                    <select 
+                      className={inputCls} 
+                      value={form.pet_species} 
+                      onChange={(e) => setField('pet_species', e.target.value as any)}
+                      disabled={service?.target_species === 'Perro' || service?.target_species === 'Gato'}
+                    >
+                      {(!service?.target_species || service.target_species === 'Ambos' || service.target_species === 'Perro') && <option value="Perro">Perro</option>}
+                      {(!service?.target_species || service.target_species === 'Ambos' || service.target_species === 'Gato') && <option value="Gato">Gato</option>}
                     </select>
                   </Field>
                   <Field label="Sexo">
@@ -722,10 +747,44 @@ export function PublicBooking() {
                     <input className={inputCls} value={form.pet_breed} onChange={(e) => setField('pet_breed', e.target.value)} placeholder="Ej: Poodle, Mestizo..." />
                   </Field>
                   <Field label="Fecha Nacimiento (Opcional)">
-                    <input type="date" className={inputCls} value={form.pet_date_of_birth} onChange={(e) => setField('pet_date_of_birth', e.target.value)} />
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="date" 
+                        className={inputCls} 
+                        value={form.pet_date_of_birth} 
+                        onChange={(e) => {
+                          setField('pet_date_of_birth', e.target.value)
+                          setShowUnknownBirth(false)
+                        }} 
+                        disabled={showUnknownBirth}
+                      />
+                      <label className="flex items-center gap-2 text-[10px] text-gray-500 font-bold mx-1">
+                        <input type="checkbox" checked={showUnknownBirth} onChange={e => {
+                          setShowUnknownBirth(e.target.checked)
+                          if (e.target.checked) setField('pet_date_of_birth', '')
+                        }} /> Desconozco la fecha
+                      </label>
+                    </div>
                   </Field>
                   <Field label="Adoptado desde (Opcional)">
-                    <input type="date" className={inputCls} value={form.pet_adopted_since} onChange={(e) => setField('pet_adopted_since', e.target.value)} />
+                    <div className="flex flex-col gap-2">
+                      <input 
+                        type="date" 
+                        className={inputCls} 
+                        value={form.pet_adopted_since} 
+                        onChange={(e) => {
+                          setField('pet_adopted_since', e.target.value)
+                          setShowNotAdopted(false)
+                        }} 
+                        disabled={showNotAdopted}
+                      />
+                      <label className="flex items-center gap-2 text-[10px] text-gray-500 font-bold mx-1">
+                        <input type="checkbox" checked={showNotAdopted} onChange={e => {
+                          setShowNotAdopted(e.target.checked)
+                          if (e.target.checked) setField('pet_adopted_since', '')
+                        }} /> No es adoptado
+                      </label>
+                    </div>
                   </Field>
                 </div>
               </div>

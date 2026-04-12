@@ -13,7 +13,7 @@ export function PricingManagement() {
   const [toast, setToast] = useState<string | null>(null)
   const [isAdding, setIsAdding] = useState(false)
   const [newService, setNewService] = useState<Partial<Service>>({
-    name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: []
+    name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: [], target_species: 'Ambos'
   })
 
   function showToast(msg: string) {
@@ -64,6 +64,7 @@ export function PricingManagement() {
         duration_minutes: newService.duration_minutes,
         description: newService.description,
         stock_usage: newService.stock_usage || [],
+        target_species: newService.target_species || 'Ambos',
         clinic_id: clinicId
       })
 
@@ -71,7 +72,7 @@ export function PricingManagement() {
       setError('Error al crear: ' + err.message)
     } else {
       setIsAdding(false)
-      setNewService({ name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: [] })
+      setNewService({ name: '', price: 0, duration_minutes: 15, description: '', icon: '🩺', stock_usage: [], target_species: 'Ambos' })
       showToast('✅ Servicio creado con éxito')
       fetchServices()
     }
@@ -96,7 +97,8 @@ export function PricingManagement() {
         duration_minutes: service.duration_minutes,
         description: service.description,
         icon: service.icon,
-        stock_usage: service.stock_usage || []
+        stock_usage: service.stock_usage || [],
+        target_species: service.target_species
       })
       .eq('id', service.id)
 
@@ -166,6 +168,18 @@ export function PricingManagement() {
                 value={newService.duration_minutes ?? ''}
                 onChange={e => setNewService({...newService, duration_minutes: e.target.value === '' ? 15 : parseInt(e.target.value)})}
               />
+            </div>
+            <div>
+              <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Especie</label>
+              <select 
+                className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm"
+                value={newService.target_species || 'Ambos'}
+                onChange={e => setNewService({...newService, target_species: e.target.value as any})}
+              >
+                <option value="Ambos">Ambos</option>
+                <option value="Perro">Exclusivo Perro</option>
+                <option value="Gato">Exclusivo Gato</option>
+              </select>
             </div>
             <div className="md:col-span-2">
               <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Descripción</label>
@@ -387,6 +401,21 @@ function ServiceCard({ service, editingId, setEditingId, handleUpdateService, ha
                   }}
                 />
               </div>
+              <div className="col-span-2">
+                <label className="text-[10px] font-bold text-gray-500 uppercase block mb-1">Especie</label>
+                <select
+                  className="w-full px-3 py-2 text-sm bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-vet-rose/20"
+                  value={service.target_species || 'Ambos'}
+                  onChange={(e) => {
+                    const target_species = e.target.value
+                    setServices(services.map((s: any) => s.id === service.id ? {...s, target_species} : s))
+                  }}
+                >
+                  <option value="Ambos">Ambos</option>
+                  <option value="Perro">Exclusivo Perro</option>
+                  <option value="Gato">Exclusivo Gato</option>
+                </select>
+              </div>
             </div>
             
             <div className="pt-3 border-t border-gray-100 mt-2">
@@ -458,6 +487,14 @@ function ServiceCard({ service, editingId, setEditingId, handleUpdateService, ha
               <div>
                 <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Duración (Mín)</p>
                 <p className="font-bold text-gray-900">{service.duration_minutes} min</p>
+              </div>
+              <div className="col-span-2">
+                <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Especie permitida</p>
+                <p className="font-bold text-gray-900">
+                  {service.target_species === 'Perro' ? '🐶 Perro' : 
+                   service.target_species === 'Gato' ? '🐱 Gato' : 
+                   '🐶🐱 Ambos'}
+                </p>
               </div>
             </div>
             
