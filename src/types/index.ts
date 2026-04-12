@@ -259,6 +259,11 @@ export interface ClinicConfig {
   email_body_cancellation: string
   email_subject_rescheduled: string
   email_body_rescheduled: string
+  email_subject_confirmed: string
+  email_body_confirmed: string
+  email_subject_reminder_appointment: string
+  email_body_reminder_appointment: string
+  wa_template_reminder_appointment: string
   schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
   slug: string | null
   clinic_id: string

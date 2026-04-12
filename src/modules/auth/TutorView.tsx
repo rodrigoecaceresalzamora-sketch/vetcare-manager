@@ -19,6 +19,8 @@ export function TutorView() {
   const [loading, setLoading] = useState(true)
   const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [editingPet, setEditingPet] = useState<Patient | null>(null)
+  const [savingPet, setSavingPet] = useState(false)
 
   useEffect(() => {
     if (urlClinicId) {
@@ -249,8 +251,17 @@ export function TutorView() {
                 
                 <div className="relative z-10">
                   <div className="flex items-start justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-vet-light flex items-center justify-center text-3xl border border-vet-rose/10 shadow-sm group-hover:scale-110 transition-transform">
+                    <div className="w-14 h-14 rounded-2xl bg-vet-light flex items-center justify-center text-3xl border border-vet-rose/10 shadow-sm group-hover:scale-110 transition-transform relative">
                       {speciesEmoji(pet.species)}
+                      {!pet.is_temp && (
+                        <button 
+                          onClick={(e) => { e.preventDefault(); setEditingPet(pet); }}
+                          className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-pink-100 rounded-full flex items-center justify-center text-[10px] shadow-sm hover:bg-vet-rose hover:text-white transition-colors"
+                          title="Editar Mascota"
+                        >
+                          ✏️
+                        </button>
+                      )}
                     </div>
                     <div className="text-right">
                       <span className={`inline-block px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter border ${pet.sex === 'Macho' ? 'bg-blue-50 text-blue-600 border-blue-100' : 'bg-vet-rose/5 text-pink-600 border-vet-rose/10'}`}>
@@ -316,7 +327,7 @@ export function TutorView() {
                   </div>
 
                   <Link 
-                    to={bookingUrl}
+                    to={pet.is_temp ? bookingUrl : `${bookingUrl}?petId=${pet.id}`}
                     className="mt-8 w-full py-4 bg-vet-bone text-vet-dark text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-vet-rose hover:text-white transition-all flex items-center justify-center gap-2 group-hover:shadow-lg active:scale-95"
                   >
                     Agendar para {pet.name} ✨
@@ -324,6 +335,67 @@ export function TutorView() {
                 </div>
               </div>
             ))}
+
+            {/* Modal Editar Mascota (Solo para Tutors) */}
+            {editingPet && (
+              <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-fade-in">
+                <div className="bg-white rounded-[40px] w-full max-w-lg overflow-hidden shadow-2xl relative animate-scale-in">
+                  <div className="bg-vet-rose p-8 text-white relative">
+                     <h3 className="text-2xl font-black uppercase tracking-tight">Editar a {editingPet.name}</h3>
+                     <p className="text-white/80 text-xs font-bold uppercase tracking-widest mt-1">Actualiza su información principal</p>
+                  </div>
+
+                  <form className="p-8 space-y-6" onSubmit={async (e) => {
+                    e.preventDefault()
+                    setSavingPet(true)
+                    const formData = new FormData(e.currentTarget)
+                    const updates = {
+                      name: formData.get('name') as string,
+                      breed: formData.get('breed') as string,
+                      sex: formData.get('sex') as any,
+                      date_of_birth: formData.get('dob') as string,
+                    }
+
+                    const { error } = await supabase
+                      .from('patients')
+                      .update(updates)
+                      .eq('id', editingPet.id)
+                    
+                    if (!error) {
+                      setEditingPet(null)
+                      fetchData()
+                    }
+                    setSavingPet(false)
+                  }}>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="col-span-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Nombre</label>
+                        <input name="name" defaultValue={editingPet.name} className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Raza</label>
+                        <input name="breed" defaultValue={editingPet.breed} className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none" required />
+                      </div>
+                      <div>
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Sexo</label>
+                        <select name="sex" defaultValue={editingPet.sex} className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none">
+                          <option value="Macho">Macho</option>
+                          <option value="Hembra">Hembra</option>
+                          <option value="No determinado">No determinado</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 pt-4">
+                      <button type="button" onClick={() => setEditingPet(null)} className="flex-1 py-4 text-xs font-black uppercase text-gray-400 hover:text-gray-600">Cancelar</button>
+                      <button type="submit" disabled={savingPet} className="flex-1 py-4 bg-vet-rose text-white text-xs font-black uppercase rounded-2xl hover:bg-vet-dark transition-all disabled:opacity-50">
+                        {savingPet ? 'Guardando...' : 'Guardar Cambios'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
+              </div>
+            )}
 
             {/* Card Nueva Mascota */}
             <Link 

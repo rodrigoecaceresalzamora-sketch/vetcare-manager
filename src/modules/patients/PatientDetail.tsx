@@ -219,10 +219,10 @@ export function PatientDetail() {
                   <button
                     onClick={async () => {
                       const next = upcomingAppointments[0]
-                      const emailSubject = config?.email_subject_booking || 'Recordatorio de Cita'
-                      const emailBody = config?.email_body_booking || 'Hola {tutor}, recordamos tu cita para {mascota}.'
+                      const emailSubject = config?.email_subject_reminder_appointment || 'Recordatorio de Cita'
+                      const emailBody = config?.email_body_reminder_appointment || 'Hola {tutor}, recordamos tu cita para {mascota}.'
 
-                      const dateStr = new Date(next.scheduled_at).toLocaleDateString('es-CL')
+                      const dateStr = new Date(next.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
                       const timeStr = new Date(next.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
 
                       const replaceAll = (str: string) => str
@@ -235,6 +235,7 @@ export function PatientDetail() {
                         await supabase.functions.invoke('confirm-booking', {
                           body: { 
                             appointment_id: next.id,
+                            type: 'reminder',
                             custom_subject: replaceAll(emailSubject),
                             custom_body: replaceAll(emailBody)
                           },

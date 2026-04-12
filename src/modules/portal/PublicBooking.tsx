@@ -6,7 +6,7 @@
 // ============================================================
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 import { 
@@ -77,6 +77,8 @@ type Step = 1 | 2 | 3 | 4 | 'confirmed'
 
 export function PublicBooking() {
   const { clinicId } = useParams()
+  const [searchParams] = useSearchParams()
+  const prefilledPetId = searchParams.get('petId')
   const { user } = useAuth()
   const { config, setPublicClinicId } = useClinicConfig()
   const [step, setStep]             = useState<Step>(1)
@@ -139,6 +141,28 @@ export function PublicBooking() {
   useEffect(() => {
     fetchMyPets()
   }, [fetchMyPets])
+
+  // Prefill exact pet if provided via URL
+  useEffect(() => {
+    if (prefilledPetId && myPets.length > 0) {
+      const target = myPets.find(p => p.id === prefilledPetId)
+      if (target) {
+        setForm(f => ({
+          ...f,
+          patient_id: target.id,
+          pet_name: target.name,
+          pet_species: target.species,
+          pet_breed: target.breed,
+          pet_sex: target.sex,
+          pet_date_of_birth: target.date_of_birth,
+          pet_adopted_since: target.adopted_since,
+          pet_is_reactive: target.is_reactive
+        }))
+        // Saltar directo al paso 2 si ya tenemos mascota
+        setStep(2)
+      }
+    }
+  }, [prefilledPetId, myPets])
 
   const availableDates = getAvailableDates(config?.schedule || {})
 

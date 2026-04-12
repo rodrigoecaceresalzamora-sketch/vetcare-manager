@@ -20,6 +20,7 @@ export function SettingsManagement() {
         wa_template_confirmation: config.wa_template_confirmation || '¡Hola {tutor}! Tu cita para {mascota} el día {fecha} a las {hora} ha sido registrada. ¡Te esperamos!',
         wa_template_cancellation: config.wa_template_cancellation || 'Hola {tutor}, lamentamos informarte que tu cita para {mascota} el día {fecha} ha sido cancelada.',
         wa_template_rescheduled: config.wa_template_rescheduled || 'Hola {tutor}, tu cita para {mascota} ha sido reprogramada para el día {fecha} a las {hora}.',
+        wa_template_reminder_appointment: config.wa_template_reminder_appointment || 'Hola {tutor}, te recordamos tu cita para {mascota} este {fecha} a las {hora}.',
         email_subject_booking: config.email_subject_booking || 'Confirmación de Cita - VetCare',
         email_body_booking: config.email_body_booking || 'Hola {tutor}, tu cita para {mascota} ha sido recibida correctamente para el día {fecha} a las {hora}.',
         email_subject_reminder: config.email_subject_reminder || 'Recordatorio de Vacunación - VetCare',
@@ -27,7 +28,11 @@ export function SettingsManagement() {
         email_subject_cancellation: config.email_subject_cancellation || 'Cita Cancelada - VetCare',
         email_body_cancellation: config.email_body_cancellation || 'Hola {tutor}, tu cita para {mascota} programada para el día {fecha} ha sido cancelada. Si tienes dudas, contáctanos.',
         email_subject_rescheduled: config.email_subject_rescheduled || 'Cita Reprogramada - VetCare',
-        email_body_rescheduled: config.email_body_rescheduled || 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.'
+        email_body_rescheduled: config.email_body_rescheduled || 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.',
+        email_subject_confirmed: config.email_subject_confirmed || '¡Cita Confirmada! - VetCare',
+        email_body_confirmed: config.email_body_confirmed || '¡Hola {tutor}! Tu cita para {mascota} el {fecha} a las {hora} ha sido confirmada satisfactoriamente.',
+        email_subject_reminder_appointment: config.email_subject_reminder_appointment || 'Recordatorio de Cita - VetCare',
+        email_body_reminder_appointment: config.email_body_reminder_appointment || 'Hola {tutor}, te recordamos tu cita para {mascota} el día {fecha} a las {hora}.'
       })
       
       const initialInputs: Record<string, string> = {}
@@ -360,13 +365,13 @@ export function SettingsManagement() {
                 </div>
 
                  <div>
-                    <label className="text-sm font-black text-gray-900 mb-1 block">✅ Confirmación de Cita (WhatsApp)</label>
+                    <label className="text-sm font-black text-gray-900 mb-1 block">✅ Recordatorio de Cita (WhatsApp)</label>
                     <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-3">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
                     <textarea 
                       className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
                       rows={4}
-                      value={localConfig.wa_template_confirmation}
-                      onChange={e => set('wa_template_confirmation', e.target.value)}
+                      value={localConfig.wa_template_reminder_appointment}
+                      onChange={e => set('wa_template_reminder_appointment', e.target.value)}
                     />
                  </div>
 
@@ -396,113 +401,89 @@ export function SettingsManagement() {
         )}
 
         {activeTab === 'email' && (
-          <div className="p-8 space-y-10 animate-fade-in">
+          <div className="p-8 space-y-10 animate-fade-in shadow-inner">
             {/* Sección SMTP */}
             <div className="bg-indigo-50/50 rounded-3xl p-8 border border-indigo-100/50">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 bg-indigo-600/10 text-indigo-600 rounded-2xl flex items-center justify-center text-xl">🚀</div>
                 <div>
-                  <h3 className="text-lg font-black text-gray-900 leading-tight">Configuración de Envío (Gmail SMTP)</h3>
-                  <p className="text-xs text-gray-500 font-medium">Configura tu propia cuenta para que los correos salgan a tu nombre.</p>
+                  <h3 className="text-lg font-black text-gray-900 leading-tight">Envío Automático (Gmail)</h3>
+                  <p className="text-xs text-gray-500 font-medium">Configura tu Gmail para enviar recordatorios y confirmaciones.</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Correo de Salida (Gmail)</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Tu Correo Gmail</label>
                   <input
                     type="email"
                     value={localConfig.smtp_email || ''}
                     onChange={(e) => set('smtp_email', e.target.value)}
-                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none font-medium text-gray-700"
+                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm outline-none"
                     placeholder="ejemplo@gmail.com"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contraseña de Aplicación (16 dígitos)</label>
+                  <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Contraseña de Aplicación</label>
                   <input
                     type="password"
                     value={localConfig.smtp_password || ''}
                     onChange={(e) => set('smtp_password', e.target.value)}
-                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-600 transition-all outline-none font-medium text-gray-700"
+                    className="w-full px-5 py-4 bg-white border border-gray-200 rounded-2xl text-sm outline-none"
                     placeholder="•••• •••• •••• ••••"
                   />
                 </div>
               </div>
 
-              <div className="mt-8 bg-white/80 p-6 rounded-2xl border border-indigo-100 shadow-sm">
-                <p className="text-xs text-indigo-800 leading-relaxed">
-                  <strong className="block mb-2 text-[10px] uppercase font-black">💡 Instrucciones Críticas:</strong>
+              <div className="mt-8 bg-white/80 p-6 rounded-2xl border border-indigo-100 shadow-sm text-xs text-indigo-800 leading-relaxed">
+                  <strong className="block mb-2 text-[10px] uppercase font-black">💡 Pasos Necesarios:</strong>
                   1. Activa la <strong>Verificación en 2 Pasos</strong> en tu Cuenta de Google.<br/>
-                  2. Busca <strong>"Contraseñas de aplicación"</strong> en la configuración de seguridad.<br/>
-                  3. Crea una para "Correo" y copia el código de 16 letras aquí.<br/>
-                  4. ¡Listo! Tus correos saldrán desde tu propia cuenta.
-                </p>
+                  2. Crea una <strong>"Contraseña de aplicación"</strong> de 16 letras.<br/>
+                  3. Pégala arriba sin espacios.
               </div>
             </div>
 
             <hr className="border-gray-100" />
 
              <section className="space-y-8">
-                <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl flex gap-3 text-blue-800 text-xs">
-                   <span className="text-lg">✉️</span>
-                   <div>
-                     <p className="font-bold">Personalización de Correos (Gmail)</p>
-                     <p className="mt-1">Aquí puedes configurar los asuntos y el contenido de los correos automáticos que el sistema envía.</p>
-                   </div>
-                </div>
-
                 <div className="space-y-4">
-                   <h3 className="text-sm font-black text-gray-900 border-l-4 border-blue-400 pl-3">Confirmación de Reserva</h3>
-                   <Input label="Asunto del Email" value={localConfig.email_subject_booking} onChange={v => set('email_subject_booking', v)} />
-                   <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
-                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
-                   <textarea 
-                     className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
-                     rows={5}
-                     value={localConfig.email_body_booking}
-                     onChange={e => set('email_body_booking', e.target.value)}
-                   />
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-blue-400 pl-3">Reserva Recibida (Pendiente)</h3>
+                    <p className="text-[10px] text-gray-400 italic">Correo cuando el tutor solicita hora.</p>
+                    <Input label="Asunto" value={localConfig.email_subject_booking} onChange={v => set('email_subject_booking', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_booking} onChange={e => set('email_body_booking', e.target.value)} />
                 </div>
 
-                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-green-400 pl-3">Cita Confirmada (Email)</h3>
+                    <p className="text-[10px] text-gray-400 italic">Correo al confirmar la hora desde agenda.</p>
+                    <Input label="Asunto" value={localConfig.email_subject_confirmed} onChange={v => set('email_subject_confirmed', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_confirmed} onChange={e => set('email_body_confirmed', e.target.value)} />
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-indigo-400 pl-3">Recordatorio Manual de Cita</h3>
+                    <p className="text-[10px] text-gray-400 italic">Correo al pulsar "Email Automático" en la ficha.</p>
+                    <Input label="Asunto" value={localConfig.email_subject_reminder_appointment} onChange={v => set('email_subject_reminder_appointment', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_reminder_appointment} onChange={e => set('email_body_reminder_appointment', e.target.value)} />
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
                     <h3 className="text-sm font-black text-gray-900 border-l-4 border-amber-400 pl-3">Recordatorio de Vacuna</h3>
-                    <Input label="Asunto del Email" value={localConfig.email_subject_reminder} onChange={v => set('email_subject_reminder', v)} />
-                    <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
-                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{vacuna}"}, {"{fecha}"}</p>
-                    <textarea 
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
-                      rows={5}
-                      value={localConfig.email_body_reminder}
-                      onChange={e => set('email_body_reminder', e.target.value)}
-                    />
-                 </div>
+                    <Input label="Asunto" value={localConfig.email_subject_reminder} onChange={v => set('email_subject_reminder', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_reminder} onChange={e => set('email_body_reminder', e.target.value)} />
+                </div>
 
-                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                <div className="space-y-4 pt-6 border-t border-gray-100">
                     <h3 className="text-sm font-black text-gray-900 border-l-4 border-red-400 pl-3">Cancelación de Cita</h3>
-                    <Input label="Asunto del Email" value={localConfig.email_subject_cancellation} onChange={v => set('email_subject_cancellation', v)} />
-                    <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
-                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}</p>
-                    <textarea 
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
-                      rows={5}
-                      value={localConfig.email_body_cancellation}
-                      onChange={e => set('email_body_cancellation', e.target.value)}
-                    />
-                 </div>
+                    <Input label="Asunto" value={localConfig.email_subject_cancellation} onChange={v => set('email_subject_cancellation', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_cancellation} onChange={e => set('email_body_cancellation', e.target.value)} />
+                </div>
 
-                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                <div className="space-y-4 pt-6 border-t border-gray-100">
                     <h3 className="text-sm font-black text-gray-900 border-l-4 border-purple-400 pl-3">Reprogramación de Cita</h3>
-                    <Input label="Asunto del Email" value={localConfig.email_subject_rescheduled} onChange={v => set('email_subject_rescheduled', v)} />
-                    <label className="text-xs font-bold text-gray-500 mb-1 block">Cuerpo del Email</label>
-                    <p className="text-[10px] text-gray-400 uppercase font-bold tracking-widest mb-2">Placeholders: {"{mascota}"}, {"{tutor}"}, {"{fecha}"}, {"{hora}"}</p>
-                    <textarea 
-                      className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none"
-                      rows={5}
-                      value={localConfig.email_body_rescheduled}
-                      onChange={e => set('email_body_rescheduled', e.target.value)}
-                    />
-                 </div>
+                    <Input label="Asunto" value={localConfig.email_subject_rescheduled} onChange={v => set('email_subject_rescheduled', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_rescheduled} onChange={e => set('email_body_rescheduled', e.target.value)} />
+                </div>
              </section>
           </div>
         )}
