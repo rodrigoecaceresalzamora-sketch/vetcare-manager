@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    // Cargamos la vacuna, los datos del tutor y la configuración de la clínica (SMTP)
+    // Cargamos la vacuna y los datos del tutor
     const { data: vacc, error: vaccErr } = await supabase
       .from('vaccinations')
       .select(`
@@ -50,8 +50,7 @@ Deno.serve(async (req) => {
           guardian:guardians (
             name,
             email
-          ),
-          clinic:clinic_config (*)
+          )
         )
       `)
       .eq('id', vaccination_id)
@@ -64,7 +63,12 @@ Deno.serve(async (req) => {
       })
     }
 
-    const clinicConfig = vacc.patient?.clinic
+    const { data: clinicConfig } = await supabase
+      .from('clinic_config')
+      .select('*')
+      .eq('clinic_id', vacc.clinic_id)
+      .single()
+
     const smtpEmail    = clinicConfig?.smtp_email || Deno.env.get('GMAIL_USER')
     const smtpPass     = clinicConfig?.smtp_password || Deno.env.get('GMAIL_PASS')
     const clinicName   = clinicConfig?.clinic_name || 'VetCare Manager'
@@ -150,8 +154,8 @@ Deno.serve(async (req) => {
     // ── 3. Enviar por SMTP configurado ────────────────────────
     const transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // Gmail usa STARTTLS
+      port: 465,
+      secure: true, // Gmail port 465
       auth: {
         user: smtpEmail,
         pass: smtpPass,
