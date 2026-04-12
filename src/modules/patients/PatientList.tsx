@@ -92,8 +92,8 @@ export function PatientList() {
             {filteredPatients.map(p => (
               <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-5 py-4 hover:bg-pink-50/40 transition-colors">
                 
-                {/* Avatar Especie */}
-                <div className="w-12 h-12 rounded-full bg-vet-light flex flex-shrink-0 items-center justify-center text-2xl border border-pink-100 relative overflow-hidden">
+                {/* Avatar Especie / Foto */}
+                <div className="w-12 h-12 rounded-full bg-vet-light flex flex-shrink-0 items-center justify-center text-2xl border border-pink-100 overflow-hidden">
                   {p.photo_url ? (
                     <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
                   ) : (

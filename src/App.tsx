@@ -305,20 +305,20 @@ function MobileNav() {
   })
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 flex items-center md:hidden z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-4 overflow-x-auto overflow-y-hidden gap-6 scrollbar-hide">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 flex items-center md:hidden z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-2 overflow-x-auto gap-4" style={{ WebkitOverflowScrolling: 'touch' }}>
       {navItems.map((item) => {
         const active = pathname === item.to || pathname.startsWith(item.to + '/')
         return (
           <Link
             key={item.to}
             to={item.to}
-            className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all relative
+            className={`flex-shrink-0 flex flex-col items-center justify-center p-2 rounded-xl transition-all relative min-w-[64px]
                         ${active ? 'text-vet-rose scale-110' : 'text-gray-400'}`}
           >
             <div className="mb-0.5">
               {item.icon}
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap">
+            <span className="text-[10px] font-bold uppercase tracking-tighter">
               {item.label}
             </span>
             {active && (
@@ -329,12 +329,12 @@ function MobileNav() {
       })}
       <button
         onClick={() => signOut()}
-        className="flex flex-col items-center justify-center p-2 rounded-xl transition-all relative text-gray-400 hover:text-red-500"
+        className="flex-shrink-0 flex flex-col items-center justify-center p-2 rounded-xl transition-all relative text-gray-400 hover:text-red-500 min-w-[64px]"
       >
         <div className="mb-0.5">
           {icons.logout}
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap">
+        <span className="text-[10px] font-bold uppercase tracking-tighter">
           Salir
         </span>
       </button>

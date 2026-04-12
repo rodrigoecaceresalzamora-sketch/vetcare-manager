@@ -418,7 +418,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
           )}
 
           {/* Acciones */}
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="flex flex-wrap items-center gap-2 pt-4 mt-2 border-t border-pink-100/50 justify-end">
             {editingAppointment && role === 'admin' && (
               <button
                 type="button"
@@ -431,9 +431,6 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     const phone = form.guardian_phone?.replace(/[^\d]/g, '')
                     if (phone && window.confirm('¿Deseas enviar un mensaje de cancelación por WhatsApp?')) {
                         try {
-                          // Obtenemos la config actual desde el local config que ya tenemos o context
-                          // (En este componente ya tenemos acceso a ClinicConfigContext indirectamente o podemos usar el hook)
-                          // Sin embargo, para mayor simplicidad usamos un mensaje rápido o las variables del form.
                           const msg = `Hola ${form.guardian_name}, lamentamos informarte que tu cita para ${form.pet_name} ha sido cancelada. Saludos.`
                           window.open(`https://wa.me/${phone}?text=${encodeURIComponent(msg)}`, '_blank')
                         } catch (e) { console.error(e) }
@@ -455,161 +452,164 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     }
                   }
                 }}
-                className="mr-auto px-4 py-2 text-sm font-medium text-red-600 border border-red-100
-                           bg-red-50 rounded-lg hover:bg-red-100 transition-colors"
+                className="w-full sm:w-auto sm:mr-auto px-4 py-2 text-sm font-medium text-red-600 border border-red-100
+                           bg-red-50 rounded-lg hover:bg-red-100 transition-colors flex-shrink-0"
               >
                 Eliminar
               </button>
             )}
-            {editingAppointment && form.status === 'pendiente' && !isReadOnly && (
-              <button
-                type="button"
-                className="px-4 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700"
-                onClick={async () => {
-                  setSaving(true)
-                  try {
-                    let gId = ''
-                    const searchEmail = form.guardian_email.trim().toLowerCase()
-                    const searchRut = (form as any).guardian_rut?.trim()
+            
+            <div className="flex flex-wrap justify-end gap-2 w-full sm:w-auto">
+              {editingAppointment && form.status === 'pendiente' && !isReadOnly && (
+                <button
+                  type="button"
+                  className="flex-1 sm:flex-none px-4 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 whitespace-nowrap"
+                  onClick={async () => {
+                    setSaving(true)
+                    try {
+                      let gId = ''
+                      const searchEmail = form.guardian_email.trim().toLowerCase()
+                      const searchRut = (form as any).guardian_rut?.trim()
 
-                    const { data: existingG } = await supabase
-                      .from('guardians')
-                      .select('id')
-                      .eq('clinic_id', clinicId)
-                      .or(`email.ilike.${searchEmail},rut.eq.${searchRut || 'NONE'}`)
-                      .maybeSingle()
-
-                    if (existingG) {
-                      gId = existingG.id
-                    } else {
-                      const { data: newG, error: gErr } = await supabase
+                      const { data: existingG } = await supabase
                         .from('guardians')
-                        .insert({
-                          name:  form.guardian_name,
-                          email: form.guardian_email,
-                          phone: form.guardian_phone,
-                          rut:   (form as any).guardian_rut,
-                          clinic_id: clinicId
-                        })
-                        .select()
-                        .single()
-                      if (gErr) throw gErr
-                      gId = newG.id
-                    }
+                        .select('id')
+                        .eq('clinic_id', clinicId)
+                        .or(`email.ilike.${searchEmail},rut.eq.${searchRut || 'NONE'}`)
+                        .maybeSingle()
 
-                    // 2. Verificar/Crear Paciente
-                    const searchPetName = form.pet_name.trim().toLowerCase()
-                    const { data: existingP } = await supabase
-                      .from('patients')
-                      .select('id')
-                      .eq('guardian_id', gId)
-                      .ilike('name', searchPetName)
-                      .maybeSingle()
-
-                    if (!existingP) {
-                      const { error: pErr } = await supabase
-                        .from('patients')
-                        .insert({
-                          guardian_id: gId,
-                          name: form.pet_name,
-                          species: form.pet_species || 'Otro',
-                          sex: form.pet_sex || 'No determinado',
-                          breed: form.pet_breed || 'Desconocida',
-                          date_of_birth: editingAppointment.pet_date_of_birth || null,
-                          adopted_since: editingAppointment.pet_adopted_since || null,
-                          is_reactive: editingAppointment.pet_is_reactive || false,
-                          weight_kg: 0,
-                          status: 'activo'
-                        })
-                      if (pErr) throw pErr
-                    }
-
-                    // 3. Confirmar Cita
-                    const { error } = await supabase
-                      .from('appointments')
-                      .update({ 
-                        status: 'confirmada',
-                        guardian_rut: (form as any).guardian_rut
-                      })
-                      .eq('id', editingAppointment.id)
-                    
-                    if (!error) {
-                      showToast('✅ Cita confirmada y paciente sincronizado automáticamente')
-
-                      // Enviar email de confirmación
-                      try {
-                        await supabase.functions.invoke('confirm-booking', {
-                          body: { appointment_id: editingAppointment.id, type: 'confirmation' }
-                        })
-                      } catch (e) { console.warn('Email error:', e) }
-                      
-                      if (form.guardian_phone) {
-                        try {
-                          const dateObj = new Date(form.scheduled_at)
-                          const dayStr = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
-                          const timeStr = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
-                          const phoneNum = form.guardian_phone.replace(/[^\d]/g, '')
-                          const motivo = form.notes?.trim()
-                            ? `\n\nMotivo indicado: ${form.notes.trim()}`
-                            : ''
-                          
-                          const msg = `Hola ${form.guardian_name}, le escribimos de VetCare para informarle que la hora para ${form.pet_name} ha sido confirmada.\n\nServicio: ${form.service}\nDia: ${dayStr}\nHora: ${timeStr}${motivo}\n\nLe esperamos. Recuerde ser puntual.`
-                          
-                          window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`, '_blank')
-                        } catch (e) {
-                          console.error('Error opening WhatsApp:', e)
-                        }
+                      if (existingG) {
+                        gId = existingG.id
+                      } else {
+                        const { data: newG, error: gErr } = await supabase
+                          .from('guardians')
+                          .insert({
+                            name:  form.guardian_name,
+                            email: form.guardian_email,
+                            phone: form.guardian_phone,
+                            rut:   (form as any).guardian_rut,
+                            clinic_id: clinicId
+                          })
+                          .select()
+                          .single()
+                        if (gErr) throw gErr
+                        gId = newG.id
                       }
 
-                      onSaved(form.pet_name)
+                      // 2. Verificar/Crear Paciente
+                      const searchPetName = form.pet_name.trim().toLowerCase()
+                      const { data: existingP } = await supabase
+                        .from('patients')
+                        .select('id')
+                        .eq('guardian_id', gId)
+                        .ilike('name', searchPetName)
+                        .maybeSingle()
+
+                      if (!existingP) {
+                        const { error: pErr } = await supabase
+                          .from('patients')
+                          .insert({
+                            guardian_id: gId,
+                            name: form.pet_name,
+                            species: form.pet_species || 'Otro',
+                            sex: form.pet_sex || 'No determinado',
+                            breed: form.pet_breed || 'Desconocida',
+                            date_of_birth: editingAppointment.pet_date_of_birth || null,
+                            adopted_since: editingAppointment.pet_adopted_since || null,
+                            is_reactive: editingAppointment.pet_is_reactive || false,
+                            weight_kg: 0,
+                            status: 'activo'
+                          })
+                        if (pErr) throw pErr
+                      }
+
+                      // 3. Confirmar Cita
+                      const { error } = await supabase
+                        .from('appointments')
+                        .update({ 
+                          status: 'confirmada',
+                          guardian_rut: (form as any).guardian_rut
+                        })
+                        .eq('id', editingAppointment.id)
+                      
+                      if (!error) {
+                        showToast('✅ Cita confirmada y paciente sincronizado automáticamente')
+
+                        // Enviar email de confirmación
+                        try {
+                          await supabase.functions.invoke('confirm-booking', {
+                            body: { appointment_id: editingAppointment.id, type: 'confirmation' }
+                          })
+                        } catch (e) { console.warn('Email error:', e) }
+                        
+                        if (form.guardian_phone) {
+                          try {
+                            const dateObj = new Date(form.scheduled_at)
+                            const dayStr = dateObj.toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })
+                            const timeStr = dateObj.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })
+                            const phoneNum = form.guardian_phone.replace(/[^\d]/g, '')
+                            const motivo = form.notes?.trim()
+                              ? `\n\nMotivo indicado: ${form.notes.trim()}`
+                              : ''
+                            
+                            const msg = `Hola ${form.guardian_name}, le escribimos de VetCare para informarle que la hora para ${form.pet_name} ha sido confirmada.\n\nServicio: ${form.service}\nDia: ${dayStr}\nHora: ${timeStr}${motivo}\n\nLe esperamos. Recuerde ser puntual.`
+                            
+                            window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`, '_blank')
+                          } catch (e) {
+                            console.error('Error opening WhatsApp:', e)
+                          }
+                        }
+
+                        onSaved(form.pet_name)
+                      }
+                    } catch (err: any) {
+                      setFieldError(err.message)
+                    } finally {
+                      setSaving(false)
+                      onClose()
                     }
-                  } catch (err: any) {
-                    setFieldError(err.message)
-                  } finally {
-                    setSaving(false)
-                    onClose()
-                  }
-                }}
-              >
-                Confirmar
-              </button>
-            )}
-            {editingAppointment && !isReadOnly && (
+                  }}
+                >
+                  Confirmar
+                </button>
+              )}
+              {editingAppointment && !isReadOnly && (
+                <button
+                  type="button"
+                  title="Sugerir cambio de hora o enviar mensaje"
+                  className="flex-1 sm:flex-none px-4 py-2 text-sm bg-vet-light text-vet-rose border border-vet-rose/20 rounded-lg hover:bg-vet-rose/10 whitespace-nowrap"
+                  onClick={() => {
+                    const msg = `Hola, le escribimos de VetCare. Necesitamos pedirle que elija otra hora para la cita de ${form.pet_name} ya que la actual no está disponible. ¿Podría indicarnos otra disponibilidad?`
+                    window.open(`https://wa.me/${form.guardian_phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank')
+                  }}
+                >
+                  📱 Reagendar
+                </button>
+              )}
               <button
                 type="button"
-                title="Sugerir cambio de hora o enviar mensaje"
-                className="px-3 py-2 text-sm bg-vet-light text-vet-rose border border-vet-rose/20 rounded-lg hover:bg-vet-rose/10"
-                onClick={() => {
-                  const msg = `Hola, le escribimos de VetCare. Necesitamos pedirle que elija otra hora para la cita de ${form.pet_name} ya que la actual no está disponible. ¿Podría indicarnos otra disponibilidad?`
-                  window.open(`https://wa.me/${form.guardian_phone?.replace(/[^\d]/g, '')}?text=${encodeURIComponent(msg)}`, '_blank')
-                }}
+                onClick={onClose}
+                className="flex-1 sm:flex-none px-4 py-2 text-sm border border-gray-200 rounded-lg
+                           hover:bg-gray-50 transition-colors text-gray-700 whitespace-nowrap"
               >
-                📱 Reagendar
+                {isReadOnly ? 'Cerrar' : 'Cancelar'}
               </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2 text-sm border border-gray-200 rounded-lg
-                         hover:bg-gray-50 transition-colors text-gray-700"
-            >
-              {isReadOnly ? 'Cerrar' : 'Cancelar'}
-            </button>
-            {!isReadOnly && (
-              <button
-                type="submit"
-                disabled={saving}
-                className="px-4 py-2 text-sm font-medium bg-vet-rose text-white
-                           rounded-lg hover:bg-vet-dark disabled:opacity-50
-                           transition-colors flex items-center gap-2"
-              >
-                {saving && (
-                  <div className="w-3.5 h-3.5 border border-white border-t-transparent
-                                  rounded-full animate-spin" />
-                )}
-                {editingAppointment ? 'Actualizar cita' : 'Guardar cita'}
-              </button>
-            )}
+              {!isReadOnly && (
+                <button
+                  type="submit"
+                  disabled={saving}
+                  className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium bg-vet-rose text-white
+                             rounded-lg hover:bg-vet-dark disabled:opacity-50
+                             transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
+                >
+                  {saving && (
+                    <div className="w-3.5 h-3.5 border border-white border-t-transparent
+                                    rounded-full animate-spin" />
+                  )}
+                  {editingAppointment ? 'Actualizar cita' : 'Guardar cita'}
+                </button>
+              )}
+            </div>
           </div>
         </form>
       </div>
