@@ -130,7 +130,7 @@ export function useVaccineAlerts() {
         .replace(/{vacuna}/g, v.vaccine_name)
         .replace(/{fecha}/g, v.next_due_date)
 
-      const { error: err } = await supabase.functions.invoke('send-vaccine-reminder', {
+      const { error: err, data: fnData } = await supabase.functions.invoke('send-vaccine-reminder', {
         body: { 
           vaccination_id: vaccinationId,
           custom_subject: replaceAll(emailSubject),
@@ -138,7 +138,10 @@ export function useVaccineAlerts() {
         },
       })
 
-      if (err) return { error: err.message }
+      if (err) {
+        const detail = (fnData as any)?.error || err.message
+        return { error: detail }
+      }
 
       // Marcar reminder_sent = true en la BD
       await supabase
