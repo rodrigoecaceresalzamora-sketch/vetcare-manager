@@ -83,7 +83,8 @@ Deno.serve(async (req) => {
       .single()
 
     const clinicName   = clinic?.clinic_name || 'VetCare Manager'
-    const fromEmail    = clinic?.smtp_email || clinic?.contact_email || 'onboarding@resend.dev'
+    // Resend requiere dominio verificado. Usar onboarding@resend.dev en plan gratuito.
+    const fromEmail    = 'onboarding@resend.dev'
     const petName      = apt.pet_name ?? 'tu mascota'
     const guardianName = apt.guardian_name ?? 'Estimado/a tutor/a'
     const guardianEmail = apt.guardian_email
