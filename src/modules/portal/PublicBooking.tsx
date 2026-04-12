@@ -461,14 +461,18 @@ export function PublicBooking() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {dbServices.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map((svc) => (
+            {dbServices.filter(s => s.name !== 'DATOS_TRANSFERENCIA').map((svc) => {
+              const targetSpecies = prefilledPetId ? myPets.find(p => p.id === prefilledPetId)?.species : null;
+              const incompatible = targetSpecies && svc.target_species && svc.target_species !== 'Ambos' && svc.target_species !== targetSpecies;
+              return (
               <button
                 key={svc.id}
+                disabled={incompatible}
                 onClick={() => { 
                   setService(svc)
                   setStep(2) 
                 }}
-                className={`text-left p-4 rounded-xl border transition-all hover:border-vet-rose hover:bg-vet-light/40
+                className={`text-left p-4 rounded-xl border transition-all ${incompatible ? 'opacity-50 cursor-not-allowed bg-gray-50 hover:border-gray-200' : 'hover:border-vet-rose hover:bg-vet-light/40'}
                             ${service?.id === svc.id ? 'border-vet-rose bg-vet-light' : 'border-gray-200 bg-white'}`}
               >
                 <div className="flex justify-between items-start">
@@ -477,11 +481,12 @@ export function PublicBooking() {
                 </div>
                 <p className="text-sm font-medium text-gray-900">{svc.name}</p>
                 <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{svc.description}</p>
-                <div className="flex gap-3 mt-2">
+                <div className="flex justify-between items-center mt-2">
                   <span className="text-xs text-vet-rose font-medium">⏱ {svc.duration_minutes} min</span>
+                  {incompatible && <span className="text-[9px] font-black uppercase text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100">Solo {svc.target_species}s</span>}
                 </div>
               </button>
-            ))}
+            )})}
           </div>
         </section>
       )}
