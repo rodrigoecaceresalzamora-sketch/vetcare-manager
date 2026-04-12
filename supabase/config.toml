@@ -1,0 +1,18 @@
+[api]
+enabled = true
+port = 54321
+
+[db]
+port = 54322
+
+[studio]
+port = 54323
+
+[inbucket]
+port = 54324
+
+[functions.send-vaccine-reminder]
+verify_jwt = false
+
+[functions.confirm-booking]
+verify_jwt = false
