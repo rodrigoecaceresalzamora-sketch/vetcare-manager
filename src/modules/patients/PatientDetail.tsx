@@ -442,7 +442,6 @@ export function PatientDetail() {
                   className="hidden" 
                   disabled={uploading} 
                   onChange={handleUpload} 
-                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.txt,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                 />
               </label>
             </div>

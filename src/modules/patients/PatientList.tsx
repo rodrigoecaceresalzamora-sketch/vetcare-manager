@@ -93,8 +93,12 @@ export function PatientList() {
               <div key={p.id} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 px-5 py-4 hover:bg-pink-50/40 transition-colors">
                 
                 {/* Avatar Especie */}
-                <div className="w-12 h-12 rounded-full bg-vet-light flex flex-shrink-0 items-center justify-center text-2xl border border-pink-100">
-                  {speciesEmoji(p.species)}
+                <div className="w-12 h-12 rounded-full bg-vet-light flex flex-shrink-0 items-center justify-center text-2xl border border-pink-100 relative overflow-hidden">
+                  {p.photo_url ? (
+                    <img src={p.photo_url} alt={p.name} className="w-full h-full object-cover" />
+                  ) : (
+                    speciesEmoji(p.species)
+                  )}
                 </div>
 
                 {/* Mascota Info */}

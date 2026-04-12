@@ -305,7 +305,7 @@ function MobileNav() {
   })
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 flex items-center justify-around md:hidden z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-2">
+    <nav className="fixed bottom-0 left-0 right-0 h-16 bg-white border-t border-pink-100 flex items-center md:hidden z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.03)] px-4 overflow-x-auto overflow-y-hidden gap-6 scrollbar-hide">
       {navItems.map((item) => {
         const active = pathname === item.to || pathname.startsWith(item.to + '/')
         return (
@@ -318,7 +318,7 @@ function MobileNav() {
             <div className="mb-0.5">
               {item.icon}
             </div>
-            <span className="text-[10px] font-bold uppercase tracking-tighter">
+            <span className="text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap">
               {item.label}
             </span>
             {active && (
@@ -334,7 +334,7 @@ function MobileNav() {
         <div className="mb-0.5">
           {icons.logout}
         </div>
-        <span className="text-[10px] font-bold uppercase tracking-tighter">
+        <span className="text-[10px] font-bold uppercase tracking-tighter whitespace-nowrap">
           Salir
         </span>
       </button>
