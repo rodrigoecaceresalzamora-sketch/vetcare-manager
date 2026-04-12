@@ -161,8 +161,6 @@ export function PublicBooking() {
           pet_adopted_since: target.adopted_since,
           pet_is_reactive: target.is_reactive
         }))
-        // Saltar directo al paso 2 si ya tenemos mascota
-        setStep(2)
       }
     }
   }, [prefilledPetId, myPets])
@@ -221,6 +219,8 @@ export function PublicBooking() {
     if (!isValidRUT(form.guardian_rut)) return setFieldError('El RUT ingresado no es válido')
     if (!form.guardian_phone) return setFieldError('Ingresa tu teléfono')
     if (!isValidPhone(form.guardian_phone)) return setFieldError('El teléfono debe tener al menos 9 dígitos')
+    
+    if (!service) return setFieldError('Parece que no has seleccionado un servicio. Por favor, vuelve al Paso 1.')
     
     if (!form.pet_name)       return setFieldError('Ingresa el nombre de tu mascota')
     if (form.is_home_visit && !form.address) return setFieldError('Ingresa tu dirección')
