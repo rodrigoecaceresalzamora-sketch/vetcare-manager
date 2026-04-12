@@ -273,9 +273,13 @@ export function TutorView() {
                         <div>
                           <div className="flex items-center justify-between gap-2 mb-1">
                             <p className="text-sm font-bold text-gray-800 line-clamp-1">{pet.nextAppointment.service}</p>
-                            {pet.nextAppointment.status === 'pendiente' && (
-                              <span className="px-2 py-0.5 bg-amber-50 text-amber-600 text-[9px] font-black uppercase rounded-lg border border-amber-100">
-                                Pendiente
+                            {(pet.nextAppointment.status === 'pendiente' || pet.nextAppointment.status === 'confirmada') && (
+                              <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-lg border ${
+                                pet.nextAppointment.status === 'confirmada' 
+                                  ? 'bg-blue-50 text-blue-600 border-blue-100' 
+                                  : 'bg-amber-50 text-amber-600 border-amber-100'
+                              }`}>
+                                {pet.nextAppointment.status}
                               </span>
                             )}
                           </div>
@@ -320,6 +324,23 @@ export function TutorView() {
                 </div>
               </div>
             ))}
+
+            {/* Card Nueva Mascota */}
+            <Link 
+              to={bookingUrl}
+              className="bg-transparent border-2 border-dashed border-pink-100 rounded-[32px] p-6 hover:bg-white hover:border-vet-rose/30 transition-all flex flex-col items-center justify-center min-h-[380px] group cursor-pointer text-center"
+            >
+              <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-gray-400 group-hover:bg-pink-50 group-hover:text-vet-rose transition-colors mb-4 border border-gray-100 group-hover:border-pink-200 shadow-sm">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-bold text-gray-600 group-hover:text-vet-dark mb-2">Otra Mascota</h3>
+              <p className="text-xs text-gray-400 mb-6 px-4 font-medium">Agenda una consulta para un nuevo integrante de la familia.</p>
+              <span className="px-6 py-2.5 bg-white border border-gray-200 text-gray-500 text-xs font-black uppercase tracking-widest rounded-xl group-hover:bg-vet-rose group-hover:text-white group-hover:border-vet-rose transition-all shadow-sm">
+                Agendar Consulta ✨
+              </span>
+            </Link>
           </div>
         )}
       </main>
