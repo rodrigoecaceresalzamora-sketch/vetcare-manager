@@ -9,7 +9,7 @@ echo [1/3] Guardando cambios locales...
 git add .
 git commit -m "Actualizacion automatica: %date% %time%"
 echo.
-echo [2/4] Subiendo a la nube (GitHub)...
+echo [2/5] Subiendo a la nube (GitHub)...
 git push origin main
 if %errorlevel% neq 0 (
     echo.
@@ -18,7 +18,15 @@ if %errorlevel% neq 0 (
     exit /b
 )
 echo.
-echo [3/4] Desplegando Funciones de Supabase (Correos)...
+echo [3/5] Desplegando en Vercel (Frontend)...
+npx vercel --prod --yes
+if %errorlevel% neq 0 (
+    echo.
+    echo [WARN] Vercel no se pudo desplegar automaticamente. Revisa si estas logueado en Vercel CLI.
+)
+
+echo.
+echo [4/5] Desplegando Funciones de Supabase (Correos)...
 npx supabase functions deploy send-vaccine-reminder --no-verify-jwt
 npx supabase functions deploy confirm-booking --no-verify-jwt
 if %errorlevel% neq 0 (
@@ -27,13 +35,12 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo [4/4] ¡Listo! Vercel detectara el cambio y actualizara tu web en segundos.
+echo [5/5] ¡Listo! Tu plataforma esta actualizada en todos lados.
 echo.
 echo 🐾 Proceso Terminado con exito.
 echo.
-echo Recuerda que para que los correos funcionen, debes tener:
-echo 1. RESEND_API_KEY en los Secrets de Supabase.
-echo 2. Tu cuenta de Resend configurada (onboarding@resend.dev para pruebas).
+echo Recuerda que para los correos usas:
+echo GMAIL: %smtpEmail% (Leido de la base de datos)
 echo.
 timeout /t 5
 exit
