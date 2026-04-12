@@ -253,7 +253,7 @@ export function TutorView() {
                   <div className="flex items-start justify-between mb-6">
                     <div className="w-14 h-14 rounded-2xl bg-vet-light flex items-center justify-center text-3xl border border-vet-rose/10 shadow-sm group-hover:scale-110 transition-transform relative">
                       {speciesEmoji(pet.species)}
-                      {!pet.is_temp && (
+                      {!(pet as any).is_temp && (
                         <button 
                           onClick={(e) => { e.preventDefault(); setEditingPet(pet); }}
                           className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-pink-100 rounded-full flex items-center justify-center text-[10px] shadow-sm hover:bg-vet-rose hover:text-white transition-colors"
@@ -327,7 +327,7 @@ export function TutorView() {
                   </div>
 
                   <Link 
-                    to={pet.is_temp ? bookingUrl : `${bookingUrl}?petId=${pet.id}`}
+                    to={(pet as any).is_temp ? bookingUrl : `${bookingUrl}?petId=${pet.id}`}
                     className="mt-8 w-full py-4 bg-vet-bone text-vet-dark text-sm font-black uppercase tracking-widest rounded-2xl hover:bg-vet-rose hover:text-white transition-all flex items-center justify-center gap-2 group-hover:shadow-lg active:scale-95"
                   >
                     Agendar para {pet.name} ✨
