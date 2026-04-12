@@ -439,6 +439,13 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                         } catch (e) { console.error(e) }
                     }
 
+                    // Enviar email de cancelación
+                    try {
+                      await supabase.functions.invoke('confirm-booking', {
+                        body: { appointment_id: editingAppointment.id, type: 'cancellation' }
+                      })
+                    } catch (e) { console.warn('Email cancelación error:', e) }
+
                     const { error: delErr } = await supabase.from('appointments').delete().eq('id', editingAppointment.id)
                     if (delErr) {
                       setFieldError('Error al borrar: ' + delErr.message)
@@ -528,6 +535,13 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     
                     if (!error) {
                       showToast('✅ Cita confirmada y paciente sincronizado automáticamente')
+
+                      // Enviar email de confirmación
+                      try {
+                        await supabase.functions.invoke('confirm-booking', {
+                          body: { appointment_id: editingAppointment.id, type: 'confirmation' }
+                        })
+                      } catch (e) { console.warn('Email error:', e) }
                       
                       if (form.guardian_phone) {
                         try {
