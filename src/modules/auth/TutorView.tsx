@@ -17,7 +17,7 @@ export function TutorView() {
   // El config se encarga de resolver el ID real
   const { config, setPublicClinicId } = useClinicConfig()
   const [loading, setLoading] = useState(true)
-  const [pets, setPets] = useState<(Patient & { nextAppointment?: Appointment; nextVaccination?: Vaccination })[]>([])
+  const [pets, setPets] = useState<(Patient & { upcomingAppointments?: Appointment[]; nextVaccination?: Vaccination })[]>([])
   const [error, setError] = useState<string | null>(null)
   const [editingPet, setEditingPet] = useState<Patient | null>(null)
   const [savingPet, setSavingPet] = useState(false)
@@ -103,25 +103,30 @@ export function TutorView() {
       officialPatients.forEach(p => {
         petMap.set(p.name.toLowerCase(), {
           ...p,
-          nextAppointment: appointments.find(a => a.patient_id === p.id || a.pet_name.toLowerCase() === p.name.toLowerCase())
+          upcomingAppointments: appointments.filter(a => a.patient_id === p.id || a.pet_name.toLowerCase() === p.name.toLowerCase())
         })
       })
 
       // Agregar mascotas de citas que NO estén en pacientes oficiales
+      const tempPets = new Map<string, any>()
       appointments.forEach(a => {
         const key = a.pet_name.toLowerCase()
         if (!petMap.has(key)) {
-          petMap.set(key, {
-            id: `temp-${a.id}`,
-            name: a.pet_name,
-            species: a.pet_species || 'Otro',
-            breed: a.pet_breed || 'Desconocida',
-            sex: a.pet_sex || 'No determinado',
-            is_temp: true,
-            nextAppointment: a
-          })
+          if (!tempPets.has(key)) {
+            tempPets.set(key, {
+              id: `temp-${a.id}`,
+              name: a.pet_name,
+              species: a.pet_species || 'Otro',
+              breed: a.pet_breed || 'Desconocida',
+              sex: a.pet_sex || 'No determinado',
+              is_temp: true,
+              upcomingAppointments: []
+            })
+          }
+          tempPets.get(key).upcomingAppointments.push(a)
         }
       })
+      tempPets.forEach((val, key) => petMap.set(key, val))
 
       setPets(Array.from(petMap.values()))
     } catch (err: any) {
@@ -274,29 +279,33 @@ export function TutorView() {
                   <h3 className="text-2xl font-black text-gray-900 mb-6">{pet.name}</h3>
 
                   <div className="space-y-4">
-                    {/* Cita */}
+                    {/* Citas */}
                     <div className="bg-gray-50/50 rounded-2xl p-4 border border-gray-100 group-hover:bg-white group-hover:border-vet-rose/10 transition-colors">
-                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-2 flex items-center gap-2">
+                      <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black mb-3 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-400"></span>
-                        Próxima Cita
+                        Próximas Citas
                       </p>
-                      {pet.nextAppointment ? (
-                        <div>
-                          <div className="flex items-center justify-between gap-2 mb-1">
-                            <p className="text-sm font-bold text-gray-800 line-clamp-1">{pet.nextAppointment.service}</p>
-                            {(pet.nextAppointment.status === 'pendiente' || pet.nextAppointment.status === 'confirmada') && (
-                              <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-lg border ${
-                                pet.nextAppointment.status === 'confirmada' 
-                                  ? 'bg-blue-50 text-blue-600 border-blue-100' 
-                                  : 'bg-amber-50 text-amber-600 border-amber-100'
-                              }`}>
-                                {pet.nextAppointment.status}
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-xs text-blue-600 font-medium mt-0.5">
-                            {new Date(pet.nextAppointment.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })} a las {new Date(pet.nextAppointment.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
-                          </p>
+                      {pet.upcomingAppointments && pet.upcomingAppointments.length > 0 ? (
+                        <div className="space-y-4">
+                          {pet.upcomingAppointments.map((app) => (
+                            <div key={app.id} className="border-b border-gray-100/50 pb-3 last:border-0 last:pb-0">
+                              <div className="flex items-center justify-between gap-2 mb-1">
+                                <p className="text-sm font-bold text-gray-800 line-clamp-1">{app.service}</p>
+                                {(app.status === 'pendiente' || app.status === 'confirmada') && (
+                                  <span className={`px-2 py-0.5 text-[9px] font-black uppercase rounded-lg border flex-shrink-0 ${
+                                    app.status === 'confirmada' 
+                                      ? 'bg-blue-50 text-blue-600 border-blue-100' 
+                                      : 'bg-amber-50 text-amber-600 border-amber-100'
+                                  }`}>
+                                    {app.status}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-[11px] text-blue-600 font-bold mt-1">
+                                {new Date(app.scheduled_at).toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'short' })} a las {new Date(app.scheduled_at).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          ))}
                         </div>
                       ) : (
                         <p className="text-xs text-gray-400 italic">Sin horas agendadas</p>
