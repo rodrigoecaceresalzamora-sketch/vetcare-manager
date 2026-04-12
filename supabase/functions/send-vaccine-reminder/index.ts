@@ -1,9 +1,11 @@
 // ============================================================
 // VetCare Manager — Edge Function: send-vaccine-reminder
-// Usa Resend API (HTTP puro, sin nodemailer)
+// Lee smtp_email / smtp_password de clinic_config en BD
+// Usa Gmail SMTP (nodemailer)
 // ============================================================
 
 import { createClient } from 'npm:@supabase/supabase-js@2'
+import nodemailer from 'npm:nodemailer@6'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,7 +23,8 @@ Deno.serve(async (req) => {
 
     if (!vaccination_id) {
       return new Response(JSON.stringify({ error: 'vaccination_id requerido' }), {
-        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -30,43 +33,48 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     )
 
-    const resendKey = Deno.env.get('RESEND_API_KEY')
-    if (!resendKey) {
-      return new Response(JSON.stringify({ error: 'RESEND_API_KEY no configurado en Supabase Secrets' }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // Cargar vacuna
+    // 1. Cargar vacuna + paciente + tutor
     const { data: vacc, error: vaccErr } = await supabase
       .from('vaccinations')
-      .select('*, patient:patients(name, guardian:guardians(name, email))')
+      .select(`*, patient:patients(name, species, guardian:guardians(name, email))`)
       .eq('id', vaccination_id)
       .single()
 
     if (vaccErr || !vacc) {
-      return new Response(JSON.stringify({ error: `Vacuna no encontrada: ${vaccErr?.message}` }), {
-        status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      return new Response(JSON.stringify({ error: 'Vacuna no encontrada', detail: vaccErr?.message }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
+    // 2. Cargar configuración SMTP de la clínica
     const { data: clinic } = await supabase
       .from('clinic_config')
-      .select('clinic_name, smtp_email, email_subject_reminder, email_body_reminder')
+      .select('clinic_name, smtp_email, smtp_password, email_subject_reminder, email_body_reminder')
       .eq('clinic_id', vacc.clinic_id)
       .single()
 
-    const clinicName   = clinic?.clinic_name || 'VetCare Manager'
-    const replyTo      = clinic?.smtp_email  || undefined
-    const petName      = vacc.patient?.name ?? 'tu mascota'
-    const guardianName = vacc.patient?.guardian?.name ?? 'Estimado/a tutor/a'
+    const smtpEmail  = clinic?.smtp_email
+    const smtpPass   = clinic?.smtp_password
+    const clinicName = clinic?.clinic_name || 'VetCare Manager'
+
+    if (!smtpEmail || !smtpPass) {
+      return new Response(JSON.stringify({ error: 'Configura tu Gmail y Clave de App en Ajustes -> Mensajes Email.' }), {
+        status: 422,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const petName       = vacc.patient?.name            ?? 'tu mascota'
+    const guardianName  = vacc.patient?.guardian?.name  ?? 'Estimado/a tutor/a'
     const guardianEmail = vacc.patient?.guardian?.email
-    const vaccineName  = vacc.vaccine_name ?? 'refuerzo de vacuna'
-    const dueDate      = vacc.next_due_date
+    const vaccineName   = vacc.vaccine_name             ?? 'refuerzo de vacuna'
+    const dueDate       = vacc.next_due_date
 
     if (!guardianEmail) {
       return new Response(JSON.stringify({ error: 'El tutor no tiene email registrado' }), {
-        status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 422,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
@@ -74,71 +82,66 @@ Deno.serve(async (req) => {
       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
     })
 
-    const replace = (s: string) => s
-      .replace(/{tutor}/g, guardianName).replace(/{mascota}/g, petName)
-      .replace(/{vacuna}/g, vaccineName).replace(/{fecha}/g, formattedDate)
+    const replace = (str: string) => str
+      .replace(/{tutor}/g, guardianName)
+      .replace(/{mascota}/g, petName)
+      .replace(/{vacuna}/g, vaccineName)
+      .replace(/{fecha}/g, formattedDate)
 
     const subject = custom_subject
       ? replace(custom_subject)
-      : (clinic?.email_subject_reminder ? replace(clinic.email_subject_reminder) : `Recordatorio de vacuna para ${petName} 🐾`)
+      : (clinic?.email_subject_reminder ? replace(clinic.email_subject_reminder) : `Recordatorio: Próxima vacunación de ${petName} 🐾`)
 
     const html = custom_body
-      ? `<p style="font-family:Arial;line-height:1.7">${replace(custom_body).replace(/\n/g, '<br>')}</p>`
-      : `<!DOCTYPE html><html><body style="font-family:Arial;background:#fdf2f7;padding:20px">
-          <div style="background:#fff;border-radius:16px;padding:32px;max-width:560px;margin:0 auto;border:1px solid #f7bfd8">
-            <div style="text-align:center;font-size:36px;margin-bottom:8px">🐾</div>
-            <h2 style="color:#c8799f;text-align:center;margin:0 0 20px">${clinicName} — Recordatorio de Vacuna</h2>
-            <p>Estimado/a <strong>${guardianName}</strong>,</p>
-            <p>Te recordamos que se acerca la fecha del refuerzo de vacuna para tu compañero/a.</p>
-            <div style="background:#fdf2f7;border:1px solid #f7bfd8;border-radius:12px;padding:16px;margin:20px 0">
-              <p style="margin:4px 0">🐶 <strong>Mascota:</strong> ${petName}</p>
-              <p style="margin:4px 0">💉 <strong>Vacuna:</strong> ${vaccineName}</p>
-              <p style="margin:4px 0">📅 <strong>Fecha sugerida:</strong> ${formattedDate}</p>
-            </div>
-            <p>Contáctanos para agendar tu hora.</p>
-            <p style="color:#999;font-size:12px;border-top:1px solid #f7bfd8;padding-top:12px;margin-top:20px">
-              Atentamente, <strong>${clinicName}</strong>
-            </p>
-          </div>
-        </body></html>`
+      ? `<p style="font-family:Arial;color:#333;line-height:1.7">${replace(custom_body).replace(/\n/g,'<br>')}</p>`
+      : `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><style>
+          body{font-family:Arial,sans-serif;background:#fdf2f7;margin:0;padding:20px}
+          .c{background:#fff;border-radius:16px;padding:32px;max-width:560px;margin:0 auto;border:1px solid #f7bfd8}
+          h1{color:#c8799f;font-size:20px;margin:8px 0 0;text-align:center}p{color:#333;line-height:1.7}
+          .box{background:#fdf2f7;border:1px solid #f7bfd8;border-radius:12px;padding:18px 24px;margin:20px 0}
+          .box ul{list-style:none;padding:0;margin:0}.box li{padding:5px 0;color:#444}
+          .box li span{font-weight:bold;color:#c8799f}
+          .ft{margin-top:28px;font-size:13px;color:#777;border-top:1px solid #f7bfd8;padding-top:20px}
+        </style></head><body><div class="c">
+          <div style="text-align:center;font-size:40px;margin-bottom:8px">🐾</div>
+          <h1>${clinicName} — Recordatorio de Vacuna</h1>
+          <p>Estimado/a <strong>${guardianName}</strong>,</p>
+          <p>Te recordamos que próximamente corresponde aplicar el refuerzo de vacuna de tu compañero/a.</p>
+          <div class="box"><ul>
+            <li>🐶 <span>Mascota:</span> ${petName}</li>
+            <li>💉 <span>Vacuna:</span> ${vaccineName}</li>
+            <li>📅 <span>Fecha sugerida:</span> ${formattedDate}</li>
+          </ul></div>
+          <p>Contáctanos para agendar tu cita respondiendo este correo.</p>
+          <div class="ft"><p>Atentamente,<br><strong>${clinicName}</strong><br>Email: ${smtpEmail}</p></div>
+        </div></body></html>`
 
-    // Enviar vía Resend
-    const emailPayload: any = {
-      from: `${clinicName} <onboarding@resend.dev>`,
-      to: [guardianEmail],
-      subject,
-      html,
-    }
-    if (replyTo) emailPayload.reply_to = replyTo
-
-    const resendRes = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${resendKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(emailPayload),
+    // 3. Enviar vía Gmail SMTP
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: { user: smtpEmail, pass: smtpPass },
     })
 
-    const resendData = await resendRes.json()
+    await transporter.sendMail({
+      from: `"${clinicName}" <${smtpEmail}>`,
+      to: guardianEmail,
+      subject,
+      html,
+    })
 
-    if (!resendRes.ok) {
-      return new Response(JSON.stringify({ error: `Resend error: ${resendData.message || JSON.stringify(resendData)}` }), {
-        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    // Marcar reminder_sent = true
+    // 4. Marcar reminder_sent = true en la BD
     await supabase.from('vaccinations').update({ reminder_sent: true }).eq('id', vaccination_id)
 
-    return new Response(JSON.stringify({ success: true, sent_to: guardianEmail, resend_id: resendData.id }), {
-      status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    return new Response(JSON.stringify({ success: true, sent_to: guardianEmail }), {
+      status: 200,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
   } catch (err: any) {
-    console.error('send-vaccine-reminder crashed:', err)
-    return new Response(JSON.stringify({ error: String(err?.message ?? err) }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    console.error('Error send-vaccine-reminder:', err)
+    return new Response(JSON.stringify({ error: err.message ?? 'Error desconocido' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   }
 })
