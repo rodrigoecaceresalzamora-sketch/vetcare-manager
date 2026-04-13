@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 
 // ── Icono Ojo (estilo flat/simple) ───────────────────────────
@@ -32,6 +32,7 @@ export function LoginPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isForgotPassword, setIsForgotPassword] = useState(false)
   const [resetSent, setResetSent] = useState(false)
+  const [isRecovery, setIsRecovery] = useState(false)
 
   const switchTab = (toLogin: boolean) => {
     setIsLogin(toLogin)
