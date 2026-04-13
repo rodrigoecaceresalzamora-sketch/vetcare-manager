@@ -34,24 +34,30 @@ import { Billing } from './modules/staff/Billing'
 
 import { getGravatarUrl }    from './lib/utils'
 
+import { NoLicense } from './modules/auth/NoLicense'
+
 function DashboardRedirect() {
-  const { user, role, loading, clinicId } = useAuth()
+  const { user, role, loading, clinicId, clinicLoading } = useAuth()
   
-  if (loading) return <div className="p-10 text-center animate-pulse text-gray-400 font-medium whitespace-pre">Cargando dashboard...</div>
+  if (loading || clinicLoading) return <div className="p-20 text-center animate-pulse text-gray-400 font-black uppercase tracking-widest text-xs">Validando accesos...</div>
   if (!user) return <Navigate to="/login" replace />
   
-  // Si es staff (admin o ayudante) y tiene clínica -> Agenda
+  // 1. Staff con clínica -> Dashboard (Agenda)
   if ((role === 'admin' || role === 'ayudante') && clinicId) {
     return <Navigate to="/agenda" replace />
   }
 
-  // Si es admin pero no tiene clínica -> Onboarding
+  // 2. Admin sin clínica -> Registro de clínica
   if (role === 'admin' && !clinicId) {
     return <Navigate to="/onboarding" replace />
   }
 
-  // Por defecto (tutor o sin rol claro) -> Redirigir según el caso
-  // Si llegamos aquí y no es staff ni onboarding esperado, lo mandamos a la raíz pública o login
+  // 3. Tutor o Sin Cuenta -> No tiene licencia en el login principal
+  // (Los tutores entran por el link de su clínica /c/su-clinica)
+  if (user) {
+    return <Navigate to="/no-license" replace />
+  }
+
   return <Navigate to="/login" replace />
 }
 
@@ -409,8 +415,9 @@ export default function App() {
         <ClinicConfigProvider>
           <Routes>
           {/* Rutas Públicas */}
-          <Route path="/" element={<LoginPage />} />
+          <Route path="/" element={<DashboardRedirect />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/no-license" element={<NoLicense />} />
           <Route path="/reserva/:clinicId" element={<PublicBooking />} />
           <Route path="/c/:clinicId" element={<TutorView />} />
           <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">

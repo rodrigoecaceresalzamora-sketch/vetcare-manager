@@ -113,7 +113,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
       } else {
-        // 3. Dueños que no son Sofia o Tutores (por defecto tutor)
+        // 3. Dueños o Tutores
         const { data: owned } = await supabase.from('clinics').select('id, plan_type, is_paid').eq('owner_id', user.id).maybeSingle()
         if (owned) {
           setRole('admin')
@@ -121,12 +121,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setPlanType(owned.plan_type as 'basic' | 'pro')
           setIsPaid(!!owned.is_paid)
         } else {
-          setRole('tutor')
+          // 4. Buscar si es un Tutor (Guardians)
+          const { data: tutorData } = await supabase
+            .from('guardians')
+            .select('id')
+            .eq('email', userEmail)
+            .maybeSingle()
+          
+          if (tutorData) {
+            setRole('tutor')
+          } else {
+            // No es ni staff, ni dueño, ni tutor -> Usuario sin cuenta vinculada
+            setRole(null) 
+          }
         }
       }
     } catch (err) {
       console.error('Error in updateRole:', err)
-      setRole('tutor') 
+      setRole(null) 
     } finally {
       setClinicLoading(false)
     }
