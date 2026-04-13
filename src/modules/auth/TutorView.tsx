@@ -364,8 +364,8 @@ export function TutorView() {
                       breed: formData.get('breed') as string,
                       sex: formData.get('sex') as any,
                       date_of_birth: formData.get('date_of_birth') as string || null,
-                      pet_adopted_since: formData.get('pet_adopted_since') 
-                        ? (editAdoptMonthOnly ? `${formData.get('pet_adopted_since')}-01` : formData.get('pet_adopted_since')) 
+                      adopted_since: formData.get('adopted_since') 
+                        ? (editAdoptMonthOnly ? `${formData.get('adopted_since')}-01` : formData.get('adopted_since')) 
                         : null,
                     }
 
@@ -406,8 +406,8 @@ export function TutorView() {
                         <div className="flex flex-col gap-2">
                           <input 
                             type={editAdoptMonthOnly ? "month" : "date"} 
-                            name="pet_adopted_since" 
-                            defaultValue={editingPet.pet_adopted_since ? (editAdoptMonthOnly ? editingPet.pet_adopted_since.substring(0, 7) : editingPet.pet_adopted_since) : ''} 
+                            name="adopted_since" 
+                            defaultValue={editingPet.adopted_since ? (editAdoptMonthOnly ? editingPet.adopted_since.substring(0, 7) : editingPet.adopted_since) : ''} 
                             className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none" 
                           />
                           <label className="flex items-center gap-2 text-[10px] text-gray-400 font-bold px-1 cursor-pointer">
