@@ -13,7 +13,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requireStaff = false,
   requireAdmin = false 
 }) => {
-  const { user, role, loading } = useAuth()
+  const { user, role, loading, clinicId, clinicLoading } = useAuth()
   const location = useLocation()
 
   if (loading) {
@@ -35,7 +35,6 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }
 
   // 3. Si no tiene clínica y no es tutor (es staff/admin nuevo), mandar a onboarding
-  const { clinicId, clinicLoading } = useAuth()
   if (!clinicLoading && !clinicId && role !== 'tutor' && 
       location.pathname !== '/onboarding' && location.pathname !== '/verify-email') {
     return <Navigate to="/onboarding" replace />

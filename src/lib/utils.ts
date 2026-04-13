@@ -235,8 +235,8 @@ export function generateId(): string {
  * Función ultra-ligera para MD5 (necesaria para Gravatar)
  */
 function md5(string: string) {
-  function md5cycle(x: any, k: any) {
-    var a = x[0], b = x[1], c = x[2], d = x[3];
+  function md5cycle(x: number[], k: number[]) {
+    let a = x[0], b = x[1], c = x[2], d = x[3];
     a = ff(a, b, c, d, k[0], 7, -680876936);
     d = ff(d, a, b, c, k[1], 12, -389564586);
     c = ff(c, d, a, b, k[2], 17, 606105819);
@@ -311,33 +311,35 @@ function md5(string: string) {
     x[3] = add32(d, x[3]);
   }
 
-  function cmn(q: any, a: any, b: any, x: any, s: any, t: any) {
+  function cmn(q: number, a: number, b: number, x: number, s: number, t: number) {
     a = add32(add32(a, q), add32(x, t));
     return add32((a << s) | (a >>> (32 - s)), b);
   }
-  function ff(a: any, b: any, c: any, d: any, x: any, s: any, t: any) {
+  function ff(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     return cmn((b & c) | ((~b) & d), a, b, x, s, t);
   }
-  function gg(a: any, b: any, c: any, d: any, x: any, s: any, t: any) {
+  function gg(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     return cmn((b & d) | (c & (~d)), a, b, x, s, t);
   }
-  function hh(a: any, b: any, c: any, d: any, x: any, s: any, t: any) {
+  function hh(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     return cmn(b ^ c ^ d, a, b, x, s, t);
   }
-  function ii(a: any, b: any, c: any, d: any, x: any, s: any, t: any) {
+  function ii(a: number, b: number, c: number, d: number, x: number, s: number, t: number) {
     return cmn(c ^ (b | (~d)), a, b, x, s, t);
   }
-  function add32(a: any, b: any) {
+  function add32(a: number, b: number) {
     return (a + b) & 0xFFFFFFFF;
   }
 
-  function md51(s: any) {
-    var n = s.length, state = [1732584193, -271733879, -1732584194, 271733878], i: any;
+  function md51(s: string) {
+    const n = s.length;
+    const state = [1732584193, -271733879, -1732584194, 271733878];
+    let i: number;
     for (i = 64; i <= s.length; i += 64) {
       md5cycle(state, md5blk(s.substring(i - 64, i)));
     }
     s = s.substring(i - 64);
-    var tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+    const tail = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
     for (i = 0; i < s.length; i++)
       tail[i >> 2] |= s.charCodeAt(i) << ((i % 4) << 3);
     tail[i >> 2] |= 0x80 << ((i % 4) << 3);
@@ -350,25 +352,27 @@ function md5(string: string) {
     return state;
   }
 
-  function md5blk(s: any) {
-    var md5blks = [], i;
+  function md5blk(s: string) {
+    const md5blks: number[] = [];
+    let i: number;
     for (i = 0; i < 64; i += 4) {
       md5blks[i >> 2] = s.charCodeAt(i) + (s.charCodeAt(i + 1) << 8) + (s.charCodeAt(i + 2) << 16) + (s.charCodeAt(i + 3) << 24);
     }
     return md5blks;
   }
 
-  var hex_chr = '0123456789abcdef'.split('');
+  const hex_chr = '0123456789abcdef'.split('');
 
-  function rhex(n: any) {
-    var s = '', j = 0;
+  function rhex(n: number) {
+    let s = '';
+    let j = 0;
     for (; j < 4; j++)
       s += hex_chr[(n >> (j * 8 + 4)) & 0x0F] + hex_chr[(n >> (j * 8)) & 0x0F];
     return s;
   }
 
-  function hex(x: any) {
-    for (var i = 0; i < x.length; i++)
+  function hex(x: number[]) {
+    for (let i = 0; i < x.length; i++)
       x[i] = rhex(x[i]);
     return x.join('');
   }

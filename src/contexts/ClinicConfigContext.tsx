@@ -132,7 +132,8 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!currentClinicId) return false
     try {
       // Sanitizar para evitar enviar 'id' si viene en el objeto
-      const { id: _, ...cleanConfig } = newConfig as any;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { id: _id, ...cleanConfig } = newConfig as Partial<ClinicConfig> & { id?: string };
 
       const { error: _error } = await supabase
         .from('clinic_config')
@@ -166,6 +167,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useClinicConfig = () => {
   const context = useContext(ClinicConfigContext)
   if (context === undefined) {
