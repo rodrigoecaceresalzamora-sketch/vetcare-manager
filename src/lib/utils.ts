@@ -372,9 +372,7 @@ function md5(string: string) {
   }
 
   function hex(x: number[]) {
-    for (let i = 0; i < x.length; i++)
-      x[i] = rhex(x[i]);
-    return x.join('');
+    return x.map(rhex).join('');
   }
 
   return hex(md51(string));
