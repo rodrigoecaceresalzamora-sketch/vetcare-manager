@@ -9,7 +9,10 @@ export function NoLicense() {
       <p className="text-xl font-bold text-gray-400 mb-10 uppercase tracking-widest">CÓMPRALO</p>
       
       <button 
-        onClick={() => signOut()}
+        onClick={async () => {
+          await signOut()
+          window.location.href = '/login'
+        }}
         className="px-8 py-3 bg-black text-white text-xs font-black uppercase tracking-widest rounded-full hover:bg-gray-800 transition-all"
       >
         Volver al Inicio
