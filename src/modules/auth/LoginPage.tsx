@@ -128,7 +128,6 @@ export function LoginPage() {
     }
   }
 
-  if (isRecovery) {
 
   useEffect(() => {
     supabase.auth.onAuthStateChange(async (event) => {
