@@ -95,11 +95,31 @@ Deno.serve(async (req) => {
     if (custom_body) html = `<p style="font-family:Arial;line-height:1.6">${custom_body.replace(/\n/g, '<br>')}</p>`
     else {
       // Envolver el body de la base de datos en un diseño premium si no es custom
+      const showCalendar = type === 'confirmation' || type === 'reminder' || type === 'rescheduled'
+
+      // Generar link de Google Calendar (Solo si se muestra botón)
+      let googleCalendarBtn = ''
+      if (showCalendar) {
+        const formatDateForCal = (date: Date) => date.toISOString().replace(/-|:|\.\d+/g, '')
+        const calStart = formatDateForCal(dateObj)
+        const calEnd = formatDateForCal(new Date(dateObj.getTime() + 30 * 60 * 1000)) // +30 min
+        const gCalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(subject)}&dates=${calStart}/${calEnd}&details=${encodeURIComponent(subject)}&location=${encodeURIComponent(clinic.clinic_name + ' - ' + (clinic.address || ''))}`
+        googleCalendarBtn = `
+          <div style="text-align:center;margin:30px 0">
+            <a href="${gCalUrl}" target="_blank" style="display:inline-block;padding:14px 28px;background:${color};color:#fff;text-decoration:none;border-radius:14px;font-weight:bold;font-size:14px;box-shadow:0 4px 10px rgba(0,0,0,0.1)">
+              📅 Guardar en Google Calendar
+            </a>
+          </div>`
+      }
+      
       html = `<!DOCTYPE html><html><body style="font-family:Arial;padding:40px;background:#f8fafc">
         <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:24px;padding:40px;border:1px solid #e2e8f0;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1)">
           <div style="text-align:center;font-size:40px;margin-bottom:10px">🐾</div>
           <h2 style="color:${color};text-align:center;margin:0 0 30px">${clinic.clinic_name}</h2>
           <div style="color:#334155;line-height:1.8;font-size:15px">${html.replace(/\n/g, '<br>')}</div>
+          
+          ${googleCalendarBtn}
+
           <div style="margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;font-size:12px;color:#94a3b8;text-align:center uppercase tracking-widest">
             ${clinic.clinic_name} &middot; ${clinic.contact_phone}
           </div>

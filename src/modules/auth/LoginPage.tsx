@@ -30,9 +30,13 @@ export function LoginPage() {
   const [showConfirmationNotice, setShowConfirmationNotice] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isForgotPassword, setIsForgotPassword] = useState(false)
+  const [resetSent, setResetSent] = useState(false)
 
   const switchTab = (toLogin: boolean) => {
     setIsLogin(toLogin)
+    setIsForgotPassword(false)
+    setResetSent(false)
     setError(null)
     setPassword('')
     setConfirmPassword('')
@@ -43,6 +47,22 @@ export function LoginPage() {
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+
+    if (isForgotPassword) {
+      setLoading(true)
+      try {
+        const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/login`,
+        })
+        if (err) throw err
+        setResetSent(true)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+      return
+    }
 
     // Validación de confirmación de contraseña
     if (!isLogin && password !== confirmPassword) {
@@ -77,6 +97,69 @@ export function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleUpdatePassword = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password !== confirmPassword) return setError('Las contraseñas no coinciden')
+    setLoading(true)
+    const { error: err } = await supabase.auth.updateUser({ password })
+    if (err) {
+      setError(err.message)
+      setLoading(false)
+    } else {
+      window.location.href = '/dashboard'
+    }
+  }
+
+  const [isRecovery, setIsRecovery] = useState(false)
+
+  useState(() => {
+    supabase.auth.onAuthStateChange(async (event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecovery(true)
+      }
+    })
+  })
+
+  if (isRecovery) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-gray-900 uppercase tracking-tight">
+        <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
+          <div className="text-center mb-8">
+            <h1 className="text-2xl font-black text-indigo-900">Nueva Contraseña</h1>
+            <p className="text-gray-400 text-[10px] font-bold mt-1 uppercase tracking-widest">Establece tu nueva clave de acceso</p>
+          </div>
+          <form onSubmit={handleUpdatePassword} className="space-y-5">
+            {error && <div className="bg-red-50 border border-red-100 text-red-600 text-xs p-3 rounded-xl">{error}</div>}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Contraseña Nueva</label>
+              <input type="password" required className="w-full pl-4 pr-11 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} />
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Confirmar Contraseña</label>
+              <input type="password" required className="w-full pl-4 pr-11 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm outline-none" placeholder="••••••••" value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} />
+            </div>
+            <button type="submit" disabled={loading} className="w-full py-4 bg-indigo-600 text-white text-xs font-black rounded-2xl shadow-xl hover:bg-indigo-700 transition-all uppercase tracking-widest disabled:opacity-50">
+              {loading ? 'Guardando...' : 'Cambiar Contraseña'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
+  if (resetSent) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 font-sans text-gray-900 uppercase tracking-tight">
+        <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100 text-center">
+          <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">📧</div>
+          <h2 className="text-xl font-black text-gray-900 mb-2">Correo Enviado</h2>
+          <p className="text-gray-500 text-sm normal-case tracking-normal mb-8 leading-relaxed">Instrucciones enviadas a <strong>{email}</strong>. Revisa tu bandeja de entrada (y la carpeta de spam).</p>
+          <button onClick={() => switchTab(true)} className="w-full py-4 bg-gray-900 text-white text-xs font-black uppercase tracking-widest rounded-2xl">Volver al Login</button>
+        </div>
+      </div>
+    )
   }
 
   if (showConfirmationNotice) {
@@ -119,22 +202,31 @@ export function LoginPage() {
         {/* Auth Card */}
         <div className="bg-white rounded-3xl shadow-2xl shadow-vet-rose/10 border border-gray-100 overflow-hidden">
           {/* Tabs */}
-          <div className="flex border-b border-gray-50">
-            <button
-              onClick={() => switchTab(true)}
-              className={`flex-1 py-4 text-sm font-bold transition-all
-                          ${isLogin ? 'text-indigo-900 bg-white border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
-            >
-              Iniciar Sesión
-            </button>
-            <button
-              onClick={() => switchTab(false)}
-              className={`flex-1 py-4 text-sm font-bold transition-all
-                          ${!isLogin ? 'text-indigo-900 bg-white border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
-            >
-              Crear Cuenta
-            </button>
-          </div>
+          {!isForgotPassword && (
+            <div className="flex border-b border-gray-50">
+              <button
+                onClick={() => switchTab(true)}
+                className={`flex-1 py-4 text-sm font-bold transition-all
+                            ${isLogin ? 'text-indigo-900 bg-white border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
+              >
+                Iniciar Sesión
+              </button>
+              <button
+                onClick={() => switchTab(false)}
+                className={`flex-1 py-4 text-sm font-bold transition-all
+                            ${!isLogin ? 'text-indigo-900 bg-white border-b-2 border-indigo-600' : 'text-gray-400 hover:text-gray-600 bg-gray-50/50'}`}
+              >
+                Crear Cuenta
+              </button>
+            </div>
+          )}
+
+          {isForgotPassword && (
+            <div className="bg-indigo-50/50 px-8 py-4 border-b border-indigo-100 flex items-center justify-between">
+               <span className="text-[10px] font-black text-indigo-600 uppercase">Recuperar Acceso</span>
+               <button onClick={() => switchTab(true)} className="text-[10px] font-black text-gray-400 hover:text-gray-600 transition-colors">Volver</button>
+            </div>
+          )}
 
           <form onSubmit={handleAuth} className="p-8 space-y-5">
             {error && (
@@ -143,7 +235,7 @@ export function LoginPage() {
               </div>
             )}
 
-            {!isLogin && (
+            {!isLogin && !isForgotPassword && (
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nombre Completo</label>
                 <input
@@ -170,31 +262,44 @@ export function LoginPage() {
             </div>
 
             {/* Contraseña con botón ver/ocultar */}
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Contraseña</label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-4 pr-11 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none"
-                  placeholder="••••••••"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors"
-                  tabIndex={-1}
-                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-                >
-                  <EyeIcon open={showPassword} />
-                </button>
+            {!isForgotPassword && (
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-end mb-1">
+                  <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Contraseña</label>
+                  {isLogin && (
+                    <button 
+                      type="button" 
+                      onClick={() => setIsForgotPassword(true)}
+                      className="text-[10px] font-black text-indigo-400 hover:text-indigo-600 transition-colors normal-case tracking-normal underline"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full pl-4 pr-11 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:ring-4 focus:ring-indigo-100 focus:border-indigo-400 transition-all outline-none"
+                    placeholder="••••••••"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition-colors"
+                    tabIndex={-1}
+                    aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  >
+                    <EyeIcon open={showPassword} />
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Confirmar contraseña — solo en registro */}
-            {!isLogin && (
+            {!isLogin && !isForgotPassword && (
               <div className="space-y-1.5">
                 <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Confirmar Contraseña</label>
                 <div className="relative">
@@ -234,10 +339,10 @@ export function LoginPage() {
 
             <button
               type="submit"
-              disabled={loading || (!isLogin && !!confirmPassword && !passwordsMatch)}
+              disabled={loading || (!isLogin && !isForgotPassword && !!confirmPassword && !passwordsMatch)}
               className="w-full py-4 bg-indigo-600 text-white text-xs font-black rounded-2xl shadow-xl hover:bg-indigo-700 transition-all uppercase tracking-widest disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? 'Procesando...' : (isLogin ? 'Acceder al Dashboard' : 'Comenzar Ahora')}
+              {loading ? 'Procesando...' : (isForgotPassword ? 'Enviar Instrucciones' : (isLogin ? 'Acceder al Dashboard' : 'Comenzar Ahora'))}
             </button>
           </form>
         </div>

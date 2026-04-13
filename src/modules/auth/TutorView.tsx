@@ -21,6 +21,7 @@ export function TutorView() {
   const [error, setError] = useState<string | null>(null)
   const [editingPet, setEditingPet] = useState<Patient | null>(null)
   const [savingPet, setSavingPet] = useState(false)
+  const [editAdoptMonthOnly, setEditAdoptMonthOnly] = useState(false)
 
   useEffect(() => {
     if (urlClinicId) {
@@ -362,7 +363,10 @@ export function TutorView() {
                       name: formData.get('name') as string,
                       breed: formData.get('breed') as string,
                       sex: formData.get('sex') as any,
-                      date_of_birth: formData.get('dob') as string,
+                      date_of_birth: formData.get('date_of_birth') as string || null,
+                      pet_adopted_since: formData.get('pet_adopted_since') 
+                        ? (editAdoptMonthOnly ? `${formData.get('pet_adopted_since')}-01` : formData.get('pet_adopted_since')) 
+                        : null,
                     }
 
                     const { error } = await supabase
@@ -392,6 +396,25 @@ export function TutorView() {
                           <option value="Hembra">Hembra</option>
                           <option value="No determinado">No determinado</option>
                         </select>
+                      </div>
+                      <div className="col-span-2 pt-2 border-t border-gray-50">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Fecha de Nacimiento (Opcional)</label>
+                        <input type="date" name="date_of_birth" defaultValue={editingPet.date_of_birth || ''} className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none" />
+                      </div>
+                      <div className="col-span-2">
+                        <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1 block">Adoptado desde (Opcional)</label>
+                        <div className="flex flex-col gap-2">
+                          <input 
+                            type={editAdoptMonthOnly ? "month" : "date"} 
+                            name="pet_adopted_since" 
+                            defaultValue={editingPet.pet_adopted_since ? (editAdoptMonthOnly ? editingPet.pet_adopted_since.substring(0, 7) : editingPet.pet_adopted_since) : ''} 
+                            className="w-full px-5 py-3 bg-gray-50 border border-gray-100 rounded-2xl text-sm focus:ring-2 focus:ring-vet-rose/20 outline-none" 
+                          />
+                          <label className="flex items-center gap-2 text-[10px] text-gray-400 font-bold px-1 cursor-pointer">
+                            <input type="checkbox" checked={editAdoptMonthOnly} onChange={e => setEditAdoptMonthOnly(e.target.checked)} />
+                            Solo mes/año
+                          </label>
+                        </div>
                       </div>
                     </div>
 

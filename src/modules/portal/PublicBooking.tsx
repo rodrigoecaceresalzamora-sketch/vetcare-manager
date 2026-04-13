@@ -115,6 +115,7 @@ export function PublicBooking() {
   
   const [showUnknownBirth, setShowUnknownBirth] = useState(false)
   const [showNotAdopted, setShowNotAdopted] = useState(false)
+  const [showAdoptMonthOnly, setShowAdoptMonthOnly] = useState(false)
   
   // ── Cargar mascotas del tutor logueado ───────────────────────
   const [myPets, setMyPets] = useState<any[]>([])
@@ -387,7 +388,7 @@ export function PublicBooking() {
             {consultationReason && <Row label="Motivo" value={consultationReason} />}
           </div>
           
-          {config?.contact_phone && (
+          {config?.contact_phone && (config?.advance_payment_percentage || 0) > 0 && (
             <div className="bg-green-50 border border-green-200 rounded-3xl p-6 mb-8 text-left shadow-sm">
               <p className="text-xs font-black text-green-800 uppercase mb-2 flex items-center gap-2">
                 <span>📱</span> ¡Importante! Envía tu comprobante
@@ -395,9 +396,14 @@ export function PublicBooking() {
               <p className="text-xs text-green-700 leading-relaxed mb-4">
                 Por favor envía el comprobante de la transferencia al siguiente número (WhatsApp):
               </p>
-              <p className="text-xl font-black text-green-900 text-center">
+              <a 
+                href={`https://wa.me/${config.contact_phone.replace(/[^\d]/g, '')}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block text-xl font-black text-green-900 text-center bg-white py-4 rounded-2xl border border-green-100 hover:bg-green-100 transition-colors shadow-inner"
+              >
                 {config.contact_phone}
-              </p>
+              </a>
             </div>
           )}
 
@@ -778,22 +784,43 @@ export function PublicBooking() {
                   </Field>
                   <Field label="Adoptado desde (Opcional)">
                     <div className="flex flex-col gap-2">
-                      <input 
-                        type="date" 
-                        className={inputCls} 
-                        value={form.pet_adopted_since} 
-                        onChange={(e) => {
-                          setField('pet_adopted_since', e.target.value)
-                          setShowNotAdopted(false)
-                        }} 
-                        disabled={showNotAdopted}
-                      />
-                      <label className="flex items-center gap-2 text-[10px] text-gray-500 font-bold mx-1">
-                        <input type="checkbox" checked={showNotAdopted} onChange={e => {
-                          setShowNotAdopted(e.target.checked)
-                          if (e.target.checked) setField('pet_adopted_since', '')
-                        }} /> No es adoptado
-                      </label>
+                      <div className="flex gap-2">
+                        {showAdoptMonthOnly ? (
+                          <input 
+                            type="month" 
+                            className={inputCls} 
+                            value={form.pet_adopted_since?.substring(0, 7) || ''} 
+                            onChange={(e) => {
+                              setField('pet_adopted_since', e.target.value ? `${e.target.value}-01` : '')
+                              setShowNotAdopted(false)
+                            }}
+                            disabled={showNotAdopted}
+                          />
+                        ) : (
+                          <input 
+                            type="date" 
+                            className={inputCls} 
+                            value={form.pet_adopted_since} 
+                            onChange={(e) => {
+                              setField('pet_adopted_since', e.target.value)
+                              setShowNotAdopted(false)
+                            }} 
+                            disabled={showNotAdopted}
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-wrap gap-x-4 gap-y-2">
+                        <label className="flex items-center gap-2 text-[10px] text-gray-500 font-bold mx-1 cursor-pointer">
+                          <input type="checkbox" checked={showAdoptMonthOnly} onChange={e => setShowAdoptMonthOnly(e.target.checked)} />
+                          Solo mes/año
+                        </label>
+                        <label className="flex items-center gap-2 text-[10px] text-gray-500 font-bold mx-1 cursor-pointer">
+                          <input type="checkbox" checked={showNotAdopted} onChange={e => {
+                            setShowNotAdopted(e.target.checked)
+                            if (e.target.checked) setField('pet_adopted_since', '')
+                          }} /> No es adoptado
+                        </label>
+                      </div>
                     </div>
                   </Field>
                 </div>
