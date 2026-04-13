@@ -58,6 +58,7 @@ export function PatientDetail() {
   const [uploading, setUploading] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<{ name: string, url: string } | null>(null)
   const { config } = useClinicConfig()
 
   function showToast(msg: string) {
@@ -90,7 +91,6 @@ export function PatientDetail() {
 
   if (loading) return <div className="p-10 text-center"><div className="w-6 h-6 border-2 border-vet-rose border-t-transparent rounded-full animate-spin mx-auto"/></div>
   if (error || !patient) return <div className="p-10 text-center text-red-500">Error cargando ficha: {error || 'Paciente no encontrado'}</div>
-  const [selectedFile, setSelectedFile] = useState<{ name: string, url: string } | null>(null)
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
