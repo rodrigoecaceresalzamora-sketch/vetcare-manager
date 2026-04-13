@@ -66,6 +66,29 @@ export function PatientForm({ initialData, onClose, onSaved, onSavePatient }: Pr
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setErrorMsg('')
+
+    // Validar RUT
+    if (!isValidRUT(gRut)) {
+      setErrorMsg('El RUT ingresado no es válido. Debe tener formato 12.345.678-9')
+      return
+    }
+
+    // Validar Teléfono
+    if (!isValidPhone(gPhone)) {
+      setErrorMsg('El teléfono debe tener al menos 9 dígitos numéricos.')
+      return
+    }
+
+    // Validar mas campos si es necesario
+    if (!gName.trim()) {
+      setErrorMsg('El nombre del tutor es obligatorio.')
+      return
+    }
+    if (!pName.trim()) {
+      setErrorMsg('El nombre del paciente es obligatorio.')
+      return
+    }
+
     setSaving(true)
 
     const res = await onSavePatient({

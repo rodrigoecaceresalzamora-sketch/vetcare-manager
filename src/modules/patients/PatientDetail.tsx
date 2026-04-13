@@ -90,6 +90,7 @@ export function PatientDetail() {
 
   if (loading) return <div className="p-10 text-center"><div className="w-6 h-6 border-2 border-vet-rose border-t-transparent rounded-full animate-spin mx-auto"/></div>
   if (error || !patient) return <div className="p-10 text-center text-red-500">Error cargando ficha: {error || 'Paciente no encontrado'}</div>
+  const [selectedFile, setSelectedFile] = useState<{ name: string, url: string } | null>(null)
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
@@ -475,14 +476,24 @@ export function PatientDetail() {
                     </span>
                     {file.created_at && <span className="text-[10px] text-gray-500 mt-1">{new Date(file.created_at).toLocaleDateString()}</span>}
                     
-                    <a 
-                      href={file.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="mt-4 text-xs font-bold text-vet-rose text-center bg-white border border-vet-rose/20 py-1.5 rounded hover:bg-vet-light transition"
-                    >
-                      Abrir Archivo
-                    </a>
+                    <div className="mt-4 flex gap-2">
+                      <button 
+                        onClick={() => setSelectedFile({ name: file.name, url: file.url })}
+                        className="flex-1 text-[10px] font-bold text-vet-rose bg-white border border-vet-rose/20 py-1.5 rounded-lg hover:bg-vet-light transition"
+                      >
+                        Ver Detalle 🔍
+                      </button>
+                      <a 
+                        href={file.url} 
+                        download={file.name}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-8 h-8 flex items-center justify-center bg-gray-50 border border-gray-200 text-gray-500 rounded-lg hover:bg-gray-100 transition shadow-sm"
+                        title="Descargar archivo"
+                      >
+                        ⬇️
+                      </a>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -542,8 +553,99 @@ export function PatientDetail() {
         />
       )}
 
+      {selectedFile && (
+        <div className="fixed inset-0 z-[100] bg-black/80 flex items-center justify-center p-4 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden shadow-2xl relative">
+            <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-white">
+              <div className="flex items-center gap-3 min-w-0">
+                 <div className="w-10 h-10 bg-vet-rose/10 text-vet-rose rounded-xl flex-shrink-0 flex items-center justify-center text-xl">
+                    {selectedFile.name.toLowerCase().endsWith('.pdf') ? '📄' : '🖼️'}
+                 </div>
+                 <div className="min-w-0">
+                    <h3 className="text-sm font-black text-gray-900 truncate pr-4">{selectedFile.name.split('_').slice(1).join('_') || selectedFile.name}</h3>
+                    <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Vista Previa Multimedia</p>
+                 </div>
+              </div>
+              <div className="flex gap-2">
+                 <a 
+                   href={selectedFile.url} 
+                   download={selectedFile.name}
+                   target="_blank"
+                   rel="noopener noreferrer"
+                   className="hidden sm:flex px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors items-center gap-2"
+                 >
+                   <span>⬇️</span> Descargar
+                 </a>
+                 <button 
+                   onClick={() => setSelectedFile(null)} 
+                   className="w-10 h-10 flex items-center justify-center bg-gray-100 text-gray-500 rounded-xl hover:bg-red-50 hover:text-red-500 transition-all font-bold"
+                 >
+                   ✕
+                 </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 bg-gray-900 relative">
+               {(function() {
+                 const name = selectedFile.name.toLowerCase();
+                 const isImage = /\.(jpg|jpeg|png|gif|webp|svg)$/.test(name);
+                 const isDoc = /\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/.test(name);
+
+                 if (isImage) {
+                   return (
+                     <div className="w-full h-full flex items-center justify-center p-4">
+                        <img 
+                          src={selectedFile.url} 
+                          alt="Preview" 
+                          className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" 
+                        />
+                     </div>
+                   );
+                 }
+
+                 if (isDoc) {
+                   return (
+                     <iframe 
+                       src={`https://docs.google.com/viewer?url=${encodeURIComponent(selectedFile.url)}&embedded=true`} 
+                       className="w-full h-full border-none bg-white"
+                       title="Document Preview"
+                     />
+                   );
+                 }
+
+                 return (
+                   <div className="w-full h-full flex flex-col items-center justify-center p-8 text-center bg-gray-800">
+                     <span className="text-6xl mb-4">📦</span>
+                     <h3 className="text-white font-bold text-lg mb-2">Previsualización no disponible</h3>
+                     <p className="text-gray-400 text-sm max-w-xs">Este tipo de archivo no se puede mostrar aquí. Por favor, descárgalo para verlo en tu equipo.</p>
+                     <a 
+                       href={selectedFile.url} 
+                       download={selectedFile.name}
+                       className="mt-6 px-6 py-3 bg-vet-rose text-white rounded-xl font-bold hover:bg-vet-dark transition-all shadow-lg"
+                     >
+                       Descargar ahora
+                     </a>
+                   </div>
+                 );
+               })()}
+            </div>
+
+            {/* Acciones móviles */}
+            <div className="sm:hidden p-4 bg-white border-t border-gray-100">
+               <a 
+                  href={selectedFile.url} 
+                  download={selectedFile.name}
+                  className="w-full py-3 bg-gray-100 text-gray-600 rounded-xl text-xs font-bold hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                >
+                  <span>⬇️</span> Descargar Archivo
+               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg animate-fade-in">
+        <div className="fixed top-4 right-4 z-[110] bg-gray-900 text-white text-sm px-4 py-2 rounded-lg shadow-lg animate-fade-in">
           {toast}
         </div>
       )}

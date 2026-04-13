@@ -343,6 +343,25 @@ function MobileNav() {
 }
 
 
+function DeveloperBugButton() {
+  return (
+    <a 
+      href="https://wa.me/56974272664"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-20 md:bottom-8 right-6 z-[60] group flex items-center gap-3 bg-[#25D366] text-white pl-4 pr-6 py-3 rounded-2xl shadow-2xl hover:brightness-110 transition-all transform scale-100 active:scale-95 ring-4 ring-white/10"
+    >
+       <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center text-xl shadow-lg group-hover:rotate-12 transition-transform">
+         👨‍💻
+       </div>
+       <div className="text-left font-sans text-white">
+          <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 opacity-80">Soporte Dev</p>
+          <p className="text-xs font-black leading-tight italic">¿Bugs o Consultas?</p>
+       </div>
+    </a>
+  )
+}
+
 // ── Layout interno (con sidebar) ──────────────────────────────
 function AppLayout({ children }: { children: React.ReactNode }) {
   const [isCollapsed, setIsCollapsed] = useState(() => {
@@ -377,6 +396,7 @@ function AppLayout({ children }: { children: React.ReactNode }) {
           {children}
         </div>
       </main>
+      <DeveloperBugButton />
     </div>
   )
 }

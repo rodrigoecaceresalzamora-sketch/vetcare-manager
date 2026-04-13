@@ -465,6 +465,15 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   type="button"
                   className="flex-1 sm:flex-none px-4 py-2 text-sm font-bold bg-green-600 text-white rounded-lg hover:bg-green-700 whitespace-nowrap"
                   onClick={async () => {
+                    setFieldError('')
+                    
+                    if (!isValidRUT((form as any).guardian_rut)) {
+                      return setFieldError('El RUT del tutor no es válido')
+                    }
+                    if (!isValidPhone(form.guardian_phone)) {
+                      return setFieldError('El teléfono del tutor no es válido (mínimo 9 dígitos)')
+                    }
+
                     setSaving(true)
                     try {
                       let gId = ''

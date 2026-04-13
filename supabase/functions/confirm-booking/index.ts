@@ -114,6 +114,37 @@ Deno.serve(async (req) => {
       html,
     })
 
+    // --- NOTIFICACIÓN PARA EL ADMIN (NUEVA RESERVA) ---
+    // Si el tipo es 'booking' (default), avisamos a la clínica
+    if (type === 'booking') {
+      try {
+        const adminSubject = clinic.email_subject_new_booking_admin ? replace(clinic.email_subject_new_booking_admin) : `¡Nueva Reserva! - ${petName} 🐾`
+        const adminHtmlRaw = clinic.email_body_new_booking_admin ? replace(clinic.email_body_new_booking_admin) : `<p>Alguien ha agendado una hora para <strong>${petName}</strong> el día ${formattedDate} a las ${formattedTime}.</p>`
+        
+        const adminHtml = `<!DOCTYPE html><html><body style="font-family:Arial;padding:40px;background:#f1f5f9">
+          <div style="max-width:560px;margin:0 auto;background:#fff;border-radius:24px;padding:40px;border:1px solid #cbd5e1">
+            <h2 style="color:#0284c7;text-align:center">🔔 Nueva Reserva Recibida</h2>
+            <div style="color:#334155;line-height:1.8;font-size:15px">${adminHtmlRaw.replace(/\n/g, '<br>')}</div>
+            <div style="margin-top:30px;padding:20px;background:#f8fafc;border-radius:12px;font-size:13px;color:#475569">
+              <strong>Tutor:</strong> ${guardianName}<br>
+              <strong>Mascota:</strong> ${petName}<br>
+              <strong>Servicio:</strong> ${apt.service || 'No especificado'}<br>
+              <strong>Fecha:</strong> ${formattedDate} a las ${formattedTime}
+            </div>
+          </div>
+        </body></html>`
+
+        await transporter.sendMail({
+          from: `"${clinic.clinic_name}" <${clinic.smtp_email}>`,
+          to: clinic.contact_email || clinic.smtp_email,
+          subject: adminSubject,
+          html: adminHtml,
+        })
+      } catch (adminErr) {
+        console.error('Admin notification failed:', adminErr)
+      }
+    }
+
     return new Response(JSON.stringify({ success: true }), { status: 200, headers: corsHeaders })
 
   } catch (err: any) {

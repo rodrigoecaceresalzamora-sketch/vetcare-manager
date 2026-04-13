@@ -32,7 +32,9 @@ export function SettingsManagement() {
         email_subject_confirmed: config.email_subject_confirmed || '¡Cita Confirmada! - VetCare',
         email_body_confirmed: config.email_body_confirmed || '¡Hola {tutor}! Tu cita para {mascota} el {fecha} a las {hora} ha sido confirmada satisfactoriamente.',
         email_subject_reminder_appointment: config.email_subject_reminder_appointment || 'Recordatorio de Cita - VetCare',
-        email_body_reminder_appointment: config.email_body_reminder_appointment || 'Hola {tutor}, te recordamos tu cita para {mascota} el día {fecha} a las {hora}.'
+        email_body_reminder_appointment: config.email_body_reminder_appointment || 'Hola {tutor}, te recordamos tu cita para {mascota} el día {fecha} a las {hora}.',
+        email_subject_new_booking_admin: config.email_subject_new_booking_admin || 'Nueva Reserva Recibida 🐾',
+        email_body_new_booking_admin: config.email_body_new_booking_admin || 'Hola, tienes una nueva reserva de {tutor} para {mascota} el día {fecha} a las {hora}.'
       })
       
       const initialInputs: Record<string, string> = {}
@@ -499,6 +501,13 @@ export function SettingsManagement() {
 
              <section className="space-y-8">
                 <div className="space-y-4">
+                    <h3 className="text-sm font-black text-gray-900 border-l-4 border-orange-400 pl-3">Aviso para la Clínica (Nueva Reserva)</h3>
+                    <p className="text-[10px] text-gray-400 italic">Correo que recibes tú cuando alguien agenda desde el portal.</p>
+                    <Input label="Asunto" value={localConfig.email_subject_new_booking_admin} onChange={v => set('email_subject_new_booking_admin', v)} />
+                    <textarea className="w-full px-5 py-4 bg-gray-50 border border-gray-200 rounded-3xl text-sm outline-none" rows={3} value={localConfig.email_body_new_booking_admin} onChange={e => set('email_body_new_booking_admin', e.target.value)} />
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
                     <h3 className="text-sm font-black text-gray-900 border-l-4 border-blue-400 pl-3">Reserva Recibida (Pendiente)</h3>
                     <p className="text-[10px] text-gray-400 italic">Correo cuando el tutor solicita hora.</p>
                     <Input label="Asunto" value={localConfig.email_subject_booking} onChange={v => set('email_subject_booking', v)} />

@@ -264,6 +264,8 @@ export interface ClinicConfig {
   email_body_confirmed: string
   email_subject_reminder_appointment: string
   email_body_reminder_appointment: string
+  email_subject_new_booking_admin?: string
+  email_body_new_booking_admin?: string
   wa_template_reminder_appointment: string
   schedule: Record<string, string[]> // { "2": ["10:00", ...], ... }
   slug: string | null
