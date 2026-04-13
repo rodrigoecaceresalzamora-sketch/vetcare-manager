@@ -45,11 +45,13 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
      if (authClinicId) setCurrentClinicId(authClinicId)
   }, [authClinicId])
 
-  const applyColors = useCallback((primary: string, secondary: string) => {
+  const applyColors = useCallback((primary: string, secondary: string, primaryText?: string, secondaryText?: string) => {
     const root = document.documentElement
     root.style.setProperty('--vet-pink', primary || '#a65d80')
     root.style.setProperty('--vet-rose', primary || '#a65d80')
     root.style.setProperty('--vet-bone', secondary || '#fdf2f7')
+    root.style.setProperty('--vet-text-primary', primaryText || '#111827')
+    root.style.setProperty('--vet-text-secondary', secondaryText || '#6b7280')
   }, [])
 
   const fetchConfig = useCallback(async () => {
@@ -88,7 +90,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
 
         setConfig(finalData as ClinicConfig)
-        applyColors(finalData.primary_color, finalData.secondary_color)
+        applyColors(finalData.primary_color, finalData.secondary_color, finalData.primary_text_color, finalData.secondary_text_color)
       } else {
         // Solo intentamos auto-crear si parece un UUID válido (no un slug)
         const isUUID = /^[0-9a-fA-F-]{36}$/.test(currentClinicId);
@@ -104,7 +106,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
             .single()
           if (newC) {
             setConfig(newC as ClinicConfig)
-            applyColors(newC.primary_color, newC.secondary_color)
+            applyColors(newC.primary_color, newC.secondary_color, newC.primary_text_color, newC.secondary_text_color)
           }
         }
       }

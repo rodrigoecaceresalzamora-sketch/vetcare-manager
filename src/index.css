@@ -9,4 +9,9 @@
   --vet-light: #ffffff;
   --vet-amber: #e8a020;
   --vet-bone: #fdf2f7;
+  --vet-text-primary: #111827;
+  --vet-text-secondary: #6b7280;
 }
+
+.text-vet-primary { color: var(--vet-text-primary); }
+.text-vet-secondary { color: var(--vet-text-secondary); }

@@ -270,6 +270,10 @@ export interface ClinicConfig {
   clinic_id: string
   smtp_email?: string
   smtp_password?: string
+  booking_limit_notice?: string
+  show_booking_limit_notice?: boolean
+  primary_text_color?: string
+  secondary_text_color?: string
   created_at?: string
   updated_at?: string
 }

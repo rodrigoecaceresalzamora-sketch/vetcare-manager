@@ -373,8 +373,8 @@ export function PublicBooking() {
               <polyline points="20 6 9 17 4 12"/>
             </svg>
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3 uppercase tracking-tight">¡RESERVA SOLICITADA! ✨</h2>
-          <p className="text-sm text-gray-500 leading-relaxed mb-8">
+          <h2 className="text-2xl font-bold text-vet-primary mb-3 uppercase tracking-tight">¡RESERVA SOLICITADA! ✨</h2>
+          <p className="text-sm text-vet-secondary leading-relaxed mb-8">
             Tu hora para <strong className="text-gray-800">{form.pet_name}</strong> ha sido enviada correctamente.
             Quedará registrada como <strong className="text-amber-600">pendiente</strong> hasta ser
             confirmada por la veterinaria.
@@ -440,9 +440,14 @@ export function PublicBooking() {
             </div>
 
             <h3 className="font-bold text-vet-rose text-xs mb-1">🏠 Consultas a Domicilio</h3>
-            <p className="text-[10px] text-gray-600 mb-4 px-2 py-1 bg-white/50 rounded-lg">
+            <p className="text-[10px] text-gray-600 mb-2 px-2 py-1 bg-white/50 rounded-lg">
               Para atención a domicilio, por favor contactar directamente por WhatsApp al <strong className="text-green-600">{config?.contact_phone}</strong>. No agendar por este medio.
             </p>
+            {config?.show_booking_limit_notice && (
+              <p className="text-[10px] text-amber-700 bg-amber-50 px-2 py-1 rounded-lg border border-amber-100/50 mb-4 font-bold flex items-center gap-1">
+                <span>⚠️</span> {config.booking_limit_notice || 'No se atiende fuera de Quilpué y alrededores.'}
+              </p>
+            )}
 
             {config?.advance_payment_percentage && config?.advance_payment_percentage > 0 && (
               <>
@@ -455,7 +460,7 @@ export function PublicBooking() {
                 </div>
               </>
             )}
-            <p className="text-[10px] text-gray-500 mt-3 p-2 bg-white rounded-lg border border-vet-rose/10 italic">
+            <p className="text-[10px] text-vet-secondary mt-3 p-2 bg-white rounded-lg border border-vet-rose/10 italic">
               * Los abonos no son reembolsables en caso de inasistencia. No atendemos urgencias graves, en dicho caso acude a un hospital 24 hrs.
             </p>
           </div>
@@ -477,10 +482,10 @@ export function PublicBooking() {
               >
                 <div className="flex justify-between items-start">
                   <div className="text-2xl mb-2">{svc.icon || '🩺'}</div>
-                  <span className="text-sm font-bold text-gray-900">${svc.price.toLocaleString('es-CL')}</span>
+                  <span className="text-sm font-bold text-vet-primary">${svc.price.toLocaleString('es-CL')}</span>
                 </div>
-                <p className="text-sm font-medium text-gray-900">{svc.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{svc.description}</p>
+                <p className="text-sm font-medium text-vet-primary">{svc.name}</p>
+                <p className="text-xs text-vet-secondary mt-0.5 line-clamp-2">{svc.description}</p>
                 <div className="flex justify-between items-center mt-2">
                   <span className="text-xs text-vet-rose font-medium">⏱ {svc.duration_minutes} min</span>
                   {incompatible && <span className="text-[9px] font-black uppercase text-red-500 bg-red-50 px-2 py-0.5 rounded border border-red-100">Solo {svc.target_species}s</span>}
@@ -556,11 +561,11 @@ export function PublicBooking() {
           <div className="bg-vet-light/50 border border-vet-rose/20 rounded-xl p-3 flex flex-wrap gap-x-4 gap-y-1 justify-between items-start">
             <div>
               <span className="text-xs text-vet-dark block"><strong>{service?.icon}</strong> {service?.name}</span>
-              <span className="text-xs text-gray-500 block mt-1">{availableDates.find(d => d.value === date)?.label} · {time}</span>
+              <span className="text-xs text-vet-secondary block mt-1">{availableDates.find(d => d.value === date)?.label} · {time}</span>
               {consultationReason && <span className="text-xs text-gray-400 block mt-0.5 italic">{consultationReason}</span>}
             </div>
             <div className="text-right">
-              <span className="text-xs text-gray-500 block">A pagar hoy (Abono {config?.advance_payment_percentage}%)</span>
+              <span className="text-xs text-vet-secondary block">A pagar hoy (Abono {config?.advance_payment_percentage}%)</span>
               <span className="text-sm font-black text-vet-rose">${((service?.price || 0) * (config?.advance_payment_percentage || 0) / 100).toLocaleString('es-CL')}</span>
             </div>
           </div>
@@ -591,8 +596,8 @@ export function PublicBooking() {
                 />
               ) : (
                 <>
-                  <h3 className="text-sm font-bold text-gray-900 mb-2">Identifícate para agendar</h3>
-                  <p className="text-[10px] text-gray-500 mb-6">Para continuar con la reserva, necesitamos saber quién eres.</p>
+                  <h3 className="text-sm font-bold text-vet-primary mb-2">Identifícate para agendar</h3>
+                  <p className="text-[10px] text-vet-secondary mb-6">Para continuar con la reserva, necesitamos saber quién eres.</p>
                   <button 
                     onClick={() => setShowLogin(true)}
                     className="inline-block px-8 py-3 bg-vet-rose text-white text-xs font-bold rounded-xl hover:bg-vet-dark transition-all shadow-lg shadow-vet-rose/20"

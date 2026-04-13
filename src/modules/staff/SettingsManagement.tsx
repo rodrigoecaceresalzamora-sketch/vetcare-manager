@@ -230,6 +230,58 @@ export function SettingsManagement() {
                       <div className="h-10 rounded-2xl w-full flex items-center justify-center text-[10px] font-bold" style={{ backgroundColor: localConfig.primary_color, color: 'white' }}>BOTÓN DE EJEMPLO</div>
                    </div>
                 </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <h3 className="text-sm font-black text-gray-900 border-l-4 border-vet-rose pl-3">Aviso de Área de Cobertura</h3>
+                  <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-gray-700">Mostrar aviso de limitación</p>
+                      <p className="text-[10px] text-gray-400">Activa o desactiva el mensaje de advertencia sobre la ubicación de servicio.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={!!localConfig.show_booking_limit_notice}
+                        onChange={e => set('show_booking_limit_notice', e.target.checked)}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vet-rose"></div>
+                    </label>
+                  </div>
+                  
+                  {localConfig.show_booking_limit_notice && (
+                    <div className="animate-fade-in">
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">Mensaje de Aviso</label>
+                      <textarea 
+                        className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm outline-none focus:ring-2 focus:ring-vet-rose/20"
+                        rows={2}
+                        value={localConfig.booking_limit_notice || ''}
+                        onChange={e => set('booking_limit_notice', e.target.value)}
+                        placeholder="Ej: Solo atendemos en Quilpué y alrededores."
+                      />
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <h3 className="text-sm font-black text-gray-900 border-l-4 border-vet-rose pl-3">Colores de Texto</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">Color de Títulos</label>
+                      <div className="flex gap-2 items-center">
+                         <input type="color" className="w-10 h-10 rounded-lg cursor-pointer border-0 shadow-sm" value={localConfig.primary_text_color || '#111827'} onChange={e => set('primary_text_color', e.target.value)} />
+                         <span className="text-xs font-mono text-gray-400">{localConfig.primary_text_color || '#111827'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-500 mb-1.5 block">Color de Párrafos</label>
+                      <div className="flex gap-2 items-center">
+                         <input type="color" className="w-10 h-10 rounded-lg cursor-pointer border-0 shadow-sm" value={localConfig.secondary_text_color || '#6b7280'} onChange={e => set('secondary_text_color', e.target.value)} />
+                         <span className="text-xs font-mono text-gray-400">{localConfig.secondary_text_color || '#6b7280'}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </section>
 
               <section className="p-8 bg-gray-900 rounded-[2.5rem] text-white flex flex-col items-center justify-center text-center relative overflow-hidden">

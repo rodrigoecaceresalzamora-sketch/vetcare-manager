@@ -171,10 +171,10 @@ export function TutorView() {
               <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-8 h-8 object-contain rounded-md" />
             </div>
             <div className="min-w-0">
-              <h1 className="text-lg font-black text-gray-900 leading-none uppercase tracking-tight truncate">
+              <h1 className="text-lg font-black text-vet-primary leading-none uppercase tracking-tight truncate">
                 {config?.clinic_name || 'VETCARE'}
               </h1>
-              <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Portal del Tutor</p>
+              <p className="text-[10px] text-vet-secondary uppercase tracking-widest font-bold">Portal del Tutor</p>
             </div>
           </div>
 
@@ -213,8 +213,8 @@ export function TutorView() {
             />
             <div>
               <p className="text-xs font-black text-vet-rose uppercase tracking-[0.2em] mb-1">¡Hola de nuevo!</p>
-              <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tight">MI PANEL DE MASCOTAS</h2>
-              <p className="text-gray-500 text-sm font-medium">Gestiona consultas y vacunas en {config?.clinic_name || 'la veterinaria'}.</p>
+              <h2 className="text-3xl font-black text-vet-primary uppercase tracking-tight">MI PANEL DE MASCOTAS</h2>
+              <p className="text-vet-secondary text-sm font-medium">Gestiona consultas y vacunas en {config?.clinic_name || 'la veterinaria'}.</p>
             </div>
           </div>
         </div>
@@ -233,8 +233,8 @@ export function TutorView() {
              <div className="w-20 h-20 bg-vet-bone rounded-3xl flex items-center justify-center text-4xl mx-auto mb-6 shadow-inner ring-1 ring-vet-rose/20">
                🐾
              </div>
-            <h3 className="text-2xl font-black text-gray-900 mb-2 uppercase tracking-tight">Bienvenido a {config?.clinic_name || 'nuestro portal'}</h3>
-            <p className="text-gray-500 text-sm mb-10 max-w-sm mx-auto font-medium leading-relaxed">
+            <h3 className="text-2xl font-black text-vet-primary mb-2 uppercase tracking-tight">Bienvenido a {config?.clinic_name || 'nuestro portal'}</h3>
+            <p className="text-vet-secondary text-sm mb-10 max-w-sm mx-auto font-medium leading-relaxed">
               Aún no tienes mascotas registradas o citas con nosotros. Agenda tu primera consulta hoy mismo para empezar tu historial clínico.
             </p>
             <Link 
@@ -276,7 +276,7 @@ export function TutorView() {
                     </div>
                   </div>
 
-                  <h3 className="text-2xl font-black text-gray-900 mb-6">{pet.name}</h3>
+                  <h3 className="text-2xl font-black text-vet-primary mb-6">{pet.name}</h3>
 
                   <div className="space-y-4">
                     {/* Citas */}
@@ -418,7 +418,7 @@ export function TutorView() {
               </div>
               <h3 className="text-lg font-bold text-gray-600 group-hover:text-vet-dark mb-2">Otra Mascota</h3>
               <p className="text-xs text-gray-400 mb-6 px-4 font-medium">Agenda una consulta para un nuevo integrante de la familia.</p>
-              <span className="px-6 py-2.5 bg-white border border-gray-200 text-gray-500 text-xs font-black uppercase tracking-widest rounded-xl group-hover:bg-vet-rose group-hover:text-white group-hover:border-vet-rose transition-all shadow-sm">
+              <span className="px-6 py-2.5 bg-white border border-gray-200 text-vet-secondary text-xs font-black uppercase tracking-widest rounded-xl group-hover:bg-vet-rose group-hover:text-white group-hover:border-vet-rose transition-all shadow-sm">
                 Agendar Consulta ✨
               </span>
             </Link>
