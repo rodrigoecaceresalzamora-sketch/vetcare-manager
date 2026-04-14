@@ -97,7 +97,7 @@ export function useVaccineAlerts() {
         vaccine_name: input.vaccine_name,
         applied_date: input.applied_date,
         lot_number: input.lot_number,
-        lot_number_2: input.lot_number_2 || null,
+        lot_number_2: input.lot_number_2 || undefined,
         next_due_date,
         reminder_sent: false,
         clinic_id: clinicId || ''
