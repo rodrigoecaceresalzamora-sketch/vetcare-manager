@@ -206,11 +206,11 @@ export function TutorView() {
         <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-between">
           <div className="flex items-center gap-4">
             <div className="w-12 h-12 bg-vet-rose rounded-xl flex items-center justify-center shadow-md rotate-3 flex-shrink-0">
-              <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-8 h-8 object-contain rounded-md" />
+              <img src={config?.clinic_logo_url || "/logo.png"} alt="Vetxora" className="w-8 h-8 object-contain rounded-md" />
             </div>
             <div className="min-w-0">
               <h1 className="text-lg font-black text-vet-primary leading-none uppercase tracking-tight truncate">
-                {config?.clinic_name || 'VETCARE'}
+                {config?.clinic_name || 'VETXORA'}
               </h1>
               <p className="text-[10px] text-vet-secondary uppercase tracking-widest font-bold">Portal del Tutor</p>
             </div>

@@ -1,5 +1,5 @@
 // ============================================================
-// VetCare Manager — Edge Function: confirm-booking
+// Vetxora — Edge Function: confirm-booking
 // Gmail SMTP (nodemailer) — Soporte Multi-Tipo y Plantillas
 // ============================================================
 
@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     }
 
     // Generar link de Portal/Reserva
-    const baseUrl = 'https://vetcare-manager.vercel.app'
+    const baseUrl = 'https://vetxora.vercel.app'
     const portalUrl = `${baseUrl}/c/${clinic.slug || clinic.clinic_id}`
     const bookingUrl = `${baseUrl}/reserva/${clinic.slug || clinic.clinic_id}`
 

@@ -15,7 +15,7 @@ export function LandingPage() {
             <div className="w-10 h-10 bg-vet-rose rounded-xl flex items-center justify-center p-2">
               <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="text-xl font-black uppercase tracking-tighter text-gray-900">VetCare Manager</span>
+            <span className="text-xl font-black uppercase tracking-tighter text-gray-900">Vetxora</span>
           </div>
           
           <h1 className="text-3xl font-black text-gray-900 mb-4 leading-tight">Acceso al Portal</h1>
@@ -34,20 +34,20 @@ export function LandingPage() {
            <div className="inline-block px-3 py-1 bg-vet-rose text-[10px] font-black uppercase tracking-widest rounded-full w-fit mb-4">
               Para Veterinarios
            </div>
-           <h2 className="text-3xl font-black mb-4 leading-tight">Obtén VetCare Manager</h2>
-             Agenda, fichas clínicas e historial en una sola plataforma profesional.
+           <h2 className="text-3xl font-black mb-4 leading-tight">Obtén Vetxora</h2>
+              Agenda, fichas clínicas e historial en una sola plataforma profesional.
            
            <Link 
             to="/facturacion"
             className="w-full py-5 bg-white text-gray-900 rounded-2xl font-black text-center hover:bg-vet-rose hover:text-white transition-all active:scale-95 shadow-xl"
           >
-            Comprar VetCare Manager
+            Comprar Vetxora
           </Link>
         </div>
       </div>
 
       <footer className="mt-10 text-center">
-        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">&copy; 2026 VetCare Manager. Todos los derechos reservados.</p>
+        <p className="text-gray-400 font-bold uppercase text-[10px] tracking-widest">&copy; 2026 Vetxora. Todos los derechos reservados.</p>
       </footer>
     </div>
   )

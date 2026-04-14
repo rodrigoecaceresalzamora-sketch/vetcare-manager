@@ -1,5 +1,5 @@
 // ============================================================
-// VetCare Manager — App.tsx
+// Vetxora — App.tsx
 // Enrutamiento principal y layout de la aplicación.
 //
 // Rutas internas (requieren auth):
@@ -199,13 +199,13 @@ function Sidebar({ isCollapsed, onToggle }: { isCollapsed: boolean; onToggle: ()
       <div className={`px-4 py-6 border-b border-gray-100 flex flex-col ${isCollapsed ? 'items-center' : ''}`}>
         <img 
           src={config?.clinic_logo_url || "/logo.png"} 
-          alt="VetCare Logo" 
+          alt="Vetxora Logo" 
           className={`${isCollapsed ? 'w-8 h-8' : 'w-12 h-12'} transition-all object-cover rounded-xl mb-3 shadow-sm border border-pink-100`} 
         />
         {!isCollapsed && (
           <>
             <h1 className="text-black text-sm font-bold leading-tight uppercase tracking-tight">
-              {config?.clinic_name || 'VetCare Manager'}
+              {config?.clinic_name || 'Vetxora'}
             </h1>
           </>
         )}

@@ -1,5 +1,5 @@
 // ============================================================
-// VetCare Manager — Edge Function: send-vaccine-reminder
+// Vetxora — Edge Function: send-vaccine-reminder
 // Gmail SMTP (nodemailer) — Con Debug Detallado
 // ============================================================
 
@@ -46,7 +46,7 @@ Deno.serve(async (req) => {
     const nextDueStr = vacc.next_due_date || ''
 
     // Generar link de Portal/Reserva
-    const baseUrl = 'https://vetcare-manager.vercel.app'
+    const baseUrl = 'https://vetxora.vercel.app'
     const portalUrl = `${baseUrl}/c/${clinic.slug || clinic.clinic_id}`
     const bookingUrl = `${baseUrl}/reserva/${clinic.slug || clinic.clinic_id}`
 

@@ -1,8 +1,8 @@
 @echo off
-title 🐾 VetCare Manager — Actualizar Web en la Nube
+title 🐾 Vetxora — Actualizar Web en la Nube
 color 0b
 echo ===========================================
-echo    ACTUALIZANDO VETCARE MANAGER... 🚀
+echo    ACTUALIZANDO VETXORA... 🚀
 echo ===========================================
 echo.
 echo [1/3] Guardando cambios locales...

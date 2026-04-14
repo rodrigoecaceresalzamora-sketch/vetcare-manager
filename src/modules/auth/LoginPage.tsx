@@ -191,7 +191,7 @@ export function LoginPage() {
           <h2 className="text-2xl font-black text-indigo-900 mb-4 uppercase tracking-tight">¡Activa tu Cuenta!</h2>
           <p className="text-gray-600 text-sm leading-relaxed mb-8">
             Hemos enviado un enlace de confirmación a <strong className="text-gray-900 lowercase">{email}</strong>.<br /><br />
-            Por seguridad, debes hacer clic en el enlace del correo para poder entrar a <strong>VetCare Manager</strong>.
+            Por seguridad, debes hacer clic en el enlace del correo para poder entrar a <strong>Vetxora</strong>.
           </p>
           <button
             onClick={() => setShowConfirmationNotice(false)}
@@ -211,7 +211,7 @@ export function LoginPage() {
       <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
         {/* Brand */}
         <div className="text-center mb-8">
-          <h1 className="text-2xl font-black text-indigo-900">VetCare Manager</h1>
+          <h1 className="text-2xl font-black text-indigo-900">Vetxora</h1>
           <p className="text-gray-400 text-[10px] font-bold mt-1 uppercase tracking-widest">Gestión Veterinaria</p>
         </div>
 

@@ -1,5 +1,5 @@
 // ============================================================
-// VetCare Manager — PatientDetail.tsx
+// Vetxora — PatientDetail.tsx
 // Ficha Clínica del paciente: Header, Histórico, Archivos
 // ============================================================
 

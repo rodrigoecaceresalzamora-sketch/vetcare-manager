@@ -66,7 +66,7 @@ export function Onboarding() {
            <div className="inline-block w-16 h-16 bg-vet-rose rounded-2xl p-4 mb-4 shadow-xl shadow-vet-rose/20 rotate-3">
               <img src="/logo.png" className="w-full h-full object-contain" alt="Logo" />
            </div>
-           <h1 className="text-2xl font-black text-gray-900 leading-tight">¡Bienvenido a VetCare!</h1>
+           <h1 className="text-2xl font-black text-gray-900 leading-tight">¡Bienvenido a Vetxora!</h1>
            <p className="text-gray-500 text-sm mt-1">Configura tu centro veterinario para comenzar.</p>
         </div>
 

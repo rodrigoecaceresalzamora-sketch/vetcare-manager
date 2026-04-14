@@ -1,7 +1,7 @@
 @echo off
-title 🐾 VetCare Manager — Iniciador Portatil
+title 🐾 Vetxora — Iniciador Portatil
 echo ===========================================
-echo    INICIANDO VETCARE MANAGER... 🐾
+echo    INICIANDO VETXORA... 🐾
 echo ===========================================
 echo.
 REM %~dp0 es la carpeta donde vive este archivo .bat

@@ -5,7 +5,7 @@ export function NoLicense() {
 
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center p-10 text-center font-sans">
-      <h1 className="text-4xl font-black text-gray-900 mb-4 uppercase tracking-tighter">NO TIENES VETCARE MANAGER</h1>
+      <h1 className="text-4xl font-black text-gray-900 mb-4 uppercase tracking-tighter">NO TIENES VETXORA</h1>
       <p className="text-xl font-bold text-gray-400 mb-10 uppercase tracking-widest">CÓMPRALO</p>
       
       <button 

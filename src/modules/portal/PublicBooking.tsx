@@ -425,7 +425,7 @@ export function PublicBooking() {
         <section>
            <div className="bg-vet-rose/10 border-l-4 border-vet-rose p-4 rounded-r-xl mb-6">
             <h3 className="font-black text-vet-dark text-sm mb-2 flex items-center gap-2">
-              📍 Atención en Tienda: {config?.clinic_name || 'VetCare'}
+              📍 Atención en Tienda: {config?.clinic_name || 'Vetxora'}
             </h3>
             <p className="text-xs text-gray-700 leading-relaxed mb-3">
               <strong>Dirección:</strong> {config?.address}<br/>
@@ -908,14 +908,14 @@ function PortalShell({ children }: { children: React.ReactNode }) {
       <header className="bg-vet-pink py-4 px-4 shadow-lg border-b border-white/10">
         <div className="max-w-2xl mx-auto flex items-center gap-3 text-white">
           <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-sm border border-white/20">
-            <img src={config?.clinic_logo_url || "/logo.png"} alt="VetCare" className="w-7 h-7 object-contain rounded-lg" />
+            <img src={config?.clinic_logo_url || "/logo.png"} alt="Vetxora" className="w-7 h-7 object-contain rounded-lg" />
           </div>
-          <span className="font-black text-sm uppercase tracking-[0.2em]">{config?.clinic_name || 'VetCare'} — Gestión Clínica</span>
+          <span className="font-black text-sm uppercase tracking-[0.2em]">{config?.clinic_name || 'Vetxora'} — Gestión Clínica</span>
         </div>
       </header>
       <main className="max-w-2xl mx-auto px-4 py-6">{children}</main>
       <footer className="text-center py-10 px-4 text-[10px] text-gray-400 font-black uppercase tracking-[0.3em]">
-        &copy; {new Date().getFullYear()} {config?.clinic_name || 'VetCare'} &middot; Todos los derechos reservados
+        &copy; {new Date().getFullYear()} {config?.clinic_name || 'Vetxora'} &middot; Todos los derechos reservados
       </footer>
     </div>
   )

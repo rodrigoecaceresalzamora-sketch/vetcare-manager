@@ -14,20 +14,20 @@ interface ClinicConfigContextType {
 const ClinicConfigContext = createContext<ClinicConfigContextType | undefined>(undefined)
 
 const SOFIA_DEFAULTS = {
-  clinic_name: 'VetCare Principal',
+  clinic_name: 'Vetxora Principal',
   primary_color: '#e11d48',
   secondary_color: '#fdf2f8',
   contact_phone: '+56951045611',
   contact_email: 'scaceresalzamora@gmail.com',
   address: 'San Enrique 1380, Retiro, Quilpué',
   transfer_details: 'NOMBRE: SOFIA CACERES\nBANCO: BANCO ESTADO\nCTA RUT: 12345678\nCORREO: scaceresalzamora@gmail.com',
-  clinic_logo_url: 'https://raw.githubusercontent.com/rodrigoecaceresalzamora-sketch/vetcare-manager/main/public/logo.png',
+  clinic_logo_url: 'https://raw.githubusercontent.com/rodrigoecaceresalzamora-sketch/vetxora/main/public/logo.png',
   schedule: {"1": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "2": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "3": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "4": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "5": ["10:00", "11:00", "12:00", "15:00", "16:00", "17:00", "18:00"], "6": ["10:00", "11:00", "12:00", "13:00"]},
   wa_template_cancellation: 'Hola {tutor}, lamentamos informarte que tu cita para {mascota} el día {fecha} ha sido cancelada.',
-  email_subject_cancellation: 'Cita Cancelada - VetCare',
+  email_subject_cancellation: 'Cita Cancelada - Vetxora',
   email_body_cancellation: 'Hola {tutor}, tu cita para {mascota} programada para el día {fecha} ha sido cancelada. Si tienes dudas, contáctanos.',
   wa_template_rescheduled: 'Hola {tutor}, tu cita para {mascota} ha sido reprogramada para el día {fecha} a las {hora}.',
-  email_subject_rescheduled: 'Cita Reprogramada - VetCare',
+  email_subject_rescheduled: 'Cita Reprogramada - Vetxora',
   email_body_rescheduled: 'Hola {tutor}, te informamos que tu cita para {mascota} ha sido movida al día {fecha} a las {hora}.',
   smtp_email: 'scaceresalzamora@gmail.com',
   smtp_password: '' // El usuario debe llenar esto con su contraseña de aplicación
@@ -97,7 +97,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         if (isUUID) {
           const insertData = user?.email === 'scaceresalzamora@gmail.com' 
             ? { clinic_id: currentClinicId, ...SOFIA_DEFAULTS }
-            : { clinic_id: currentClinicId, clinic_name: 'VetCare Manager' };
+            : { clinic_id: currentClinicId, clinic_name: 'Vetxora' };
 
           const { data: newC } = await supabase
             .from('clinic_config')
@@ -126,7 +126,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (config?.clinic_name) {
       document.title = config.clinic_name
     } else {
-      document.title = 'VetCare Manager'
+      document.title = 'Vetxora'
     }
   }, [config?.clinic_name])
 
