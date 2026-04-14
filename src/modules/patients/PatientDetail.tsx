@@ -10,7 +10,7 @@ import { ConsultationForm } from './ConsultationForm'
 import { PatientForm } from './PatientForm'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
-import { useClinicConfig } from '../../contexts/ClinicConfigContext'
+
 import { speciesEmoji, calcVaccineStatus } from '../../lib/utils'
 import type { Consultation } from '../../types'
 
@@ -59,7 +59,7 @@ export function PatientDetail() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [selectedFile, setSelectedFile] = useState<{ name: string, url: string } | null>(null)
-  const { config } = useClinicConfig()
+
 
   function showToast(msg: string) {
     setToast(msg)
