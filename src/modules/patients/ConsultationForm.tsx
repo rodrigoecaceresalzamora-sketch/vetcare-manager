@@ -4,7 +4,7 @@
 // ============================================================
 
 import { useState, useEffect } from 'react'
-import type { BoostInterval, Consultation, Service } from '../../types'
+import type { Consultation, Service } from '../../types'
 import { supabase } from '../../lib/supabase'
 
 interface Props {

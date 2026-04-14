@@ -90,6 +90,7 @@ export interface Vaccination {
   vaccine_name: string
   applied_date: string   // ISO date
   lot_number: string
+  lot_number_2?: string
   next_due_date: string  // Calculada automáticamente
   reminder_sent: boolean
   clinic_id: string

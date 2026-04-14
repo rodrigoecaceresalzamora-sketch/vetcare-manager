@@ -274,9 +274,9 @@ const inputCls =
   'focus:outline-none focus:ring-2 focus:ring-vet-rose/20 focus:border-vet-rose ' +
   'transition-colors text-gray-900'
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({ label, children, className = "" }: { label: string; children: React.ReactNode; className?: string }) {
   return (
-    <div className="flex flex-col gap-1">
+    <div className={`flex flex-col gap-1 ${className}`}>
       <label className="text-xs text-gray-500 font-medium">{label}</label>
       {children}
     </div>
