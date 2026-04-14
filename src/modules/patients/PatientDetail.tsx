@@ -236,9 +236,7 @@ export function PatientDetail() {
                         await supabase.functions.invoke('confirm-booking', {
                           body: { 
                             appointment_id: next.id,
-                            type: 'reminder',
-                            custom_subject: replaceAll(emailSubject),
-                            custom_body: replaceAll(emailBody)
+                            type: 'reminder'
                           },
                         })
                         showToast('✉️ Email enviado correctamente')

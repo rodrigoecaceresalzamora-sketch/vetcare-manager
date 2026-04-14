@@ -1,5 +1,5 @@
 // ============================================================
-// VetCare Manager — Módulo 3: AppointmentModal
+// Vetxora — Módulo 3: AppointmentModal
 //
 // Modal para crear citas internas.
 // Al guardar, intenta sincronizar con Google Calendar
@@ -11,6 +11,7 @@ import { supabase } from '../../lib/supabase'
 import { usePatients } from '../patients/usePatients'
 import { PatientForm } from '../patients/PatientForm'
 import { useAuth } from '../../contexts/AuthContext'
+import { useClinicConfig } from '../../contexts/ClinicConfigContext'
 import type { Appointment, AppointmentFormData, Service, AppointmentService } from '../../types'
 import { 
   generateId, 
@@ -65,6 +66,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
   
   const { patients, savePatient } = usePatients()
   const { role, clinicId } = useAuth()
+  const { config: clinic } = useClinicConfig()
   const [showPatientForm, setShowPatientForm] = useState(false)
   const [saving, setSaving]     = useState(false)
   const [fieldError, setFieldError] = useState('')
@@ -627,7 +629,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                               ? `\n\nMotivo indicado: ${form.notes.trim()}`
                               : ''
                             
-                            const msg = `Hola ${form.guardian_name}, le escribimos de VetCare para informarle que la hora para ${form.pet_name} ha sido confirmada.\n\nServicio: ${form.service}\nDia: ${dayStr}\nHora: ${timeStr}${motivo}\n\nLe esperamos. Recuerde ser puntual.`
+                            const msg = `Hola ${form.guardian_name}, le escribimos de ${clinic?.clinic_name || 'Vetxora'} para informarle que la hora para ${form.pet_name} ha sido confirmada.\n\nServicio: ${form.service}\nDia: ${dayStr}\nHora: ${timeStr}${motivo}\n\nLe esperamos. Recuerde ser puntual.`
                             
                             window.open(`https://wa.me/${phoneNum}?text=${encodeURIComponent(msg)}`, '_blank')
                           } catch (e) {
