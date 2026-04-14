@@ -42,134 +42,144 @@ export function VaccineForm({ onClose, onSaved, preselectedPatientId }: Props) {
   const [appliedDate, setAppliedDate] = useState(
     new Date().toISOString().split('T')[0]
   )
-  const [lotNumber, setLotNumber]   = useState('')
-  const [boost, setBoost]           = useState<BoostInterval>('1y')
-  const [saving, setSaving]         = useState(false)
-  const [fieldError, setFieldError] = useState('')
-  const [showPatientForm, setShowPatientForm] = useState(false)
-
-  const selectedPatient = patients.find((p) => p.id === patientId)
-
-  // Fecha calculada del próximo refuerzo
-  const previewDate =
-    appliedDate ? calcNextDueDate(appliedDate, boost, selectedPatient?.date_of_birth) : null
-
-  // Cargar lista de pacientes para el selector
-  function loadPatientsList() {
-    supabase
-      .from('patients')
-      .select('id, name, species, breed')
-      .eq('clinic_id', clinicId)
-      .eq('status', 'activo')
-      .order('name')
-      .then(({ data }) => {
-        if (data) setPatients(data as Patient[])
-      })
-  }
-
-  useEffect(() => {
-    loadPatientsList()
-  }, [])
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setFieldError('')
-
-    if (!patientId)    return setFieldError('Selecciona un paciente')
-    if (!vaccineName)  return setFieldError('Ingresa el nombre de la vacuna')
-    if (!appliedDate)  return setFieldError('Ingresa la fecha de aplicación')
-
-    setSaving(true)
-    const { error } = await saveVaccination({
-      patient_id:    patientId,
-      vaccine_name:  vaccineName,
-      applied_date:  appliedDate,
-      lot_number:    lotNumber,
-      boost_interval: boost,
-      patient_date_of_birth: selectedPatient?.date_of_birth,
-    })
-    setSaving(false)
-
-    if (error) {
-      setFieldError('Error al guardar: ' + error)
-      return
-    }
-
-    const pat = patients.find((p) => p.id === patientId)
-    onSaved(pat?.name ?? 'paciente')
-  }
-
-  return (
-    // Overlay
-    <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
-
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4
-                        border-b border-pink-100">
-          <h2 className="text-base font-medium text-gray-900">
-            Registrar vacuna
-          </h2>
-          <button
-            onClick={onClose}
-            className="w-7 h-7 flex items-center justify-center rounded-lg
-                       bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors
-                       text-sm"
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Formulario */}
-        <form onSubmit={handleSubmit} className="p-5 space-y-4">
-
-          {/* Paciente */}
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <label className="text-xs text-gray-500 font-medium">Paciente</label>
-              <button
-                type="button"
-                onClick={() => setShowPatientForm(true)}
-                className="text-[10px] text-vet-rose hover:underline font-medium px-1"
-              >
-                + Nuevo Paciente
-              </button>
-            </div>
-            <select
-              value={patientId}
-              onChange={(e) => setPatientId(e.target.value)}
-              className={inputCls}
-              required
-            >
-              <option value="">Seleccionar paciente…</option>
-              {patients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name} — {p.species} {p.breed}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Vacuna + lote */}
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Nombre de la vacuna">
-              <input
-                className={inputCls}
-                value={vaccineName}
-                onChange={(e) => setVaccineName(e.target.value)}
-                placeholder="Ej: Polivalente"
-                required
-              />
-            </Field>
-            <Field label="N° de lote">
-              <input
-                className={inputCls}
-                value={lotNumber}
-                onChange={(e) => setLotNumber(e.target.value)}
-                placeholder="POL2501"
-              />
-            </Field>
-          </div>
+          const [lotNumber, setLotNumber]    = useState('')
+          const [lotNumber2, setLotNumber2]  = useState('')
+          const [boost, setBoost]            = useState<BoostInterval>('1y')
+          const [saving, setSaving]         = useState(false)
+          const [fieldError, setFieldError] = useState('')
+          const [showPatientForm, setShowPatientForm] = useState(false)
+          
+          const selectedPatient = patients.find((p) => p.id === patientId)
+          
+          // Fecha calculada del próximo refuerzo
+          const previewDate =
+            appliedDate ? calcNextDueDate(appliedDate, boost, selectedPatient?.date_of_birth) : null
+          
+          // Cargar lista de pacientes para el selector
+          function loadPatientsList() {
+            supabase
+              .from('patients')
+              .select('id, name, species, breed')
+              .eq('clinic_id', clinicId)
+              .eq('status', 'activo')
+              .order('name')
+              .then(({ data }) => {
+                if (data) setPatients(data as Patient[])
+              })
+          }
+          
+          useEffect(() => {
+            loadPatientsList()
+          }, [])
+          
+          async function handleSubmit(e: React.FormEvent) {
+            e.preventDefault()
+            setFieldError('')
+          
+            if (!patientId)    return setFieldError('Selecciona un paciente')
+            if (!vaccineName)  return setFieldError('Ingresa el nombre de la vacuna')
+            if (!appliedDate)  return setFieldError('Ingresa la fecha de aplicación')
+          
+            setSaving(true)
+            const { error } = await saveVaccination({
+              patient_id:    patientId,
+              vaccine_name:  vaccineName,
+              applied_date:  appliedDate,
+              lot_number:    lotNumber,
+              lot_number_2:  lotNumber2,
+              boost_interval: boost,
+              patient_date_of_birth: selectedPatient?.date_of_birth,
+            })
+            setSaving(false)
+          
+            if (error) {
+              setFieldError('Error al guardar: ' + error)
+              return
+            }
+          
+            const pat = patients.find((p) => p.id === patientId)
+            onSaved(pat?.name ?? 'paciente')
+          }
+          
+          return (
+            // Overlay
+            <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
+              <div className="bg-white rounded-2xl w-full max-w-md shadow-xl overflow-hidden">
+          
+                {/* Header */}
+                <div className="flex items-center justify-between px-5 py-4
+                                border-b border-pink-100">
+                  <h2 className="text-base font-medium text-gray-900">
+                    Registrar vacuna
+                  </h2>
+                  <button
+                    onClick={onClose}
+                    className="w-7 h-7 flex items-center justify-center rounded-lg
+                               bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors
+                               text-sm"
+                  >
+                    ✕
+                  </button>
+                </div>
+          
+                {/* Formulario */}
+                <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          
+                  {/* Paciente */}
+                  <div className="flex flex-col gap-1">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs text-gray-500 font-medium">Paciente</label>
+                      <button
+                        type="button"
+                        onClick={() => setShowPatientForm(true)}
+                        className="text-[10px] text-vet-rose hover:underline font-medium px-1"
+                      >
+                        + Nuevo Paciente
+                      </button>
+                    </div>
+                    <select
+                      value={patientId}
+                      onChange={(e) => setPatientId(e.target.value)}
+                      className={inputCls}
+                      required
+                    >
+                      <option value="">Seleccionar paciente…</option>
+                      {patients.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} — {p.species} {p.breed}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+          
+                  {/* Vacuna + lote */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <Field label="Nombre de la vacuna" className="md:col-span-2">
+                      <input
+                        className={inputCls}
+                        value={vaccineName}
+                        onChange={(e) => setVaccineName(e.target.value)}
+                        placeholder="Ej: Polivalente"
+                        required
+                      />
+                    </Field>
+                    <Field label="N° de lote 1">
+                      <input
+                        className={inputCls}
+                        value={lotNumber}
+                        onChange={(e) => setLotNumber(e.target.value)}
+                        placeholder="Lote A"
+                      />
+                    </Field>
+                    <Field label="N° de lote 2 (Opcional)">
+                      <input
+                        className={inputCls}
+                        value={lotNumber2}
+                        onChange={(e) => setLotNumber2(e.target.value)}
+                        placeholder="Lote B"
+                      />
+                    </Field>
+                  </div>
 
           {/* Fecha aplicación + refuerzo */}
           <div className="grid grid-cols-2 gap-3">

@@ -355,12 +355,12 @@ function DeveloperBugButton() {
       href="https://wa.me/56974272664"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-20 md:bottom-8 right-6 z-[60] group flex items-center gap-3 bg-[#25D366] text-white pl-4 pr-6 py-3 rounded-2xl shadow-2xl hover:brightness-110 transition-all transform scale-100 active:scale-95 ring-4 ring-white/10"
+      className="fixed bottom-20 md:bottom-8 right-4 md:right-6 z-[60] group flex items-center gap-2 md:gap-3 bg-[#25D366] text-white p-2 md:pl-4 md:pr-6 md:py-3 rounded-2xl shadow-2xl hover:brightness-110 transition-all transform scale-90 md:scale-100 active:scale-95 ring-4 ring-white/10"
     >
-       <div className="w-10 h-10 bg-white/20 text-white rounded-xl flex items-center justify-center text-xl shadow-lg group-hover:rotate-12 transition-transform">
+       <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 text-white rounded-xl flex items-center justify-center text-lg md:text-xl shadow-lg group-hover:rotate-12 transition-transform">
          👨‍💻
        </div>
-       <div className="text-left font-sans text-white">
+       <div className="text-left font-sans text-white hidden md:block">
           <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 opacity-80">Soporte Dev</p>
           <p className="text-xs font-black leading-tight italic">¿Bugs o Consultas?</p>
        </div>

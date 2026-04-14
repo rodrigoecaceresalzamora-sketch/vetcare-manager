@@ -276,6 +276,7 @@ export interface ClinicConfig {
   show_booking_limit_notice?: boolean
   primary_text_color?: string
   secondary_text_color?: string
+  allow_tutor_photo_upload?: boolean
   created_at?: string
   updated_at?: string
 }

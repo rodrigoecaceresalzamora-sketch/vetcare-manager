@@ -29,6 +29,7 @@ interface NewVaccineInput {
   vaccine_name: string
   applied_date: string
   lot_number: string
+  lot_number_2?: string
   boost_interval: BoostInterval
   patient_date_of_birth?: string | null
 }
@@ -96,6 +97,7 @@ export function useVaccineAlerts() {
         vaccine_name: input.vaccine_name,
         applied_date: input.applied_date,
         lot_number: input.lot_number,
+        lot_number_2: input.lot_number_2 || null,
         next_due_date,
         reminder_sent: false,
         clinic_id: clinicId || ''

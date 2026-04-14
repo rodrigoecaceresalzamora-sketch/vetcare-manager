@@ -266,6 +266,25 @@ export function SettingsManagement() {
                 </div>
 
                 <div className="space-y-4 pt-6 border-t border-gray-100">
+                  <h3 className="text-sm font-black text-gray-900 border-l-4 border-vet-rose pl-3">Permisos de Tutores</h3>
+                  <div className="flex items-center gap-3 bg-gray-50 p-4 rounded-2xl border border-gray-200">
+                    <div className="flex-1">
+                      <p className="text-xs font-bold text-gray-700">Permitir subir fotos de mascotas</p>
+                      <p className="text-[10px] text-gray-400">Los tutores podrán cambiar la imagen de su mascota desde su portal personal.</p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input 
+                        type="checkbox" 
+                        className="sr-only peer" 
+                        checked={localConfig.allow_tutor_photo_upload !== false}
+                        onChange={e => set('allow_tutor_photo_upload', e.target.checked)}
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-vet-rose"></div>
+                    </label>
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-6 border-t border-gray-100">
                   <h3 className="text-sm font-black text-gray-900 border-l-4 border-vet-rose pl-3">Colores de Texto</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div>

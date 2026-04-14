@@ -22,6 +22,7 @@ export function TutorView() {
   const [editingPet, setEditingPet] = useState<Patient | null>(null)
   const [savingPet, setSavingPet] = useState(false)
   const [editAdoptMonthOnly, setEditAdoptMonthOnly] = useState(false)
+  const [uploadingPetId, setUploadingPetId] = useState<string | null>(null)
 
   useEffect(() => {
     if (urlClinicId) {
@@ -142,6 +143,42 @@ export function TutorView() {
     fetchData()
   }, [fetchData])
 
+  const handlePetPhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>, petId: string) => {
+    if (!e.target.files || e.target.files.length === 0) return
+    setUploadingPetId(petId)
+    try {
+      const file = e.target.files[0]
+      const { compressImage } = await import('../../lib/utils')
+      const compressedBlob = await compressImage(file)
+      const fileName = `avatar_${Date.now()}.jpg`
+      const filePath = `${petId}/${fileName}`
+      
+      const { error: uploadErr } = await supabase.storage
+        .from('patient_files')
+        .upload(filePath, compressedBlob, { contentType: 'image/jpeg', upsert: true })
+        
+      if (uploadErr) throw new Error(uploadErr.message)
+      
+      const { data: { publicUrl } } = supabase.storage
+        .from('patient_files')
+        .getPublicUrl(filePath)
+        
+      const { error: updateErr } = await supabase
+        .from('patients')
+        .update({ photo_url: publicUrl })
+        .eq('id', petId)
+        
+      if (updateErr) throw new Error(updateErr.message)
+      
+      fetchData()
+    } catch (err: any) {
+      console.error(err)
+      alert(`Error al subir la imagen: ${err.message}`)
+    } finally {
+      setUploadingPetId(null)
+    }
+  }
+
   // Evitar el error /reserva/null. Preservamos el slug en la URL si es posible.
   const bookingUrl = (config?.slug || config?.clinic_id) ? `/reserva/${config.slug || config.clinic_id}` : '/';
 
@@ -257,16 +294,35 @@ export function TutorView() {
                 
                 <div className="relative z-10">
                   <div className="flex items-start justify-between mb-6">
-                    <div className="w-14 h-14 rounded-2xl bg-vet-light flex items-center justify-center text-3xl border border-vet-rose/10 shadow-sm group-hover:scale-110 transition-transform relative">
-                      {speciesEmoji(pet.species)}
+                    <div className="w-16 h-16 rounded-2xl bg-vet-light flex items-center justify-center text-3xl border border-vet-rose/10 shadow-sm group-hover:scale-105 transition-transform relative overflow-hidden">
+                      {uploadingPetId === pet.id ? (
+                        <div className="absolute inset-0 bg-white/60 flex items-center justify-center z-10">
+                          <div className="w-4 h-4 border-2 border-vet-rose border-t-transparent rounded-full animate-spin" />
+                        </div>
+                      ) : null}
+
+                      {pet.photo_url ? (
+                        <img src={pet.photo_url} alt={pet.name} className="w-full h-full object-cover" />
+                      ) : (
+                        speciesEmoji(pet.species)
+                      )}
+
                       {!(pet as any).is_temp && (
-                        <button 
-                          onClick={(e) => { e.preventDefault(); setEditingPet(pet); }}
-                          className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-pink-100 rounded-full flex items-center justify-center text-[10px] shadow-sm hover:bg-vet-rose hover:text-white transition-colors"
-                          title="Editar Mascota"
-                        >
-                          ✏️
-                        </button>
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-all">
+                          {config.allow_tutor_photo_upload !== false && (
+                            <label className="cursor-pointer p-1 bg-white rounded-lg shadow-md mb-1 hover:scale-110 transition-transform">
+                              <span className="text-xs">📷</span>
+                              <input type="file" className="hidden" accept="image/*" onChange={(e) => handlePetPhotoUpload(e, pet.id)} />
+                            </label>
+                          )}
+                          <button 
+                            onClick={(e) => { e.preventDefault(); setEditingPet(pet); }}
+                            className="p-1 bg-white rounded-lg shadow-md hover:scale-110 transition-transform"
+                            title="Editar Datos"
+                          >
+                            <span className="text-xs">✏️</span>
+                          </button>
+                        </div>
                       )}
                     </div>
                     <div className="text-right">

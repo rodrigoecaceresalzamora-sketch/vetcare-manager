@@ -103,10 +103,10 @@ export function usePatientDetail(patientId: string) {
     fetchData()
   }, [fetchData])
 
-  // Mutation: Guardar Consulta (y opcionalmente una vacuna)
+  // Mutation: Guardar Consulta (y opcionalmente múltiples vacunas)
   const saveConsultation = async (
     input: Partial<Consultation>, 
-    vaccineData?: { vaccine_name: string; lot_number: string; boost_interval: BoostInterval; applied_date: string },
+    vaccineData?: Array<{ vaccine_name: string; lot_number: string; lot_number_2?: string; boost_interval: BoostInterval; applied_date: string }>,
     existingId?: string,
     selectedService?: Service
   ) => {
@@ -128,20 +128,24 @@ export function usePatientDetail(patientId: string) {
     
     if (insError) return { error: insError }
 
-    // 2. Si hay data de vacuna, guardarla también en la otra tabla
-    if (vaccineData && vaccineData.vaccine_name) {
-      const next_due_date = calcNextDueDate(vaccineData.applied_date, vaccineData.boost_interval, patient?.date_of_birth)
-      const { error: vacErr } = await supabase.from('vaccinations').insert({
-        id: generateId(),
-        patient_id: patientId,
-        vaccine_name: vaccineData.vaccine_name,
-        lot_number: vaccineData.lot_number,
-        applied_date: vaccineData.applied_date,
-        next_due_date,
-        reminder_sent: false,
-        clinic_id: clinicId
-      })
-      if (vacErr) return { error: vacErr.message }
+    // 2. Si hay data de vacunas, guardarlas también en la otra tabla
+    if (vaccineData && vaccineData.length > 0) {
+      for (const vac of vaccineData) {
+        if (!vac.vaccine_name) continue
+        const next_due_date = calcNextDueDate(vac.applied_date, vac.boost_interval, patient?.date_of_birth)
+        const { error: vacErr } = await supabase.from('vaccinations').insert({
+          id: generateId(),
+          patient_id: patientId,
+          vaccine_name: vac.vaccine_name,
+          lot_number: vac.lot_number,
+          lot_number_2: vac.lot_number_2 || null,
+          applied_date: vac.applied_date,
+          next_due_date,
+          reminder_sent: false,
+          clinic_id: clinicId
+        })
+        if (vacErr) return { error: vacErr.message }
+      }
     }
 
     // 3. Descontar stock (sólo si es NUEVA consulta y hay servicio asociado)

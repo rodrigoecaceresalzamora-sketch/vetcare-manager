@@ -370,6 +370,12 @@ export function PatientDetail() {
                       <div>
                         {c.created_at && <span className="text-xs text-gray-400 font-mono block mb-1">{new Date(c.created_at).toLocaleString()}</span>}
                         <h4 className="font-bold text-gray-900">{c.reason_for_consultation || 'Consulta de rutina'}</h4>
+                        {c.applied_vaccine_name && (
+                          <div className="text-[10px] bg-pink-50 text-vet-rose px-2 py-1 rounded-lg border border-pink-100 font-bold inline-flex items-center gap-1 mt-1">
+                            💉 {c.applied_vaccine_name} {c.applied_vaccine_lot ? `(Lote: ${c.applied_vaccine_lot}${(c as any).applied_vaccine_lot_2 ? ` / ${(c as any).applied_vaccine_lot_2}` : ''})` : ''}
+                          </div>
+                        )}
+                        <br/>
                         {c.weight_kg && <span className="text-xs bg-amber-50 text-amber-800 px-2 py-0.5 rounded-full font-medium border border-amber-200 inline-block mt-2">Peso: {c.weight_kg} kg</span>}
                       </div>
                       
@@ -504,6 +510,7 @@ export function PatientDetail() {
 
       {formConsultation && (
         <ConsultationForm
+          patientId={patient.id}
           initialData={formConsultation === 'new' ? undefined : formConsultation}
           onClose={() => {
             setFormConsultation(null)

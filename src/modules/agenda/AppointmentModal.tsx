@@ -192,6 +192,15 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
         setFieldError('Error al guardar: ' + dbErr.message)
         return
       }
+
+      // Enviar email de confirmación si es interna y está confirmada
+      if (payload.status === 'confirmada') {
+        try {
+          await supabase.functions.invoke('confirm-booking', {
+            body: { appointment_id: id, type: 'confirmation' }
+          })
+        } catch (e) { console.warn('Email confirmation error:', e) }
+      }
     }
 
     setSaving(false)
@@ -318,6 +327,53 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     +
                   </button>
                 </div>
+                {searchTerm && filteredPatients.length === 0 && (
+                  <div className="mt-2 flex gap-2">
+                    {patients.find(p => p.name.toLowerCase() === searchTerm.toLowerCase()) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const p = patients.find(p => p.name.toLowerCase() === searchTerm.toLowerCase())
+                          if (p) window.open(`/pacientes/${p.id}`, '_blank')
+                        }}
+                        className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 hover:bg-indigo-100 transition-colors"
+                      >
+                        🔍 Ver Ficha
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => set('service' as any, 'Vacunación')}
+                      className="text-[10px] font-bold text-vet-rose bg-pink-50 px-2 py-1 rounded border border-pink-100 hover:bg-pink-100 transition-colors"
+                    >
+                      💉 Agendar Vacuna
+                    </button>
+                  </div>
+                )}
+                {/* Si ya seleccionó uno de la lista o estamos editando */}
+                {(editingAppointment || (form as any).pet_name) && (
+                  <div className="mt-2 flex gap-2">
+                    {patients.find(p => p.name === (editingAppointment?.pet_name || form.pet_name)) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const p = patients.find(p => p.name === (editingAppointment?.pet_name || form.pet_name))
+                          if (p) window.open(`/pacientes/${p.id}`, '_blank')
+                        }}
+                        className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded border border-indigo-100 hover:bg-indigo-100 transition-colors"
+                      >
+                        🔍 Ver Ficha
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => set('service' as any, 'Vacunación')}
+                      className="text-[10px] font-bold text-vet-rose bg-pink-50 px-2 py-1 rounded border border-pink-100 hover:bg-pink-100 transition-colors"
+                    >
+                      💉 Agendar Vacuna
+                    </button>
+                  </div>
+                )}
               </Field>
               <Field label="Especie">
                 <select
@@ -536,8 +592,18 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                       const { error } = await supabase
                         .from('appointments')
                         .update({ 
-                          status: 'confirmada',
-                          guardian_rut: (form as any).guardian_rut
+                          status:         'confirmada',
+                          guardian_name:  form.guardian_name,
+                          guardian_email: form.guardian_email,
+                          guardian_phone: form.guardian_phone,
+                          guardian_rut:   (form as any).guardian_rut,
+                          pet_name:       form.pet_name,
+                          pet_species:    form.pet_species,
+                          pet_breed:      form.pet_breed,
+                          pet_sex:        form.pet_sex,
+                          service:        form.service,
+                          scheduled_at:   new Date(form.scheduled_at).toISOString(),
+                          notes:          form.notes,
                         })
                         .eq('id', editingAppointment.id)
                       

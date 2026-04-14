@@ -279,7 +279,7 @@ export function VaccineDashboard() {
                       </span>
                     </p>
                     <p className="text-xs text-gray-500">
-                      {alert.vaccination.vaccine_name} · Lote {alert.vaccination.lot_number}
+                      {alert.vaccination.vaccine_name} · Lote {alert.vaccination.lot_number}{alert.vaccination.lot_number_2 ? ` / ${alert.vaccination.lot_number_2}` : ''}
                     </p>
                     <p className="text-xs text-vet-rose mt-0.5">
                       {alert.guardian.name} · {alert.guardian.email}
