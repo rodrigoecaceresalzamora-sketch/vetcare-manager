@@ -350,21 +350,38 @@ function MobileNav() {
 
 
 function DeveloperBugButton() {
+  const [open, setOpen] = useState(false)
+
   return (
-    <a 
-      href="https://wa.me/56974272664"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="fixed bottom-20 md:bottom-8 right-4 md:right-6 z-[60] group flex items-center gap-2 md:gap-3 bg-[#25D366] text-white p-2 md:pl-4 md:pr-6 md:py-3 rounded-2xl shadow-2xl hover:brightness-110 transition-all transform scale-90 md:scale-100 active:scale-95 ring-4 ring-white/10"
-    >
-       <div className="w-8 h-8 md:w-10 md:h-10 bg-white/20 text-white rounded-xl flex items-center justify-center text-lg md:text-xl shadow-lg group-hover:rotate-12 transition-transform">
-         👨‍💻
-       </div>
-       <div className="text-left font-sans text-white hidden md:block">
-          <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 opacity-80">Soporte Dev</p>
-          <p className="text-xs font-black leading-tight italic">¿Bugs o Consultas?</p>
-       </div>
-    </a>
+    <div className="fixed bottom-20 md:bottom-8 right-4 md:right-6 z-[60] flex flex-col items-end gap-2">
+      {/* Panel expandido */}
+      {open && (
+        <a
+          href="https://wa.me/56974272664"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-3 bg-[#25D366] text-white pl-4 pr-5 py-3 rounded-2xl shadow-2xl hover:brightness-110 transition-all active:scale-95 ring-4 ring-white/10 animate-fade-in"
+        >
+          <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center text-xl shadow-md">
+            👨‍💻
+          </div>
+          <div className="text-left font-sans">
+            <p className="text-[10px] font-black uppercase tracking-widest leading-none mb-1 opacity-80">Soporte Dev</p>
+            <p className="text-xs font-black leading-tight italic">¿Bugs o Consultas?</p>
+          </div>
+        </a>
+      )}
+
+      {/* Botón mínimo — tamaño de una letra mayúscula */}
+      <button
+        onClick={() => setOpen(o => !o)}
+        title="Soporte Dev"
+        className="w-5 h-5 rounded-full bg-[#25D366] shadow-lg flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity"
+        style={{ fontSize: '9px', lineHeight: 1 }}
+      >
+        {open ? '✕' : '💬'}
+      </button>
+    </div>
   )
 }
 
