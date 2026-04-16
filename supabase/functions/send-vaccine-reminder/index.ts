@@ -232,9 +232,9 @@ Deno.serve(async (req) => {
 
     // 11. Configurar SMTP y enviar
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      host: clinic.smtp_host || 'smtp.gmail.com',
+      port: Number(clinic.smtp_port) || 587,
+      secure: clinic.smtp_port === 465,
       auth: { user: clinic.smtp_email, pass: clinic.smtp_password },
       connectionTimeout: 15000,
     })
