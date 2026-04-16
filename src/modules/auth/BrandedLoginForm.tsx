@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { supabase } from '../../lib/supabase'
+import { translateAuthError } from '../../lib/authErrors'
 
 interface BrandedLoginFormProps {
   clinicName: string
@@ -64,17 +65,19 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
         if (err) throw err
         onSuccess()
       } else {
-        const { error: err } = await supabase.auth.signUp({
-          email,
           password,
-          options: { data: { full_name: fullName } }
+          options: { 
+            data: { full_name: fullName },
+            redirectTo: window.location.href
+          }
         })
         if (err) throw err
         setShowConfirmationNotice(true)
         setIsLogin(true)
       }
-    } catch (err: unknown) {
-      setError((err as Error).message || 'Error en la autenticación')
+      }
+    } catch (err: any) {
+      setError(translateAuthError(err))
     } finally {
       setLoading(false)
     }

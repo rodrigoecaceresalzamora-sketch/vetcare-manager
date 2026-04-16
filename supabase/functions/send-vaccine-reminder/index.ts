@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     const secondaryColor = clinic.secondary_color || '#fff1f2'
 
     // 7. Links
-    const baseUrl    = 'https://vetxora.vercel.app'
+    const baseUrl    = Deno.env.get('BASE_URL') || 'https://vetxora.vercel.app'
     const portalUrl  = `${baseUrl}/c/${clinic.slug || clinic.clinic_id}`
     const bookingUrl = `${baseUrl}/reserva/${clinic.slug || clinic.clinic_id}`
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
+import { translateAuthError } from '../../lib/authErrors'
 
 // ── Icono Ojo (estilo flat/simple) ───────────────────────────
 function EyeIcon({ open }: { open: boolean }) {
@@ -81,20 +82,22 @@ export function LoginPage() {
         window.location.href = '/dashboard'
       } else {
         // --- REGISTRARSE ---
-        const { error: err } = await supabase.auth.signUp({
-          email,
           password,
-          options: { data: { full_name: fullName } }
+          options: { 
+            data: { full_name: fullName },
+            redirectTo: `${window.location.origin}/dashboard`
+          }
         })
         if (err) throw err
         setShowConfirmationNotice(true)
         setIsLogin(true)
       }
-    } catch (err: unknown) {
+      }
+    } catch (err: any) {
       if ((window as Window & { turnstile?: { reset: () => void } }).turnstile) {
         (window as Window & { turnstile?: { reset: () => void } }).turnstile?.reset()
       }
-      setError((err as Error).message || 'Ocurrió un error en la autenticación')
+      setError(translateAuthError(err))
     } finally {
       setLoading(false)
     }
