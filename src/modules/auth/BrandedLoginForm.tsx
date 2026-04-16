@@ -111,10 +111,10 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7" />
           </svg>
         </div>
-        <h2 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">¡REVISA TU EMAIL! 📩</h2>
+        <h2 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">¡Bienvenido/a a Vetxora! ✨</h2>
         <p className="text-gray-600 text-sm leading-relaxed mb-8">
           Te hemos enviado un enlace de confirmación a <strong className="text-gray-900">{email}</strong>.<br /><br />
-          Debes hacer clic en el enlace para activar tu cuenta antes de poder entrar al portal de <strong>{clinicName}</strong>.
+          Por seguridad, busca un correo de <strong className="text-vet-rose bg-vet-rose/10 px-2 py-0.5 rounded">Supabase Auth</strong> y haz clic en el enlace para activar tu cuenta antes de entrar al portal de <strong>{clinicName}</strong>.
         </p>
         <button
           onClick={() => setShowConfirmationNotice(false)}

@@ -192,10 +192,10 @@ export function LoginPage() {
                 d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
           </div>
-          <h2 className="text-2xl font-black text-indigo-900 mb-4 uppercase tracking-tight">¡Activa tu Cuenta!</h2>
+          <h2 className="text-2xl font-black text-indigo-900 mb-4 uppercase tracking-tight">¡Bienvenido/a a Vetxora! ✨</h2>
           <p className="text-gray-600 text-sm leading-relaxed mb-8">
             Hemos enviado un enlace de confirmación a <strong className="text-gray-900 lowercase">{email}</strong>.<br /><br />
-            Por seguridad, debes hacer clic en el enlace del correo para poder entrar a <strong>Vetxora</strong>.
+            Por seguridad, busca un correo enviado por <strong className="text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded">Supabase Auth</strong> y haz clic en el enlace para entrar a <strong>Vetxora</strong>.
           </p>
           <button
             onClick={() => setShowConfirmationNotice(false)}
