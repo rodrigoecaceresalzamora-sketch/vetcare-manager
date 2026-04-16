@@ -90,6 +90,7 @@ export function PublicBooking() {
   const [dbServices, setDbServices] = useState<any[]>([])
   const [date, setDate]             = useState<string | null>(null)
   const [time, setTime]             = useState<string | null>(null)
+  const [authChecked, setAuthChecked] = useState(false)
   const [takenSlots, setTakenSlots] = useState<string[]>([])
   const [consultationReason, setConsultationReason] = useState('')
   const [form, setForm]             = useState<PublicBookingFormData>({
@@ -111,6 +112,7 @@ export function PublicBooking() {
   const [saving, setSaving]       = useState(false)
   const [showLogin, setShowLogin] = useState(false)
   const [fieldError, setFieldError] = useState('')
+  const [isProcessingAuth, setIsProcessingAuth] = useState(false)
   const [, setBookingId]   = useState<string | null>(null)
   
   const [showUnknownBirth, setShowUnknownBirth] = useState(false)
@@ -145,6 +147,37 @@ export function PublicBooking() {
   useEffect(() => {
     fetchMyPets()
   }, [fetchMyPets])
+
+  // ── Manejo de redirección OAuth (Google) ──────────────────
+  useEffect(() => {
+    // Si hay un hash en la URL (retorno de OAuth) y no estamos logueados en el estado local,
+    // forzamos una verificación rápida.
+    const hasAuthHash = window.location.hash.includes('access_token=') || window.location.hash.includes('id_token=')
+    
+    if (hasAuthHash && !user && !authChecked) {
+      setIsProcessingAuth(true)
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        if (session) {
+          // El AuthContext debería actualizarse solo, pero esto ayuda a la UI local
+          setAuthChecked(true)
+        }
+        setIsProcessingAuth(false)
+      })
+    } else {
+      setAuthChecked(true)
+    }
+  }, [user, authChecked])
+
+  // Pre-llenar datos del usuario autenticado si el formulario está vacío
+  useEffect(() => {
+    if (user && !form.guardian_email) {
+      setForm(f => ({
+        ...f,
+        guardian_name: user.user_metadata?.full_name || f.guardian_name,
+        guardian_email: user.email || f.guardian_email,
+      }))
+    }
+  }, [user])
 
   // Prefill exact pet if provided via URL
   useEffect(() => {
@@ -577,7 +610,12 @@ export function PublicBooking() {
             </div>
           )}
 
-          {!user ? (
+          {isProcessingAuth ? (
+            <div className="bg-white rounded-2xl p-10 text-center">
+              <div className="animate-spin w-10 h-10 border-4 border-vet-rose border-t-transparent rounded-full mx-auto mb-4"></div>
+              <p className="text-sm font-bold text-vet-primary uppercase tracking-widest">Autenticando con Google...</p>
+            </div>
+          ) : !user ? (
             <div className="bg-white border-2 border-dashed border-vet-rose/30 rounded-2xl p-6 text-center">
               {showLogin ? (
                 <BrandedLoginForm 
