@@ -87,7 +87,7 @@ export function LoginPage() {
           password,
           options: { 
             data: { full_name: fullName },
-            redirectTo: `${window.location.origin}/dashboard`
+            emailRedirectTo: `${window.location.origin}/dashboard`
           }
         })
         if (err) throw err

@@ -70,7 +70,7 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
           password,
           options: { 
             data: { full_name: fullName },
-            redirectTo: window.location.href
+            emailRedirectTo: window.location.href
           }
         })
         if (err) throw err
