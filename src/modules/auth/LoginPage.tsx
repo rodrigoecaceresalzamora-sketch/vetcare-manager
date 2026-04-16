@@ -82,6 +82,8 @@ export function LoginPage() {
         window.location.href = '/dashboard'
       } else {
         // --- REGISTRARSE ---
+        const { error: err } = await supabase.auth.signUp({
+          email,
           password,
           options: { 
             data: { full_name: fullName },
@@ -91,7 +93,6 @@ export function LoginPage() {
         if (err) throw err
         setShowConfirmationNotice(true)
         setIsLogin(true)
-      }
       }
     } catch (err: any) {
       if ((window as Window & { turnstile?: { reset: () => void } }).turnstile) {

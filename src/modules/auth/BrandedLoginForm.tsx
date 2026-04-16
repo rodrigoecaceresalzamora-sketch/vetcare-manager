@@ -65,6 +65,8 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
         if (err) throw err
         onSuccess()
       } else {
+        const { error: err } = await supabase.auth.signUp({
+          email,
           password,
           options: { 
             data: { full_name: fullName },
@@ -74,7 +76,6 @@ export function BrandedLoginForm({ clinicName, logoUrl, primaryColor, onSuccess 
         if (err) throw err
         setShowConfirmationNotice(true)
         setIsLogin(true)
-      }
       }
     } catch (err: any) {
       setError(translateAuthError(err))
