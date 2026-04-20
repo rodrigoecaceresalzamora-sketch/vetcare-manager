@@ -278,6 +278,7 @@ export interface ClinicConfig {
   primary_text_color?: string
   secondary_text_color?: string
   allow_tutor_photo_upload?: boolean
+  blocked_dates?: string[]
   created_at?: string
   updated_at?: string
 }

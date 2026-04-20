@@ -33,26 +33,51 @@ async function fetchPublicServices(clinicId: string) {
 }
 
 // ── Próximos días permitidos (dinámicos) ──────────────────────
-function getAvailableDates(schedule: Record<string, string[]>): { label: string; value: string; dow: number }[] {
+function getAvailableDates(config: any): { label: string; value: string; dow: number }[] {
   const dates: { label: string; value: string; dow: number }[] = []
-  const allowedDows = Object.keys(schedule).map(Number)
+  if (!config?.schedule) return [];
+  const allowedDows = Object.keys(config.schedule).map(Number)
+  const blockedDates = config.blocked_dates || []
   
   if (allowedDows.length === 0) return []
 
-  const d = new Date()
-  d.setDate(d.getDate() + 1) // Mañana en adelante
+  // Obtener la fecha y hora exacta en Chile (independiente del reloj del usuario)
+  const now = new Date()
+  const dtf = new Intl.DateTimeFormat('es-CL', {
+    timeZone: 'America/Santiago',
+    year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', hour12: false
+  })
+  
+  const parts = dtf.formatToParts(now)
+  const p: Record<string, string> = {}
+  parts.forEach(part => p[part.type] = part.value)
+  
+  const currentHourChile = parseInt(p.hour || '0', 10)
+  
+  // Establecer la fecha inicial basada en Chile para evitar desfases de UTC
+  const d = new Date(parseInt(p.year), parseInt(p.month) - 1, parseInt(p.day))
+
+  // Si reserva antes de las 18:00 hrs (hora CL), permite agendar a partir de mañana (d + 1).
+  // Si reserva a las 18:00 hrs o después (hora CL), permite agendar a partir de pasado mañana (d + 2).
+  if (currentHourChile < 18) {
+    d.setDate(d.getDate() + 1)
+  } else {
+    d.setDate(d.getDate() + 2)
+  }
 
   let attempts = 0
   while (dates.length < 14 && attempts < 60) { 
     attempts++
     const dow = d.getDay()
-    if (allowedDows.includes(dow)) {
-      // Usar formato local YYYY-MM-DD para evitar desfases de zona horaria
-      const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      const localValue = `${year}-${month}-${day}`;
-
+    
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const localValue = `${year}-${month}-${day}`;
+    
+    // Validar si el día de la semana está habilitado Y NO está en la lista de fechas bloqueadas
+    if (allowedDows.includes(dow) && !blockedDates.includes(localValue)) {
       dates.push({
         label: d.toLocaleDateString('es-CL', {
           weekday: 'short',
@@ -199,7 +224,7 @@ export function PublicBooking() {
     }
   }, [prefilledPetId, myPets])
 
-  const availableDates = getAvailableDates(config?.schedule || {})
+  const availableDates = getAvailableDates(config)
 
   useEffect(() => {
     if (config?.clinic_id) fetchPublicServices(config.clinic_id).then(setDbServices)
@@ -528,7 +553,7 @@ export function PublicBooking() {
         <section>
           <SectionTitle step={2} title="Elige la fecha" />
           <div className="flex gap-2 overflow-x-auto pb-2 mb-2">
-            {getAvailableDates(config?.schedule || {}).map((d) => (
+            {getAvailableDates(config).map((d) => (
               <button
                 key={d.value}
                 onClick={() => { setDate(d.value); setStep(3) }}
@@ -545,9 +570,9 @@ export function PublicBooking() {
 
       {step === 3 && (
         <section>
-          <SectionTitle step={3} title="Horario disponible" sub={getAvailableDates(config?.schedule || {}).find(d => d.value === date)?.label} />
+          <SectionTitle step={3} title="Horario disponible" sub={getAvailableDates(config).find(d => d.value === date)?.label} />
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 mb-6">
-            {getTimeSlots(getAvailableDates(config?.schedule || {}).find(d => d.value === date)?.dow ?? 0, config?.schedule || {}).map((slot) => {
+            {getTimeSlots(getAvailableDates(config).find(d => d.value === date)?.dow ?? 0, config?.schedule || {}).map((slot) => {
               const taken = takenSlots.includes(slot)
               return (
                 <button

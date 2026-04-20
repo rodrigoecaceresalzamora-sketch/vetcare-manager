@@ -336,12 +336,12 @@ export function SettingsManagement() {
 
         {activeTab === 'horarios' && (
           <div className="p-8 space-y-6 animate-fade-in">
-            <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex gap-3 text-amber-800 text-xs mb-4">
-               <span className="text-lg">💡</span>
-               <p>Marca qué días atiendes y selecciona los bloques de tiempo. Los pacientes solo verán estos horarios al reservar.</p>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+             <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl flex gap-3 text-amber-800 text-xs mb-4">
+                <span className="text-lg">💡</span>
+                <p>Marca qué días atiendes y selecciona los bloques de tiempo. Los pacientes solo verán estos horarios al reservar.</p>
+             </div>
+             
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                {[1,2,3,4,5,6,0].map(day => {
                   const dayName = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'][day]
                   const slots = localConfig.schedule?.[String(day)] || []
@@ -383,6 +383,45 @@ export function SettingsManagement() {
                     </div>
                   )
                })}
+            </div>
+
+            <div className="pt-8 border-t border-gray-100 space-y-4">
+               <h3 className="text-sm font-black text-gray-900 border-l-4 border-red-500 pl-3">Bloqueo de Días Específicos</h3>
+               <p className="text-[10px] text-gray-500 w-full md:w-2/3">
+                 Selecciona días específicos en las próximas 2 semanas donde NO atenderás (independiente de tu horario regular). Los días resaltados en rojo están bloqueados.
+               </p>
+               <div className="flex flex-wrap gap-2">
+                 {Array.from({ length: 14 }).map((_, i) => {
+                   const d = new Date()
+                   d.setDate(d.getDate() + i)
+                   const year = d.getFullYear()
+                   const month = String(d.getMonth() + 1).padStart(2, '0')
+                   const day = String(d.getDate()).padStart(2, '0')
+                   const dateStr = `${year}-${month}-${day}`
+                   
+                   const blockedDates = localConfig.blocked_dates || []
+                   const isBlocked = blockedDates.includes(dateStr)
+
+                   return (
+                     <button
+                       key={dateStr}
+                       onClick={() => {
+                         const newBlocked = isBlocked
+                           ? blockedDates.filter(b => b !== dateStr)
+                           : [...blockedDates, dateStr]
+                         set('blocked_dates', newBlocked)
+                       }}
+                       className={`px-3 py-2 rounded-xl text-xs font-bold transition-all border ${
+                         isBlocked 
+                           ? 'bg-red-50 text-red-600 border-red-200' 
+                           : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                       }`}
+                     >
+                       {d.toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' })}
+                     </button>
+                   )
+                 })}
+               </div>
             </div>
           </div>
         )}
