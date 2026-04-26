@@ -129,8 +129,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
     setFieldError('')
 
     if (!form.guardian_name)  return setFieldError('Nombre del tutor requerido')
-    if (!form.guardian_email) return setFieldError('Correo del tutor requerido')
-    if (!isValidEmail(form.guardian_email)) return setFieldError('El correo electrónico no es válido')
+    if (form.guardian_email && !isValidEmail(form.guardian_email)) return setFieldError('El correo electrónico no es válido')
     if (!form.guardian_rut)   return setFieldError('RUT del tutor requerido')
     if (!isValidRUT(form.guardian_rut)) return setFieldError('El RUT ingresado no es válido')
     if (!(form as any).guardian_phone) return setFieldError('Teléfono requerido')
@@ -270,7 +269,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   required
                 />
               </Field>
-              <Field label="Correo electrónico" className="col-span-2">
+              <Field label="Correo electrónico (Opcional)" className="col-span-2">
                 <input
                   type="email"
                   className={`${inputCls} ${!isValidEmail(form.guardian_email) && form.guardian_email ? 'border-red-500 bg-red-50' : ''}`}
@@ -278,7 +277,6 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                   onChange={(e) => set('guardian_email', e.target.value)}
                   placeholder="correo@ejemplo.cl"
                   disabled={isReadOnly}
-                  required
                 />
               </Field>
             </div>
@@ -535,7 +533,7 @@ export function AppointmentModal({ initialDateTime, editingAppointment, onClose,
                     setSaving(true)
                     try {
                       let gId = ''
-                      const searchEmail = form.guardian_email.trim().toLowerCase()
+                      const searchEmail = form.guardian_email?.trim().toLowerCase() || 'no-email-provided'
                       const searchRut = (form as any).guardian_rut?.trim()
 
                       const { data: existingG } = await supabase

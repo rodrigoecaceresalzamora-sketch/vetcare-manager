@@ -76,27 +76,59 @@ export function usePatientDetail(patientId: string) {
   }, [patientId])
 
   const fetchFiles = async () => {
-    const { data: fData, error: fErr } = await supabase.storage
+    // 1. Obtener archivos seguros del bucket privado (nuevos)
+    const { data: privateData } = await supabase.storage
+      .from('medical_documents')
+      .list(patientId, { sortBy: { column: 'created_at', order: 'desc' }})
+
+    // 2. Obtener archivos legacy del bucket público antiguo
+    const { data: legacyData } = await supabase.storage
       .from('patient_files')
       .list(patientId, { sortBy: { column: 'created_at', order: 'desc' }})
       
-    if (!fErr && fData) {
-      const mappedFiles = fData
-        .filter(f => f.name !== '.emptyFolderPlaceholder') // ignora falsos logs
+    const allFiles: PatientFile[] = []
+
+    if (privateData) {
+      const pFiles = await Promise.all(
+        privateData
+          .filter(f => f.name !== '.emptyFolderPlaceholder' && !f.name.startsWith('avatar'))
+          .map(async file => {
+            const { data } = await supabase.storage
+              .from('medical_documents')
+              .createSignedUrl(`${patientId}/${file.name}`, 60 * 60) // Expira en 1 hora
+            return {
+              id: file.id || file.name,
+              name: file.name,
+              url: data?.signedUrl || '',
+              created_at: file.created_at || undefined,
+              isLegacy: false
+            }
+          })
+      )
+      allFiles.push(...pFiles)
+    }
+
+    if (legacyData) {
+      const lFiles = legacyData
+        .filter(f => f.name !== '.emptyFolderPlaceholder' && !f.name.startsWith('avatar'))
         .map(file => {
           const { data: publicUrlData } = supabase.storage
             .from('patient_files')
             .getPublicUrl(`${patientId}/${file.name}`)
-          
           return {
-            id: file.id || file.name,
+            id: `legacy-${file.id || file.name}`,
             name: file.name,
             url: publicUrlData.publicUrl,
-            created_at: file.created_at || undefined
+            created_at: file.created_at || undefined,
+            isLegacy: true
           }
         })
-      setFiles(mappedFiles)
+      allFiles.push(...lFiles)
     }
+
+    // Ordenar de más reciente a más antiguo
+    allFiles.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime())
+    setFiles(allFiles)
   }
 
   useEffect(() => {
@@ -177,7 +209,7 @@ export function usePatientDetail(patientId: string) {
       else mimeType = 'application/octet-stream'
     }
 
-    const { error: uploadErr } = await supabase.storage.from('patient_files').upload(filePath, file, {
+    const { error: uploadErr } = await supabase.storage.from('medical_documents').upload(filePath, file, {
       upsert: true,
       contentType: mimeType
     })
@@ -186,10 +218,10 @@ export function usePatientDetail(patientId: string) {
     return { error: null }
   }
 
-  // Mutation: Borrar Archivo
-  const deleteFile = async (fileName: string) => {
+  const deleteFile = async (fileName: string, isLegacy?: boolean) => {
     const filePath = `${patientId}/${fileName}`
-    const { error: delErr } = await supabase.storage.from('patient_files').remove([filePath])
+    const bucket = isLegacy ? 'patient_files' : 'medical_documents'
+    const { error: delErr } = await supabase.storage.from(bucket).remove([filePath])
     if (delErr) return { error: delErr.message }
     await fetchFiles()
     return { error: null }

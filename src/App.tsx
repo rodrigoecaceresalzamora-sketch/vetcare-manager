@@ -12,7 +12,7 @@
 //   /reserva    → Módulo 4: Portal de agendamiento público
 // ============================================================
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect, Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { ProtectedRoute } from './contexts/ProtectedRoute'
@@ -20,17 +20,17 @@ import { LoginPage } from './modules/auth/LoginPage'
 import { TutorView } from './modules/auth/TutorView'
 import { ClinicConfigProvider, useClinicConfig } from './contexts/ClinicConfigContext'
 
-import { WeekView }          from './modules/agenda/WeekView'
-import { VaccineDashboard }  from './modules/vaccines/VaccineDashboard'
-import { PublicBooking }     from './modules/portal/PublicBooking'
-import { PatientList }       from './modules/patients/PatientList'
-import { PatientDetail }     from './modules/patients/PatientDetail'
-import { StaffManagement }   from './modules/staff/StaffManagement'
-import { PricingManagement } from './modules/staff/PricingManagement'
-import { StockManagement }   from './modules/stock/StockManagement'
-import { SettingsManagement } from './modules/staff/SettingsManagement'
-import { Onboarding } from './modules/auth/Onboarding'
-import { Billing } from './modules/staff/Billing'
+const WeekView = lazy(() => import('./modules/agenda/WeekView').then(m => ({ default: m.WeekView })))
+const VaccineDashboard = lazy(() => import('./modules/vaccines/VaccineDashboard').then(m => ({ default: m.VaccineDashboard })))
+const PublicBooking = lazy(() => import('./modules/portal/PublicBooking').then(m => ({ default: m.PublicBooking })))
+const PatientList = lazy(() => import('./modules/patients/PatientList').then(m => ({ default: m.PatientList })))
+const PatientDetail = lazy(() => import('./modules/patients/PatientDetail').then(m => ({ default: m.PatientDetail })))
+const StaffManagement = lazy(() => import('./modules/staff/StaffManagement').then(m => ({ default: m.StaffManagement })))
+const PricingManagement = lazy(() => import('./modules/staff/PricingManagement').then(m => ({ default: m.PricingManagement })))
+const StockManagement = lazy(() => import('./modules/stock/StockManagement').then(m => ({ default: m.StockManagement })))
+const SettingsManagement = lazy(() => import('./modules/staff/SettingsManagement').then(m => ({ default: m.SettingsManagement })))
+const Onboarding = lazy(() => import('./modules/auth/Onboarding').then(m => ({ default: m.Onboarding })))
+const Billing = lazy(() => import('./modules/staff/Billing').then(m => ({ default: m.Billing })))
 
 import { getGravatarUrl }    from './lib/utils'
 
@@ -430,102 +430,104 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <ClinicConfigProvider>
-          <Routes>
-          {/* Rutas Públicas */}
-          <Route path="/" element={<DashboardRedirect />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/no-license" element={<NoLicense />} />
-          <Route path="/reserva/:clinicId" element={<PublicBooking />} />
-          <Route path="/c/:clinicId" element={<TutorView />} />
-          <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
-            <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100">
-               <p className="text-gray-500 text-sm leading-relaxed">Te hemos enviado un enlace de confirmación. Por favor, revisa tu bandeja de entrada para poder activar tu cuenta.</p>
-            </div>
-          </div>} />
+          <Suspense fallback={<div className="flex h-screen items-center justify-center bg-vet-bone"><div className="animate-spin w-8 h-8 border-4 border-vet-rose border-t-transparent rounded-full" /></div>}>
+            <Routes>
+            {/* Rutas Públicas */}
+            <Route path="/" element={<DashboardRedirect />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/no-license" element={<NoLicense />} />
+            <Route path="/reserva/:clinicId" element={<PublicBooking />} />
+            <Route path="/c/:clinicId" element={<TutorView />} />
+            <Route path="/verify-email" element={<div className="min-h-screen bg-vet-bone flex items-center justify-center p-8 text-center max-w-md mx-auto">
+              <div className="bg-white p-10 rounded-3xl shadow-xl border border-pink-100">
+                 <p className="text-gray-500 text-sm leading-relaxed">Te hemos enviado un enlace de confirmación. Por favor, revisa tu bandeja de entrada para poder activar tu cuenta.</p>
+              </div>
+            </div>} />
 
-          {/* Rutas Protegidas de Onboarding */}
-          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            {/* Rutas Protegidas de Onboarding */}
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
 
-          {/* Rutas Protegidas (Solo Admin/Staff) */}
-          <Route
-            path="/pacientes"
-            element={
-              <ProtectedRoute requireStaff>
-                <AppLayout><PatientList /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/pacientes/:id"
-            element={
-              <ProtectedRoute requireStaff>
-                <AppLayout><PatientDetail /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
+            {/* Rutas Protegidas (Solo Admin/Staff) */}
+            <Route
+              path="/pacientes"
+              element={
+                <ProtectedRoute requireStaff>
+                  <AppLayout><PatientList /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/pacientes/:id"
+              element={
+                <ProtectedRoute requireStaff>
+                  <AppLayout><PatientDetail /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
 
-          <Route
-            path="/agenda"
-            element={
-              <ProtectedRoute requireStaff>
-                <AppLayout><WeekView /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/vacunas"
-            element={
-              <ProtectedRoute requireStaff>
-                <AppLayout><VaccineDashboard /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/precios"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AppLayout><PricingManagement /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/personal"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AppLayout><StaffManagement /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/stock"
-            element={
-              <ProtectedRoute requireStaff>
-                <AppLayout><StockManagement /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/config"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AppLayout><SettingsManagement /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/facturacion"
-            element={
-              <ProtectedRoute requireAdmin>
-                <AppLayout><Billing /></AppLayout>
-              </ProtectedRoute>
-            }
-          />
-          
+            <Route
+              path="/agenda"
+              element={
+                <ProtectedRoute requireStaff>
+                  <AppLayout><WeekView /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/vacunas"
+              element={
+                <ProtectedRoute requireStaff>
+                  <AppLayout><VaccineDashboard /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/precios"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AppLayout><PricingManagement /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/personal"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AppLayout><StaffManagement /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/stock"
+              element={
+                <ProtectedRoute requireStaff>
+                  <AppLayout><StockManagement /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/config"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AppLayout><SettingsManagement /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/facturacion"
+              element={
+                <ProtectedRoute requireAdmin>
+                  <AppLayout><Billing /></AppLayout>
+                </ProtectedRoute>
+              }
+            />
+            
 
-          {/* Redirección por defecto inteligente */}
-          <Route path="/dashboard" element={<DashboardRedirect />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+            {/* Redirección por defecto inteligente */}
+            <Route path="/dashboard" element={<DashboardRedirect />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
         </ClinicConfigProvider>
       </BrowserRouter>
     </AuthProvider>

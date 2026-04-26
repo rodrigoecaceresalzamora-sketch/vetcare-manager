@@ -235,6 +235,7 @@ export interface PatientFile {
   name: string
   url: string
   created_at?: string
+  isLegacy?: boolean
 }
 
 // ── CONFIGURACIÓN GLOBAL ──────────────────────────────────────

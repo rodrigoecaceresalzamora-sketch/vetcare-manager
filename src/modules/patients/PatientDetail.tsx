@@ -451,7 +451,7 @@ export function PatientDetail() {
                     
                     {role === 'admin' && (
                       <button 
-                        onClick={() => deleteFile(file.name)}
+                        onClick={() => deleteFile(file.name, (file as any).isLegacy)}
                         className="absolute top-2 right-2 w-6 h-6 bg-red-100 text-red-600 rounded-full text-xs font-bold items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                         title="Eliminar archivo"
                       >
