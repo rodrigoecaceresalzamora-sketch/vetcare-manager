@@ -8,14 +8,14 @@ export const STRIPE_PLANS = {
   BASIC: {
     id: 'price_basic_id', // Reemplazar con ID de producto de Stripe
     name: 'Atención Básica',
-    price: 15000,
+    price: 6000,
     interval: 'mensual'
   },
   PRO: {
     id: 'price_pro_id',    // Reemplazar con ID de producto de Stripe
     name: 'Clínica Pro',
-    price: 24000,
+    price: 15000,
     interval: 'mensual',
-    annualPrice: 240000
+    annualPrice: 150000
   }
 }

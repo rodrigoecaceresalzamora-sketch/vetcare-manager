@@ -16,7 +16,7 @@ serve(async (req) => {
     
     // Configurar precios (en CLP)
     // Puedes ajustar estos valores según tus planes reales
-    const price = planId === 'pro' ? 24000 : 15000
+    const price = planId === 'pro' ? 15000 : 6000
     const planName = planId === 'pro' ? 'Plan Pro Ilimitado' : 'Plan Básico'
 
     const accessToken = Deno.env.get('MERCADOPAGO_ACCESS_TOKEN')
