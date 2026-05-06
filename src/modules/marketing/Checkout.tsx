@@ -48,90 +48,14 @@ export function Checkout() {
     setError(null)
 
     try {
-      // ── SIMULACIÓN DE PAGO ──────────────────────────────
-      // En producción, aquí iría la integración con Stripe:
-      //
-      // 1. Llamar a una Edge Function de Supabase:
-      //    const { data } = await supabase.functions.invoke('create-checkout-session', {
-      //      body: { planType, clinicId, userId: user.id }
-      //    })
-      //
-      // 2. La Edge Function crearía una Stripe Checkout Session:
-      //    const session = await stripe.checkout.sessions.create({
-      //      line_items: [{ price: plan.id, quantity: 1 }],
-      //      mode: 'subscription',
-      //      success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}`,
-      //      cancel_url: `${origin}/planes`,
-      //      customer_email: user.email,
-      //      metadata: { userId: user.id, clinicId, planType }
-      //    })
-      //
-      // 3. Redirigir al checkout de Stripe:
-      //    window.location.href = data.url
-      //
-      // 4. Webhook de Stripe confirmaría el pago y actualizaría la DB
-      // ────────────────────────────────────────────────────
+      // ── LA SIMULACIÓN DE PAGO HA SIDO DESHABILITADA ──────
+      // El sistema ahora requiere validación real para evitar registros no autorizados.
+      
+      // Simulación de carga para feedback visual
+      await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // Simulación: esperamos 2 segundos
-      await new Promise(resolve => setTimeout(resolve, 2000))
-
-      if (clinicId) {
-        // Si ya tiene clínica, actualizar plan
-        const { error: updateErr } = await supabase
-          .from('clinics')
-          .update({
-            plan_type: planType,
-            is_paid: true,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', clinicId)
-
-        if (updateErr) throw updateErr
-
-        setSuccess(true)
-        setTimeout(() => window.location.href = '/agenda', 2000)
-      } else {
-        // ── Si no tiene clínica, CREARLA AHORA MISMO ──
-        // Para que entre directo al dashboard sin tener que llenar el onboarding
-        const defaultClinicName = 'Mi Clínica'
-
-        const { data: newClinic, error: clinicErr } = await supabase
-          .from('clinics')
-          .insert({ 
-            name: defaultClinicName, 
-            owner_id: user.id,
-            plan_type: planType,
-            is_paid: true 
-          })
-          .select()
-          .single()
-
-        if (clinicErr) throw clinicErr
-
-        const { error: staffErr } = await supabase
-          .from('staff')
-          .insert({
-            email: user.email?.toLowerCase(),
-            role: 'admin',
-            clinic_id: newClinic.id
-          })
-
-        if (staffErr) throw staffErr
-
-        await supabase.from('clinic_config').insert({
-          clinic_id: newClinic.id,
-          clinic_name: defaultClinicName,
-          clinic_logo_url: '/favicon.png',
-          primary_color: '#3b82f6',
-          secondary_color: '#eff6ff'
-        })
-
-        // El auth context ahora detectará que tiene clínica
-        setSuccess(true)
-        setTimeout(() => {
-          window.location.href = '/dashboard'
-        }, 1500)
-      }
+      throw new Error('El sistema de pagos en línea está en mantenimiento. Por favor, contacta a soporte@vetxora.com para activar tu clínica manualmente.')
+      
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error procesando el pago'
       setError(message)
