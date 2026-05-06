@@ -5,7 +5,7 @@ import { STRIPE_PLANS } from '../../lib/stripe'
 
 export function Checkout() {
   const { planId } = useParams<{ planId: string }>()
-  const { user, clinicId, loading: authLoading, signOut } = useAuth()
+  const { user, loading: authLoading, signOut } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
