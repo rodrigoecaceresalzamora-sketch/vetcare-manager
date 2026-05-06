@@ -29,6 +29,8 @@ echo.
 echo [4/5] Desplegando Funciones de Supabase (Correos)...
 npx supabase functions deploy send-vaccine-reminder --no-verify-jwt
 npx supabase functions deploy confirm-booking --no-verify-jwt
+npx supabase functions deploy mercadopago-checkout --no-verify-jwt
+npx supabase functions deploy mercadopago-webhook --no-verify-jwt
 if %errorlevel% neq 0 (
     echo.
     echo [WARN] Las funciones no se pudieron desplegar, pero el codigo se guardo en GitHub.

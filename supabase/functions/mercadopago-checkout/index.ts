@@ -47,9 +47,9 @@ serve(async (req) => {
           email: userEmail
         },
         back_urls: {
-          success: `https://vetcare-manager.vercel.app/dashboard?payment=success`,
-          failure: `https://vetcare-manager.vercel.app/planes?payment=failure`,
-          pending: `https://vetcare-manager.vercel.app/dashboard?payment=pending`
+          success: `https://vetxora.vercel.app/dashboard?payment=success`,
+          failure: `https://vetxora.vercel.app/planes?payment=failure`,
+          pending: `https://vetxora.vercel.app/dashboard?payment=pending`
         },
         auto_return: "approved",
         notification_url: `https://xqoqxhxenouicictkodm.functions.supabase.co/mercadopago-webhook`, // Cambiar por tu URL de proyecto real
