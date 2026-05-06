@@ -1,14 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
-import { supabase } from '../../lib/supabase'
 import { STRIPE_PLANS } from '../../lib/stripe'
 
 export function Checkout() {
   const { planId } = useParams<{ planId: string }>()
   const { user, clinicId, loading: authLoading, signOut } = useAuth()
   const [loading, setLoading] = useState(false)
-  const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   // Limpiar pending plan de localStorage al montar
@@ -19,7 +17,6 @@ export function Checkout() {
   // Determinar el plan seleccionado
   const isPro = planId === 'pro'
   const plan = isPro ? STRIPE_PLANS.PRO : STRIPE_PLANS.BASIC
-  const planType = isPro ? 'pro' : 'basic'
 
   // Si no hay usuario y ya terminó de cargar, mostrar mensaje
   if (!authLoading && !user) {
@@ -138,36 +135,27 @@ export function Checkout() {
             </div>
           )}
 
-          {success && (
-            <div className="bg-green-50 border border-green-200 text-green-700 text-sm font-bold p-4 rounded-xl mb-6 flex items-center gap-3">
-              <span className="text-lg">🎉</span>
-              <span>{clinicId ? '¡Pago exitoso! Redirigiendo a tu panel...' : '¡Pago exitoso! Ahora configura tu clínica...'}</span>
-            </div>
-          )}
-
           {/* Pay Button */}
-          {!success && (
-            <button
-              onClick={handlePayment}
-              disabled={loading}
-              className={`w-full py-5 rounded-2xl text-sm font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isPro
-                  ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-xl'
-                  : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-600/20'
-              }`}
-            >
-              {loading ? (
-                <span className="flex items-center justify-center gap-3">
-                  <span className={`w-4 h-4 border-2 rounded-full animate-spin ${
-                    isPro ? 'border-gray-900 border-t-transparent' : 'border-white border-t-transparent'
-                  }`} />
-                  Procesando pago...
-                </span>
-              ) : (
-                `Pagar $${plan.price.toLocaleString()} / mes`
-              )}
-            </button>
-          )}
+          <button
+            onClick={handlePayment}
+            disabled={loading}
+            className={`w-full py-5 rounded-2xl text-sm font-black uppercase tracking-widest transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+              isPro
+                ? 'bg-white text-gray-900 hover:bg-gray-100 shadow-xl'
+                : 'bg-blue-600 text-white hover:bg-blue-700 shadow-xl shadow-blue-600/20'
+            }`}
+          >
+            {loading ? (
+              <span className="flex items-center justify-center gap-3">
+                <span className={`w-4 h-4 border-2 rounded-full animate-spin ${
+                  isPro ? 'border-gray-900 border-t-transparent' : 'border-white border-t-transparent'
+                }`} />
+                Procesando pago...
+              </span>
+            ) : (
+              `Pagar $${plan.price.toLocaleString()} / mes`
+            )}
+          </button>
 
           {/* Security notice */}
           <p className={`text-center mt-6 text-[10px] font-bold uppercase tracking-widest ${
