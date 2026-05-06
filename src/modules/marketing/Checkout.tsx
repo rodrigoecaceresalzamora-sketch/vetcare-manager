@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Link, useParams, useNavigate } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
 import { supabase } from '../../lib/supabase'
 import { STRIPE_PLANS } from '../../lib/stripe'
@@ -7,7 +7,6 @@ import { STRIPE_PLANS } from '../../lib/stripe'
 export function Checkout() {
   const { planId } = useParams<{ planId: string }>()
   const { user, clinicId, loading: authLoading, signOut } = useAuth()
-  const navigate = useNavigate()
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
