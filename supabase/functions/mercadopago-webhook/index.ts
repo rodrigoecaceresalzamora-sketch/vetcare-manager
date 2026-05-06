@@ -90,8 +90,30 @@ serve(async (req) => {
               })
               .select()
               .single()
-            
-            console.log('Nueva clínica creada con éxito:', newClinic.id)
+
+            if (newClinic) {
+              // Obtener email del usuario para crear staff
+              const { data: userData } = await supabase.auth.admin.getUserById(user_id)
+              const userEmail = userData?.user?.email || payment.payer?.email || ''
+
+              // Crear registro en staff (necesario para RLS)
+              await supabase.from('staff').insert({
+                email: userEmail.toLowerCase(),
+                role: 'admin',
+                clinic_id: newClinic.id
+              })
+
+              // Crear configuración inicial de la clínica
+              await supabase.from('clinic_config').insert({
+                clinic_id: newClinic.id,
+                clinic_name: 'Mi Clínica Veterinaria',
+                clinic_logo_url: '/logo.png',
+                primary_color: '#3b82f6',
+                secondary_color: '#eff6ff'
+              })
+
+              console.log('Nueva clínica creada con éxito:', newClinic.id)
+            }
           }
         }
       }
