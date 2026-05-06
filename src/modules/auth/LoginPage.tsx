@@ -35,6 +35,14 @@ export function LoginPage() {
   const [resetSent, setResetSent] = useState(false)
   const [isRecovery, setIsRecovery] = useState(false)
 
+  // Leer parámetro de la URL para abrir en modo registro
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('tab') === 'register') {
+      setIsLogin(false)
+    }
+  }, [])
+
   const switchTab = (toLogin: boolean) => {
     setIsLogin(toLogin)
     setIsForgotPassword(false)
@@ -123,7 +131,7 @@ export function LoginPage() {
       const { error: err } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: `${window.location.origin}/dashboard`,
         }
       })
       if (err) throw err

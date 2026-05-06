@@ -6,6 +6,7 @@
 import { useState, useEffect } from 'react'
 import type { Consultation, Service } from '../../types'
 import { supabase } from '../../lib/supabase'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface Props {
   patientId: string
@@ -20,12 +21,14 @@ export function ConsultationForm({ patientId, initialData, onClose, onSave, read
   const [errorMsg, setErrorMsg] = useState('')
   const [services, setServices] = useState<Service[]>([])
   const [selectedServiceId, setSelectedServiceId] = useState(initialData?.service_id || '')
+  const { clinicId } = useAuth()
 
   useEffect(() => {
-    supabase.from('services').select('*').order('name').then(({ data }) => {
+    if (!clinicId) return
+    supabase.from('services').select('*').eq('clinic_id', clinicId).order('name').then(({ data }) => {
       if (data) setServices(data as Service[])
     })
-  }, [])
+  }, [clinicId])
 
   // Campos libres base
   const [reason, setReason] = useState(initialData?.reason_for_consultation || '')

@@ -264,10 +264,13 @@ export function VaccineDashboard() {
                   className="flex items-center gap-3 px-4 py-3 hover:bg-pink-50/40
                              transition-colors"
                 >
-                  {/* Avatar especie */}
-                  <div className="w-9 h-9 rounded-lg bg-vet-light flex items-center
-                                  justify-center text-lg flex-shrink-0">
-                    {speciesEmoji(alert.patient.species)}
+                  {/* Avatar especie o foto */}
+                  <div className="w-9 h-9 rounded-lg bg-vet-light flex items-center justify-center text-lg flex-shrink-0 overflow-hidden border border-pink-100">
+                    {alert.patient.photo_url ? (
+                      <img src={alert.patient.photo_url} alt={alert.patient.name} className="w-full h-full object-cover" />
+                    ) : (
+                      speciesEmoji(alert.patient.species)
+                    )}
                   </div>
 
                   {/* Info paciente */}

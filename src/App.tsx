@@ -2,14 +2,17 @@
 // Vetxora — App.tsx
 // Enrutamiento principal y layout de la aplicación.
 //
+// Rutas públicas:
+//   /           → Landing Page (página principal)
+//   /planes     → Planes y precios públicos
+//   /checkout   → Checkout de pago
+//   /reserva    → Módulo 4: Portal de agendamiento público
+//
 // Rutas internas (requieren auth):
-//   /           → Dashboard (redirige a /vacunas)
+//   /dashboard  → Redirect inteligente según rol
 //   /pacientes  → Módulo 1: Pacientes y tutores
 //   /vacunas    → Módulo 2: Vacunas y notificaciones
 //   /agenda     → Módulo 3: Agenda semanal
-//
-// Rutas públicas (sin auth):
-//   /reserva    → Módulo 4: Portal de agendamiento público
 // ============================================================
 
 import React, { useState, useEffect, Suspense, lazy } from 'react'
@@ -31,6 +34,9 @@ const StockManagement = lazy(() => import('./modules/stock/StockManagement').the
 const SettingsManagement = lazy(() => import('./modules/staff/SettingsManagement').then(m => ({ default: m.SettingsManagement })))
 const Onboarding = lazy(() => import('./modules/auth/Onboarding').then(m => ({ default: m.Onboarding })))
 const Billing = lazy(() => import('./modules/staff/Billing').then(m => ({ default: m.Billing })))
+const LandingPage = lazy(() => import('./modules/marketing/LandingPage').then(m => ({ default: m.LandingPage })))
+const PublicPricing = lazy(() => import('./modules/marketing/PublicPricing').then(m => ({ default: m.PublicPricing })))
+const Checkout = lazy(() => import('./modules/marketing/Checkout').then(m => ({ default: m.Checkout })))
 
 import { getGravatarUrl }    from './lib/utils'
 
@@ -41,6 +47,12 @@ function DashboardRedirect() {
   
   if (loading || clinicLoading) return <div className="p-20 text-center animate-pulse text-gray-400 font-black uppercase tracking-widest text-xs">Validando accesos...</div>
   if (!user) return <Navigate to="/login" replace />
+
+  // 0. Verificar si hay un plan pendiente de compra (flujo: planes -> login -> checkout)
+  const pendingPlan = localStorage.getItem('vexora_pending_plan')
+  if (pendingPlan) {
+    return <Navigate to={`/checkout/${pendingPlan}`} replace />
+  }
   
   // 1. Staff con clínica -> Dashboard (Agenda)
   if ((role === 'admin' || role === 'ayudante') && clinicId) {
@@ -52,13 +64,9 @@ function DashboardRedirect() {
     return <Navigate to="/onboarding" replace />
   }
 
-  // 3. Tutor o Sin Cuenta -> No tiene licencia en el login principal
+  // 3. Tutor o Sin Cuenta -> Landing page con sesión activa
   // (Los tutores entran por el link de su clínica /c/su-clinica)
-  if (user) {
-    return <Navigate to="/no-license" replace />
-  }
-
-  return <Navigate to="/login" replace />
+  return <Navigate to="/" replace />
 }
 
 
@@ -433,7 +441,9 @@ export default function App() {
           <Suspense fallback={<div className="flex h-screen items-center justify-center bg-vet-bone"><div className="animate-spin w-8 h-8 border-4 border-vet-rose border-t-transparent rounded-full" /></div>}>
             <Routes>
             {/* Rutas Públicas */}
-            <Route path="/" element={<DashboardRedirect />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/planes" element={<PublicPricing />} />
+            <Route path="/checkout/:planId" element={<Checkout />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/no-license" element={<NoLicense />} />
             <Route path="/reserva/:clinicId" element={<PublicBooking />} />

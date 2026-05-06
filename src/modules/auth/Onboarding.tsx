@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../contexts/AuthContext'
 
@@ -9,6 +9,11 @@ export function Onboarding() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+
+  // Leer plan desde URL params (viene del flujo de checkout)
+  const planFromCheckout = searchParams.get('plan') || 'basic'
+  const paidFromCheckout = searchParams.get('paid') === 'true'
 
   async function handleCreateClinic(e: React.FormEvent) {
     e.preventDefault()
@@ -18,14 +23,14 @@ export function Onboarding() {
     setError(null)
     
     try {
-      // 1. Crear la clínica
+      // 1. Crear la clínica (nuevo clinic_id único vinculado a esta cuenta)
       const { data: clinic, error: clinicErr } = await supabase
         .from('clinics')
         .insert({ 
           name: clinicName, 
           owner_id: user.id,
-          plan_type: 'basic',
-          is_paid: false 
+          plan_type: planFromCheckout,
+          is_paid: paidFromCheckout 
         })
         .select()
         .single()
@@ -44,9 +49,14 @@ export function Onboarding() {
       if (staffErr) throw staffErr
 
       // 3. Crear una configuración inicial para la clínica
+      //    Paleta azul/blanco por defecto con logo de Vexora
+      //    El cliente la personaliza después desde Configuración
       await supabase.from('clinic_config').insert({
         clinic_id: clinic.id,
-        clinic_name: clinicName
+        clinic_name: clinicName,
+        clinic_logo_url: '/logo.png',
+        primary_color: '#3b82f6',
+        secondary_color: '#eff6ff'
       })
 
       // Refrescar auth y redirigir

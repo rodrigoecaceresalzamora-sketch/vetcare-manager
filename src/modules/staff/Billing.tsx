@@ -87,6 +87,7 @@ export function Billing() {
             <PlanFeature label="Hasta 5 Ayudantes" />
             <PlanFeature label="Agenda Completa" />
             <PlanFeature label="Fichas de Pacientes" />
+            <PlanFeature label="Recordatorios Automáticos" />
             <PlanFeature label="Soporte por Email" />
           </ul>
 
@@ -121,10 +122,11 @@ export function Billing() {
           <ul className="space-y-4 mb-8">
             <PlanFeature label="Administradores Ilimitados" isDark />
             <PlanFeature label="Ayudantes Ilimitados" isDark />
-            <PlanFeature label="Gestión de Stock Avanzada" isDark />
-            <PlanFeature label="Estadísticas y Reportes" isDark />
+            <PlanFeature label="Agenda Completa" isDark />
+            <PlanFeature label="Fichas de Pacientes" isDark />
             <PlanFeature label="Recordatorios Automáticos" isDark />
-            <PlanFeature label="Soporte Prioritario 24/7" isDark />
+            <PlanFeature label="Stock Completo" isDark />
+            <PlanFeature label="Soporte Prioritario" isDark />
           </ul>
 
           <button 
@@ -146,22 +148,7 @@ export function Billing() {
         </div>
       </div>
 
-      {/* Payout Information (Información para el usuario) */}
-      <div className="bg-vet-bone/50 border border-pink-100 rounded-3xl p-8 mt-12 flex flex-col md:flex-row items-center gap-8">
-        <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-pink-100 flex-shrink-0">
-          <svg className="w-10 h-10 text-vet-rose" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2v20m0-20H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2h-6z" />
-          </svg>
-        </div>
-        <div>
-          <h4 className="font-black text-gray-900 uppercase tracking-tight mb-2">¿Cómo llega el dinero a tu cuenta?</h4>
-          <p className="text-sm text-gray-600 leading-relaxed max-w-2xl">
-            Al integrar Stripe, el dinero de las suscripciones de tus clientes se acumula en tu balance de Stripe. 
-            Puedes configurar transferencias automáticas a tu cuenta bancaria (CLP) desde el panel de control de Stripe, 
-            asegurando que recibas tus ingresos de forma recurrente y segura.
-          </p>
-        </div>
-      </div>
+        {/* Payout Information eliminada según solicitud */}
     </div>
   )
 }

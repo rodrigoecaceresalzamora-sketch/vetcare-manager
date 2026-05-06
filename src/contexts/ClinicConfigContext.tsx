@@ -74,17 +74,36 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       if (data) {
         let finalData = { ...data };
-        // AUTO-CURACIÓN AGRESIVA
-        const isTrash = (data.transfer_details?.includes('sefeds'));
-        const isSofiaClinic = data.clinic_id === '332ada4e-5a26-4010-985b-fb72be386d09';
-
-        if (isSofiaClinic && isTrash) {
-           finalData = { ...finalData, ...SOFIA_DEFAULTS };
-           supabase.from('clinic_config').upsert({ clinic_id: data.clinic_id, ...SOFIA_DEFAULTS }).then(() => {});
-        }
         
+        // AUTO-LIMPIEZA DE DATOS FILTRADOS DE SOFÍA
+        if (finalData.clinic_id !== '332ada4e-5a26-4010-985b-fb72be386d09' && 
+           (finalData.contact_phone === '+56951045611' || finalData.clinic_logo_url === 'https://raw.githubusercontent.com/rodrigoecaceresalzamora-sketch/vetxora/main/public/logo.png')) {
+           finalData.contact_phone = '';
+           finalData.contact_email = '';
+           finalData.address = '';
+           finalData.transfer_details = '';
+           finalData.google_maps_embed_url = '';
+           finalData.show_booking_limit_notice = false;
+           finalData.booking_limit_notice = '';
+           finalData.schedule = {};
+           finalData.clinic_logo_url = '/favicon.png';
+
+           // update DB in background
+           supabase.from('clinic_config').update({
+             contact_phone: '',
+             contact_email: '',
+             address: '',
+             transfer_details: '',
+             google_maps_embed_url: '',
+             show_booking_limit_notice: false,
+             booking_limit_notice: '',
+             schedule: {},
+             clinic_logo_url: '/favicon.png'
+           }).eq('clinic_id', finalData.clinic_id).then();
+        }
+
         // Si entramos por slug, actualizamos el clinicId interno para consistencia
-        if (currentClinicId !== data.clinic_id) {
+        if (currentClinicId !== finalData.clinic_id) {
            // No cambiamos currentClinicId inmediatamente para evitar loops, 
            // pero el config tendrá el ID real.
         }
@@ -95,9 +114,7 @@ export const ClinicConfigProvider: React.FC<{ children: React.ReactNode }> = ({ 
         // Solo intentamos auto-crear si parece un UUID válido (no un slug)
         const isUUID = /^[0-9a-fA-F-]{36}$/.test(currentClinicId);
         if (isUUID) {
-          const insertData = user?.email === 'scaceresalzamora@gmail.com' 
-            ? { clinic_id: currentClinicId, ...SOFIA_DEFAULTS }
-            : { clinic_id: currentClinicId, clinic_name: 'Vetxora' };
+          const insertData = { clinic_id: currentClinicId, clinic_name: 'Mi Clínica' };
 
           const { data: newC } = await supabase
             .from('clinic_config')

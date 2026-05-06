@@ -14,6 +14,29 @@ export function SettingsManagement() {
 
   useEffect(() => {
     if (config) {
+      // Auto-reparar filtraciones de configuración de Sofía si estamos en otra clínica
+      if (clinicId && clinicId !== '332ada4e-5a26-4010-985b-fb72be386d09' && (config.contact_phone === '+56951045611' || config.booking_limit_notice?.includes('Quilpué'))) {
+        updateConfig({
+          contact_phone: '',
+          contact_email: '',
+          address: '',
+          transfer_details: '',
+          google_maps_embed_url: '',
+          show_booking_limit_notice: false,
+          booking_limit_notice: '',
+          schedule: {}
+        })
+        // No retornamos, seguimos inicializando localConfig (con campos vacíos manuales si es necesario)
+        config.contact_phone = ''
+        config.contact_email = ''
+        config.address = ''
+        config.transfer_details = ''
+        config.google_maps_embed_url = ''
+        config.show_booking_limit_notice = false
+        config.booking_limit_notice = ''
+        config.schedule = {}
+      }
+
       setLocalConfig({
         ...config,
         wa_template_reminder: config.wa_template_reminder || 'Hola {tutor}, te recordamos la vacuna de {mascota} ({vacuna}) para el día {fecha} en {direccion}.',
