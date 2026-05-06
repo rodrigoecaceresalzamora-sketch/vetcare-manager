@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { useAuth } from '../../contexts/AuthContext'
+import { supabase } from '../../lib/supabase'
 import { STRIPE_PLANS } from '../../lib/stripe'
 
 export function Checkout() {
   const { planId } = useParams<{ planId: string }>()
-  const { user, loading: authLoading, signOut } = useAuth()
+  const { user, clinicId, loading: authLoading, signOut } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -45,16 +46,27 @@ export function Checkout() {
     setError(null)
 
     try {
-      // ── LA SIMULACIÓN DE PAGO HA SIDO DESHABILITADA ──────
-      // El sistema ahora requiere validación real para evitar registros no autorizados.
+      // ── LLAMADA A MERCADO PAGO (Vía Supabase Edge Function) ──
+      console.log('Iniciando pago para plan:', planId)
       
-      // Simulación de carga para feedback visual
-      await new Promise(resolve => setTimeout(resolve, 1500))
+      const { data, error: funcError } = await supabase.functions.invoke('mercadopago-checkout', {
+        body: { 
+          planId, 
+          userId: user.id, 
+          userEmail: user.email,
+          clinicId: clinicId
+        }
+      })
 
-      throw new Error('El sistema de pagos en línea está en mantenimiento. Por favor, contacta a soporte@vetxora.com para activar tu clínica manualmente.')
+      if (funcError) throw funcError
+      if (!data?.url) throw new Error('No se pudo generar el link de pago')
+
+      // Redirigir al checkout de Mercado Pago
+      window.location.href = data.url
       
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Error procesando el pago'
+      console.error('Error en checkout:', err)
       setError(message)
       setLoading(false)
     }
